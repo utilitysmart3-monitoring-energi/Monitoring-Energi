@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MONITORING TARIF & BIAYA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg: #0a0e17; --primary: #00ff9d; --secondary: #00d0ff; --card-bg: #111827; --text: #e0f7ff; }
+        body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; padding: 20px; }
+        
+        /* Header & Nav */
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid rgba(0,255,157,0.2); padding-bottom: 20px; }
+        .home-btn { 
+            text-decoration: none; color: var(--primary); border: 1px solid var(--primary);
+            padding: 8px 20px; border-radius: 50px; font-weight: bold; transition: 0.3s;
+            background: rgba(0,0,0,0.3); display: flex; align-items: center; gap: 8px; font-size: 0.9rem;
+        }
+        .home-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+        h1 { font-family: 'Orbitron'; font-size: 1.5rem; letter-spacing: 2px; text-shadow: 0 0 10px rgba(0,255,157,0.5); }
+
+        /* Configuration Section */
+        .config-box {
+            background: rgba(17, 24, 39, 0.8); border: 1px solid var(--secondary);
+            padding: 20px; border-radius: 15px; display: flex; gap: 20px; flex-wrap: wrap;
+            align-items: flex-end; margin-bottom: 30px; box-shadow: 0 0 20px rgba(0, 208, 255, 0.1);
+        }
+        .input-group { display: flex; flex-direction: column; flex: 1; min-width: 200px; }
+        label { font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px; }
+        input { 
+            background: #0a0e17; border: 1px solid #334155; color: white; padding: 12px; 
+            border-radius: 8px; font-family: 'JetBrains Mono'; font-size: 1rem;
+        }
+        input:focus { outline: none; border-color: var(--secondary); }
+        .save-btn {
+            background: var(--secondary); color: black; border: none; padding: 12px 25px;
+            border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; height: 46px;
+        }
+        .save-btn:hover { box-shadow: 0 0 15px var(--secondary); }
+
+        /* List Section */
+        .list-container { display: flex; flex-direction: column; gap: 10px; }
+        .list-header {
+            display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; gap: 10px;
+            padding: 10px 20px; background: rgba(0, 255, 157, 0.1); border-radius: 8px;
+            color: var(--primary); font-weight: bold; font-family: 'Orbitron'; font-size: 0.9rem;
+        }
+        .list-item {
+            display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 2fr; gap: 10px;
+            padding: 15px 20px; background: var(--card-bg); border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05); align-items: center; transition: 0.3s;
+        }
+        .list-item:hover { transform: translateX(5px); border-color: var(--primary); background: rgba(17, 24, 39, 1); }
+        
+        .mc-name { color: #fff; font-weight: bold; font-size: 1rem; }
+        .mc-sub { font-size: 0.8rem; color: #94a3b8; }
+        .val-t { color: #cbd5e1; }
+        .val-cost { color: var(--primary); font-weight: bold; font-size: 1.1rem; }
+        
+        @media (max-width: 768px) {
+            .list-header { display: none; }
+            .list-item { grid-template-columns: 1fr; gap: 15px; }
+            .mobile-label { display: inline-block; width: 100px; color: #94a3b8; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="index.html" class="home-btn"><i class="fa-solid fa-arrow-left"></i> MENU UTAMA</a>
+        <h1>MONITORING TARIF</h1>
+    </div>
+
+    <!-- CONFIG HARGA -->
+    <div class="config-box">
+        <div class="input-group">
+            <label><i class="fa-solid fa-bolt"></i> TARIF LWBP (Rp/kWh)</label>
+            <input type="number" id="inputLWBP" placeholder="1035.78">
+        </div>
+        <div class="input-group">
+            <label><i class="fa-solid fa-clock"></i> TARIF WBP (Rp/kWh)</label>
+            <input type="number" id="inputWBP" placeholder="1553.67">
+        </div>
+        <button class="save-btn" onclick="saveTarif()"><i class="fa-solid fa-save"></i> UPDATE HARGA</button>
+    </div>
+
+    <!-- LIST MONITORING -->
+    <div class="list-container">
+        <div class="list-header">
+            <div>NAMA MESIN</div>
+            <div>COUNTER T1 (LWBP)</div>
+            <div>COUNTER T2 (WBP)</div>
+            <div>ESTIMASI BIAYA</div>
+        </div>
+        <div id="machineList">
+            <!-- Items generated by JS -->
+        </div>
+    </div>
+
+    <script>
+        const MACHINES = [
+            {id:1, name:"UNKNOW"}, {id:2, name:"UNKNOW"}, {id:3, name:"UNKNOW"},
+            {id:4, name:"UNKNOW"}, {id:5, name:"MESIN 41"}, {id:6, name:"MC 40"},
+            {id:7, name:"MC 39"}, {id:8, name:"UNKNOW"}, {id:9, name:"MC 5"},
+            {id:10, name:"HEATER MC 5"}, {id:11, name:"UNKNOW"}, {id:12, name:"MC 34"},
+            {id:13, name:"MC 35"}, {id:14, name:"UNKNOW"}, {id:15, name:"UNKNOW"},
+            {id:16, name:"MC 38"}, {id:17, name:"MC 36"}, {id:18, name:"MC 37"}
+        ];
+
+        let tarifLwbp = 1035.78;
+        let tarifWbp = 1553.67;
+        let machineCounters = {};
+
+        window.onload = () => {
+            // Load Prices
+            tarifLwbp = localStorage.getItem('tarif_lwbp') || 1035.78;
+            tarifWbp = localStorage.getItem('tarif_wbp') || 1553.67;
+            
+            document.getElementById('inputLWBP').value = tarifLwbp;
+            document.getElementById('inputWBP').value = tarifWbp;
+
+            initList();
+            startSimulation();
+        };
+
+        function saveTarif() {
+            const t1 = document.getElementById('inputLWBP').value;
+            const t2 = document.getElementById('inputWBP').value;
+            if(t1 && t2) {
+                localStorage.setItem('tarif_lwbp', t1);
+                localStorage.setItem('tarif_wbp', t2);
+                tarifLwbp = t1; tarifWbp = t2;
+                updateDisplay();
+                alert("✅ Harga Tarif Diperbarui!");
+            }
+        }
+
+        function initList() {
+            const container = document.getElementById('machineList');
+            container.innerHTML = '';
+            
+            MACHINES.forEach(m => {
+                // Random Start Values
+                machineCounters[m.id] = {
+                    t1: 5000 + Math.random() * 1000,
+                    t2: 2500 + Math.random() * 500
+                };
+
+                const div = document.createElement('div');
+                div.className = 'list-item';
+                div.id = `row-${m.id}`;
+                div.innerHTML = `
+                    <div>
+                        <div class="mc-name">${m.name}</div>
+                        <div class="mc-sub">SID ${m.id}</div>
+                    </div>
+                    <div>
+                        <span class="mobile-label">T1 (LWBP):</span>
+                        <span class="val-t" id="val-t1-${m.id}">0.00 kWh</span>
+                    </div>
+                    <div>
+                        <span class="mobile-label">T2 (WBP):</span>
+                        <span class="val-t" id="val-t2-${m.id}">0.00 kWh</span>
+                    </div>
+                    <div>
+                        <span class="mobile-label">Total:</span>
+                        <span class="val-cost" id="val-cost-${m.id}">Rp 0</span>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            MACHINES.forEach(m => {
+                const c = machineCounters[m.id];
+                const cost = (c.t1 * tarifLwbp) + (c.t2 * tarifWbp);
+                
+                document.getElementById(`val-t1-${m.id}`).innerText = c.t1.toFixed(2) + " kWh";
+                document.getElementById(`val-t2-${m.id}`).innerText = c.t2.toFixed(2) + " kWh";
+                document.getElementById(`val-cost-${m.id}`).innerText = "Rp " + cost.toLocaleString('id-ID', {maximumFractionDigits:0});
+            });
+        }
+
+        function startSimulation() {
+            setInterval(() => {
+                MACHINES.forEach(m => {
+                    // Simulate energy increase
+                    const increase = Math.random() * 0.05; // kWh increment
+                    if(Math.random() > 0.4) machineCounters[m.id].t1 += increase; // More likely T1
+                    else machineCounters[m.id].t2 += increase;
+                });
+                updateDisplay();
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
