@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REALTIME MONITORING • 18 MESIN</title>
+    
+    <!-- Font & Icon -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Paho MQTT Client (Wajib untuk Web ke MQTT) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+
     <style>
         :root {
             --bg: #0a0e17; --primary: #00ff9d; --secondary: #00d0ff; 
@@ -14,7 +20,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace;
-            padding: 20px; min-height: 100vh; position: relative;
+            padding: 20px; min-height: 100vh; position: relative; overflow-x: hidden;
         }
         
         /* Background Animation */
@@ -37,14 +43,14 @@
         .home-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
         h1 { 
             font-family: 'Orbitron'; font-size: clamp(1.5rem, 4vw, 2.5rem); 
-            text-shadow: 0 0 15px rgba(0,255,157,0.3); letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(0,255,157,0.3); letter-spacing: 2px; margin: 0;
         }
-        .live-badge {
-            background: rgba(0, 255, 157, 0.1); color: var(--primary); 
-            padding: 5px 12px; border-radius: 4px; border: 1px solid var(--primary);
-            font-size: 0.8rem; font-weight: bold; animation: pulse 2s infinite;
+        .status-badge {
+            font-size: 0.8rem; padding: 5px 10px; border-radius: 4px; border: 1px solid #333; color: #666;
         }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .status-badge.connected {
+            border-color: var(--primary); color: var(--primary); background: rgba(0,255,157,0.1);
+        }
 
         /* GRID SYSTEM */
         .grid {
@@ -59,17 +65,16 @@
             border-color: var(--primary); transform: translateY(-5px); 
             box-shadow: 0 10px 30px rgba(0,255,157,0.1);
         }
-        .card::after {
-            content: 'KLIK UNTUK DETAIL'; position: absolute; bottom: 0; left: 0; width: 100%;
-            background: var(--primary); color: black; font-weight: bold; font-size: 0.7rem;
-            padding: 5px; transform: translateY(100%); transition: 0.3s;
-        }
-        .card:hover::after { transform: translateY(0); }
-
+        
         .status-dot { 
-            width: 10px; height: 10px; background: var(--primary); border-radius: 50%; 
-            position: absolute; top: 15px; right: 15px; box-shadow: 0 0 10px var(--primary); 
+            width: 10px; height: 10px; background: #333; border-radius: 50%; 
+            position: absolute; top: 15px; right: 15px; transition: 0.3s;
         }
+        .status-dot.online { background: var(--primary); box-shadow: 0 0 10px var(--primary); animation: blink 1s infinite alternate; }
+        .status-dot.offline { background: var(--offline); box-shadow: 0 0 10px var(--offline); }
+        
+        @keyframes blink { from { opacity: 1; } to { opacity: 0.4; } }
+
         .mc-name { color: var(--secondary); font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
         .mc-sid { font-size: 1.4rem; font-family: 'Orbitron'; margin-bottom: 15px; color: #fff; }
         .summary-val { font-size: 1.2rem; font-weight: bold; color: var(--primary); }
@@ -123,10 +128,10 @@
 <body>
 
     <div class="header">
-        <a href="index.html" class="home-btn"><i class="fa-solid fa-arrow-left"></i> MENU UTAMA</a>
+        <a href="index.html" class="home-btn"><i class="fa-solid fa-arrow-left"></i> KEMBALI</a>
         <div style="text-align:center">
             <h1>LIVE MONITORING</h1>
-            <div class="live-badge">● DATA REALTIME AKTIF</div>
+            <div id="connStatus" class="status-badge">Menghubungkan ke MQTT...</div>
         </div>
         <div style="width: 140px;"></div> <!-- Spacer biar judul center -->
     </div>
@@ -143,7 +148,7 @@
             
             <div class="modal-header">
                 <div class="modal-title" id="mTitle">MESIN X</div>
-                <div class="modal-subtitle" id="mSubtitle">Status: ONLINE • Last Update: Just now</div>
+                <div class="modal-subtitle" id="mSubtitle">Status: --</div>
             </div>
 
             <div class="param-grid" id="modalGrid">
@@ -153,70 +158,131 @@
     </div>
 
     <script>
-        // DAFTAR 18 MESIN
-        const MACHINES = [
-            {id:1, name:"UNKNOW"}, {id:2, name:"UNKNOW"}, {id:3, name:"UNKNOW"},
-            {id:4, name:"UNKNOW"}, {id:5, name:"MESIN 41"}, {id:6, name:"MC 40"},
-            {id:7, name:"MC 39"}, {id:8, name:"UNKNOW"}, {id:9, name:"MC 5"},
-            {id:10, name:"HEATER MC 5"}, {id:11, name:"UNKNOW"}, {id:12, name:"MC 34"},
-            {id:13, name:"MC 35"}, {id:14, name:"UNKNOW"}, {id:15, name:"UNKNOW"},
-            {id:16, name:"MC 38"}, {id:17, name:"MC 36"}, {id:18, name:"MC 37"}
-        ];
+        // --- KONFIGURASI NAMA MESIN (SAMA DENGAN ESP32) ---
+        const MACHINE_NAMES = {
+            1:"UNKNOW", 2:"UNKNOW", 3:"UNKNOW", 4:"UNKNOW", 
+            5:"MESIN 41", 6:"MC 40", 7:"MC 39", 8:"UNKNOW", 
+            9:"MC 5", 10:"HEATER MC 5", 11:"UNKNOW", 12:"MC 34",
+            13:"MC 35", 14:"UNKNOW", 15:"UNKNOW", 16:"MC 38", 
+            17:"MC 36", 18:"MC 37"
+        };
 
-        let machineData = {};
-        let activeModalId = null;
+        // --- KONFIGURASI MQTT ---
+        const MQTT_BROKER = "broker.hivemq.com";
+        const MQTT_PORT = 8884; // GANTI KE PORT SECURE (WSS)
+        const MQTT_TOPIC = "politeknik/meter/data";
+        
+        let client;
+        let machineData = {}; // Menyimpan data terakhir setiap mesin
+        let activeModalId = null; // ID mesin yang sedang dibuka modalnya
 
-        // 1. GENERATE GRID AWAL
+        // --- 1. INISIALISASI GRID KARTU ---
         const gridContainer = document.getElementById('gridContainer');
         
-        MACHINES.forEach(m => {
-            // Init Data Dummy
-            machineData[m.id] = generateDummyData(null);
+        for (let i = 1; i <= 18; i++) {
+            // Init data kosong
+            machineData[i] = null; 
 
             const card = document.createElement('div');
             card.className = 'card';
-            card.onclick = () => openModal(m.id);
+            card.onclick = () => openModal(i);
             card.innerHTML = `
-                <div class="status-dot"></div>
-                <div class="mc-name">${m.name}</div>
-                <div class="mc-sid">SID ${m.id}</div>
+                <div class="status-dot" id="dot-${i}"></div>
+                <div class="mc-name">${MACHINE_NAMES[i]}</div>
+                <div class="mc-sid">SID ${i}</div>
                 <div style="margin-top:15px">
                     <div class="summary-lbl">Active Power</div>
-                    <div class="summary-val" id="card-p-${m.id}">0 W</div>
+                    <div class="summary-val" id="card-p-${i}">0 W</div>
                 </div>
                 <div style="margin-top:10px">
                     <div class="summary-lbl">Total Energy</div>
-                    <div class="summary-val" style="color:#fff; font-size:1rem" id="card-e-${m.id}">0 kWh</div>
+                    <div class="summary-val" style="color:#fff; font-size:1rem" id="card-e-${i}">0 kWh</div>
                 </div>
             `;
             gridContainer.appendChild(card);
-        });
+        }
 
-        // 2. FUNGSI UPDATE DATA (SIMULASI)
-        setInterval(() => {
-            MACHINES.forEach(m => {
-                // Update data logic
-                machineData[m.id] = generateDummyData(machineData[m.id]);
+        // --- 2. KONEKSI MQTT ---
+        function startMqtt() {
+            const clientId = "web_poltek_" + parseInt(Math.random() * 100000);
+            client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, clientId);
 
-                // Update Tampilan Kartu Luar
-                document.getElementById(`card-p-${m.id}`).innerText = machineData[m.id].P.toLocaleString() + " W";
-                document.getElementById(`card-e-${m.id}`).innerText = machineData[m.id].EaT.toFixed(1) + " kWh";
+            client.onConnectionLost = onConnectionLost;
+            client.onMessageArrived = onMessageArrived;
 
-                // Jika Modal sedang terbuka untuk ID ini, update juga isinya real-time
-                if(activeModalId === m.id) {
-                    renderModalParams(m.id);
+            const options = {
+                useSSL: true, // WAJIB TRUE UNTUK HTTPS
+                onSuccess: onConnect,
+                onFailure: (e) => {
+                    console.log("MQTT Gagal:", e);
+                    document.getElementById('connStatus').innerText = "Gagal Konek, Retrying...";
+                    setTimeout(startMqtt, 5000);
                 }
-            });
-        }, 2000); // Refresh tiap 2 detik
+            };
+            
+            client.connect(options);
+        }
 
-        // 3. FUNGSI MEMBUKA MODAL (DETAIL)
+        function onConnect() {
+            console.log("MQTT Terhubung!");
+            document.getElementById('connStatus').innerText = "● LIVE CONNECTED";
+            document.getElementById('connStatus').classList.add('connected');
+            client.subscribe(MQTT_TOPIC);
+        }
+
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log("Koneksi Putus:", responseObject.errorMessage);
+                document.getElementById('connStatus').innerText = "Terputus! Reconnecting...";
+                document.getElementById('connStatus').classList.remove('connected');
+                setTimeout(startMqtt, 5000); // Auto reconnect
+            }
+        }
+
+        // --- 3. SAAT DATA DITERIMA DARI ESP32 ---
+        function onMessageArrived(message) {
+            try {
+                const payload = JSON.parse(message.payloadString);
+                const id = payload.id;
+
+                // Simpan data ke memory
+                machineData[id] = payload;
+
+                // Update UI Kartu
+                updateCard(id, payload);
+
+                // Jika Modal Mesin ini sedang terbuka, update juga isinya
+                if (activeModalId === id) {
+                    renderModalParams(id);
+                }
+
+            } catch (e) {
+                console.error("Error parsing JSON:", e);
+            }
+        }
+
+        function updateCard(id, data) {
+            const dot = document.getElementById(`dot-${id}`);
+            const elP = document.getElementById(`card-p-${id}`);
+            const elE = document.getElementById(`card-e-${id}`);
+
+            if (data.status === "online") {
+                dot.className = "status-dot online";
+                // Data JSON dari ESP32: P (Watt), EaT (Total Energy)
+                elP.innerText = Number(data.P).toLocaleString('id-ID') + " W";
+                elE.innerText = Number(data.EaT).toFixed(2) + " kWh";
+            } else {
+                dot.className = "status-dot offline";
+                // Biarkan angka terakhir tetap tampil, atau ubah jadi '---'
+            }
+        }
+
+        // --- 4. MODAL DETAIL ---
         function openModal(id) {
             activeModalId = id;
-            const m = MACHINES.find(x => x.id === id);
+            const name = MACHINE_NAMES[id];
             
-            document.getElementById('mTitle').innerText = m.name;
-            document.getElementById('mSubtitle').innerText = `SID ${id} • ONLINE • Modbus ID: ${id}`;
-            
+            document.getElementById('mTitle').innerText = name;
             renderModalParams(id);
             document.getElementById('detailModal').classList.add('active');
         }
@@ -226,95 +292,106 @@
             activeModalId = null;
         }
 
-        // 4. RENDER 16 PARAMETER KE DALAM MODAL
         function renderModalParams(id) {
             const d = machineData[id];
             const grid = document.getElementById('modalGrid');
-            
-            // Format Op Time
-            const days = Math.floor(d.OpTime / 24);
-            const hrs = (d.OpTime % 24).toFixed(1);
+            const sub = document.getElementById('mSubtitle');
 
-            // Template 16 Kotak Parameter
+            if (!d || d.status === "offline") {
+                sub.innerText = `SID ${id} • OFFLINE • No Data`;
+                sub.style.color = "var(--offline)";
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:20px; color:#666;">Data tidak tersedia (Offline)</div>`;
+                return;
+            }
+
+            sub.innerText = `SID ${id} • ONLINE • Modbus OK`;
+            sub.style.color = "var(--primary)";
+
+            // Format OpTime (Jam -> Hari, Jam)
+            const opHours = Number(d.OpH) || 0;
+            const days = Math.floor(opHours / 24);
+            const hrs = (opHours % 24).toFixed(1);
+
+            // Template 16 Kotak Parameter (Sesuai JSON ESP32)
             grid.innerHTML = `
                 <!-- 1. Total Ea -->
                 <div class="param-box" style="border-color:var(--primary)">
                     <div class="p-label">1. Total Ea <span class="p-unit">kWh</span></div>
-                    <div class="p-value highlight">${d.EaT.toFixed(2)}</div>
+                    <div class="p-value highlight">${Number(d.EaT).toFixed(2)}</div>
                 </div>
                 <!-- 2. Total Er -->
                 <div class="param-box">
                     <div class="p-label">2. Total Er <span class="p-unit">kVARh</span></div>
-                    <div class="p-value">${d.ErT.toFixed(2)}</div>
+                    <div class="p-value">${Number(d.ErT).toFixed(2)}</div>
                 </div>
                 <!-- 3. Partial Ea -->
                 <div class="param-box">
                     <div class="p-label">3. Partial Ea <span class="p-unit">kWh</span></div>
-                    <div class="p-value">${d.EaP.toFixed(2)}</div>
+                    <div class="p-value">${Number(d.EaP).toFixed(2)}</div>
                 </div>
                 <!-- 4. Partial Er -->
                 <div class="param-box">
                     <div class="p-label">4. Partial Er <span class="p-unit">kVARh</span></div>
-                    <div class="p-value">${d.ErP.toFixed(2)}</div>
+                    <div class="p-value">${Number(d.ErP).toFixed(2)}</div>
                 </div>
 
                 <!-- 5. Voltage -->
                 <div class="param-box" style="border-color:var(--secondary)">
                     <div class="p-label">5. Voltage <span class="p-unit">Volt</span></div>
-                    <div class="p-value highlight-sec">${d.V.toFixed(1)}</div>
+                    <div class="p-value highlight-sec">${Number(d.V).toFixed(1)}</div>
                 </div>
                 <!-- 6. I1 -->
                 <div class="param-box">
                     <div class="p-label">6. Current I1 <span class="p-unit">Amp</span></div>
-                    <div class="p-value">${d.I1.toFixed(1)}</div>
+                    <div class="p-value">${Number(d.I1).toFixed(1)}</div>
                 </div>
                 <!-- 7. I2 -->
                 <div class="param-box">
                     <div class="p-label">7. Current I2 <span class="p-unit">Amp</span></div>
-                    <div class="p-value">${d.I2.toFixed(1)}</div>
+                    <div class="p-value">${Number(d.I2).toFixed(1)}</div>
                 </div>
                 <!-- 8. I3 -->
                 <div class="param-box">
                     <div class="p-label">8. Current I3 <span class="p-unit">Amp</span></div>
-                    <div class="p-value">${d.I3.toFixed(1)}</div>
+                    <div class="p-value">${Number(d.I3).toFixed(1)}</div>
                 </div>
 
                 <!-- 9. Power P -->
                 <div class="param-box">
                     <div class="p-label">9. Active Power (P) <span class="p-unit">Watt</span></div>
-                    <div class="p-value highlight">${d.P.toLocaleString()}</div>
+                    <div class="p-value highlight">${Number(d.P).toLocaleString()}</div>
                 </div>
                 <!-- 10. Power Q -->
                 <div class="param-box">
                     <div class="p-label">10. Reactive (Q) <span class="p-unit">VAR</span></div>
-                    <div class="p-value">${d.Q.toLocaleString()}</div>
+                    <div class="p-value">${Number(d.Q).toLocaleString()}</div>
                 </div>
                 <!-- 11. Power S -->
                 <div class="param-box">
                     <div class="p-label">11. Apparent (S) <span class="p-unit">kVA</span></div>
-                    <div class="p-value">${d.S.toFixed(2)}</div>
+                    <div class="p-value">${Number(d.S).toFixed(2)}</div>
                 </div>
                 <!-- 12. PF -->
                 <div class="param-box">
                     <div class="p-label">12. Power Factor <span class="p-unit">PF</span></div>
-                    <div class="p-value">${d.PF.toFixed(3)}</div>
+                    <div class="p-value">${Number(d.PF).toFixed(3)}</div>
                 </div>
 
                 <!-- 13. T1 -->
                 <div class="param-box" style="background:rgba(255, 165, 0, 0.05)">
                     <div class="p-label">13. Tarif T1 <span class="p-unit">kWh</span></div>
-                    <div class="p-value" style="color:#fca5a5">${d.T1.toFixed(2)}</div>
+                    <div class="p-value" style="color:#fca5a5">${Number(d.T1).toFixed(2)}</div>
                 </div>
                 <!-- 14. T2 -->
                 <div class="param-box" style="background:rgba(255, 165, 0, 0.05)">
                     <div class="p-label">14. Tarif T2 <span class="p-unit">kWh</span></div>
-                    <div class="p-value" style="color:#fca5a5">${d.T2.toFixed(2)}</div>
+                    <div class="p-value" style="color:#fca5a5">${Number(d.T2).toFixed(2)}</div>
                 </div>
                 
                 <!-- 15. Freq -->
                 <div class="param-box">
                     <div class="p-label">15. Frequency <span class="p-unit">Hz</span></div>
-                    <div class="p-value">${d.Hz.toFixed(2)}</div>
+                    <div class="p-value">${Number(d.Hz).toFixed(2)}</div>
                 </div>
                 <!-- 16. Op Time -->
                 <div class="param-box">
@@ -324,63 +401,9 @@
             `;
         }
 
-        // GENERATOR DATA RANDOM (LOGIC SIMULASI)
-        function generateDummyData(prev) {
-            // Random Base Values
-            const voltage = 380 + (Math.random() * 6 - 3); // 377 - 383 V
-            const powerP = Math.floor(15000 + Math.random() * 5000); // 15kW - 20kW
-            
-            // Hitung arus kasar (I = P / (V * 1.73 * PF))
-            const pf = 0.85 + (Math.random() * 0.1);
-            const currentAvg = powerP / (voltage * 1.732 * pf);
-            
-            // Random variasi antar phase
-            const i1 = currentAvg + (Math.random() * 2 - 1);
-            const i2 = currentAvg + (Math.random() * 2 - 1);
-            const i3 = currentAvg + (Math.random() * 2 - 1);
+        // Jalankan Koneksi MQTT
+        startMqtt();
 
-            // Q & S calculation
-            const powerS = (voltage * (i1+i2+i3)/3 * 1.732) / 1000; // kVA
-            const powerQ = Math.sqrt(Math.pow(powerS*1000, 2) - Math.pow(powerP, 2)); // VAR
-
-            // Accumulators
-            let eaT = 12500.0, erT = 5000.0;
-            let eaP = 150.0, erP = 60.0;
-            let t1 = 7000.0, t2 = 5500.0;
-            let opTime = 2500.0; // hours
-
-            if(prev) {
-                // Increment logic (biar nambah terus kayak kWh meter beneran)
-                const increment = (powerP / 1000 / 3600 * 2); // kWh per 2 detik
-                eaT = prev.EaT + increment;
-                erT = prev.ErT + (increment * 0.4);
-                eaP = prev.EaP + increment;
-                erP = prev.ErP + (increment * 0.4);
-                
-                // Op Time nambah 2 detik (dalam jam)
-                opTime = prev.OpTime + (2/3600);
-
-                // Split T1/T2 (Simulasi jam kerja)
-                // Anggap aja random nambah ke T1 atau T2
-                if(Math.random() > 0.5) t1 = prev.T1 + increment;
-                else t1 = prev.T1;
-                
-                if(Math.random() <= 0.5) t2 = prev.T2 + increment;
-                else t2 = prev.T2;
-            }
-
-            return {
-                EaT: eaT, ErT: erT,
-                EaP: eaP, ErP: erP,
-                V: voltage,
-                I1: i1, I2: i2, I3: i3,
-                P: powerP, Q: powerQ, S: powerS,
-                PF: pf,
-                T1: t1, T2: t2,
-                Hz: 50 + (Math.random() * 0.2 - 0.1),
-                OpTime: opTime
-            };
-        }
     </script>
 </body>
 </html>
