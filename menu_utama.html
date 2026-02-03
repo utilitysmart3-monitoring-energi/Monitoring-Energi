@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MENU UTAMA - Monitoring System</title>
+    
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icon FontAwesome untuk Navigasi Bawah -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-body: #ffffff;
+            --primary-blue: #23637e;
+            --btn-blue: #2b6c8a;
+            --btn-gold: #cc9b28;
+            --text-dark: #333333;
+            --nav-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 80px; /* Ruang untuk navigasi bawah */
+        }
+
+        /* --- CONTAINER UTAMA --- */
+        .main-container {
+            width: 100%;
+            max-width: 450px; /* Batas lebar tampilan HP */
+            padding: 40px 25px 20px 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* --- HEADER --- */
+        .header-pill {
+            display: inline-block;
+            border: 2px solid var(--primary-blue);
+            padding: 8px 40px;
+            border-radius: 50px;
+            color: var(--primary-blue);
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .description {
+            font-size: 0.8rem;
+            color: var(--primary-blue);
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+
+        /* --- TOMBOL GRID --- */
+        .btn-row {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 5px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: white;
+            font-weight: 700;
+            font-size: 0.8rem; /* Font agak kecil biar muat */
+            text-transform: uppercase;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap; /* Mencegah teks turun baris */
+        }
+
+        .btn:active { transform: scale(0.95); opacity: 0.9; }
+
+        .btn-blue { background-color: var(--btn-blue); }
+        .btn-gold { background-color: var(--btn-gold); }
+
+        /* --- GAMBAR TENGAH --- */
+        .illustration {
+            width: 250px;
+            height: auto;
+            margin: 10px 0 30px 0;
+            /* Sedikit animasi agar hidup */
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* --- BOTTOM NAVIGASI (FIXED) --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--nav-bg);
+            height: 70px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #eee;
+            box-shadow: 0 -2px 15px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            color: #333;
+            font-size: 1.4rem;
+            padding: 10px;
+            transition: 0.2s;
+            opacity: 0.6;
+        }
+
+        .nav-item.active {
+            opacity: 1;
+            color: var(--text-dark);
+            transform: translateY(-2px);
+        }
+
+        .nav-item:hover { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <!-- 1. Header -->
+        <div class="header-pill">MENU UTAMA</div>
+        
+        <p class="description">
+            Pilih menu yang tersedia untuk mengakses monitoring mesin, tarif, download data dan riwayat sistem
+        </p>
+
+        <!-- 2. Tombol Atas (Monitoring) -->
+        <div class="btn-row">
+            <a href="realtime.html" class="btn btn-blue">MONITORING MESIN</a>
+            <a href="tarif.html" class="btn btn-gold">MONITORING TARIF</a>
+        </div>
+
+        <!-- 3. Gambar Tengah -->
+        <img src="Utility logo.png" class="illustration" alt="Ilustrasi Teknisi">
+
+        <!-- 4. Tombol Bawah (Data & Riwayat) -->
+        <div class="btn-row">
+            <a href="download_data.html" class="btn btn-blue">DOWNLOAD DATA</a>
+            <a href="riwayat.html" class="btn btn-gold">RIWAYAT</a>
+        </div>
+    </div>
+
+    <!-- 5. Navigasi Bawah -->
+    <nav class="bottom-nav">
+        <!-- Link ke Home -->
+        <a href="home.html" class="nav-item">
+            <i class="fa-solid fa-house"></i>
+        </a>
+        
+        <!-- Menu Utama (Aktif) -->
+        <a href="menu_utama.html" class="nav-item active">
+            <i class="fa-solid fa-bars"></i>
+        </a>
+
+        <!-- Download Data -->
+        <a href="download_data.html" class="nav-item">
+            <i class="fa-solid fa-download"></i>
+        </a>
+
+        <!-- Akun User -->
+        <a href="informasi_akun.html" class="nav-item">
+            <i class="fa-solid fa-user"></i>
+        </a>
+    </nav>
+
+</body>
+</html>
