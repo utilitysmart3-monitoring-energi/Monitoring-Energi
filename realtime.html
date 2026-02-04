@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MONITORING SYSTEM</title>
+    <title>MONITORING MESIN</title>
     
     <!-- Font & Icon -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -20,6 +20,7 @@
             --text-dark: #333333;
             --text-white: #ffffff;
             --danger: #ef4444;
+            --btn-offline: #64748b;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -91,8 +92,8 @@
             color: var(--text-white);
             border: none;
             border-radius: 12px;
-            padding: 15px 10px;
-            font-size: 0.9rem;
+            padding: 10px;
+            font-size: 0.75rem; /* Font pas agar nama panjang muat */
             font-weight: 700;
             text-transform: uppercase;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
@@ -104,13 +105,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 60px;
+            min-height: 65px;
+            line-height: 1.2;
         }
 
         .mc-btn:active { transform: scale(0.95); }
         
         /* Indikator Offline */
-        .mc-btn.offline { background-color: #64748b; color: #cbd5e1; } 
+        .mc-btn.offline { background-color: var(--btn-offline); color: #cbd5e1; } 
         .mc-btn.offline::after {
             content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: var(--danger);
         }
@@ -141,9 +143,10 @@
         }
 
         .modal-title {
-            text-align: center; font-weight: 700; font-size: 1.3rem;
+            text-align: center; font-weight: 700; font-size: 1.1rem;
             margin-bottom: 20px; text-transform: uppercase;
             border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px;
+            line-height: 1.4;
         }
 
         .detail-list {
@@ -163,7 +166,7 @@
             padding: 10px 30px; border-radius: 50px; font-weight: bold; cursor: pointer;
         }
 
-        /* --- BOTTOM NAVIGATION --- */
+        /* --- BOTTOM NAVIGASI --- */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: #ffffff; height: 70px;
@@ -176,10 +179,10 @@
             text-decoration: none; color: var(--text-dark); font-size: 1.5rem;
             padding: 10px; transition: 0.2s;
         }
+        .nav-item.active { color: var(--primary-blue); opacity: 1; }
         .nav-item:active { transform: scale(0.9); }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
     </style>
 </head>
 <body>
@@ -207,7 +210,7 @@
         </div>
 
         <div class="modal-card">
-            <div class="modal-title" id="mTitle">INFORMASI MESIN X</div>
+            <div class="modal-title" id="mTitle">INFORMASI MESIN</div>
             <div class="detail-list" id="modalList"></div>
         </div>
 
@@ -217,35 +220,48 @@
     <!-- BOTTOM NAVIGASI -->
     <nav class="bottom-nav">
         <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
-        <a href="menu_utama.html" class="nav-item"><i class="fa-solid fa-bars"></i></a>
+        <a href="menu_utama.html" class="nav-item active"><i class="fa-solid fa-bars"></i></a>
         <a href="download_data.html" class="nav-item"><i class="fa-solid fa-download"></i></a>
         <a href="informasi_akun.html" class="nav-item"><i class="fa-solid fa-user"></i></a>
     </nav>
 
     <!-- LOGIKA JAVASCRIPT -->
     <script>
-        // --- KONFIGURASI UTAMA ---
-        const ENABLE_SIMULATION = true; // SET KE FALSE JIKA SUDAH KONEK ALAT ASLI (ESP32)
-        const OFFLINE_TIMEOUT_MS = 90000; // 1.5 Menit Timeout (Standar Industri)
-
+        // --- KONFIGURASI NAMA MESIN (Sesuai List Terbaru 1-16 + 2 Cadangan) ---
         const MACHINE_NAMES = {
-            1:"UNKNOW", 2:"UNKNOW", 3:"UNKNOW", 4:"UNKNOW", 
-            5:"MESIN 41", 6:"MC 40", 7:"MC 39", 8:"UNKNOW", 
-            9:"MC 5", 10:"HEATER MC 5", 11:"UNKNOW", 12:"MC 34",
-            13:"MC 35", 14:"UNKNOW", 15:"UNKNOW", 16:"MC 38", 
-            17:"MC 36", 18:"MC 37"
+            1: "INJECT BLOW LIANXIN",
+            2: "TM EXPRESS 270/2250",
+            3: "ECO POWER 240/750",
+            4: "ECO POWER 210 T",
+            5: "TM EXPRESS 350/3400",
+            6: "+ W833 SAPRO",
+            7: "ECOPOWER EXP 500",
+            8: "ECOPOWER EXP 500 (2)",
+            9: "FCS CT-220 SE",
+            10: "NPC 260 T",
+            11: "ARBURG 270T",
+            12: "FCS SA 380H",
+            13: "EMAC 220 PRO",
+            14: "EMAC 380T",
+            15: "NPC 400 H",
+            16: "ENGEL 280",
+            17: "MC 36", 
+            18: "MC 37"
         };
 
         const MQTT_BROKER = "broker.hivemq.com";
-        const MQTT_PORT = 8884;
+        const MQTT_PORT = 8884; // WebSocket Port (WSS) untuk Web
         const MQTT_TOPIC = "politeknik/meter/data";
         
         let client;
         let machineData = {}; 
         let activeModalId = null; 
         let lastUpdate = {}; 
+        
+        // Timeout 1.5 Menit (Agar tidak kedip-kedip)
+        const OFFLINE_TIMEOUT_MS = 90000; 
 
-        // 1. GENERATE TOMBOL
+        // 1. GENERATE TOMBOL (1-18)
         const gridContainer = document.getElementById('gridContainer');
         
         for (let i = 1; i <= 18; i++) {
@@ -255,7 +271,7 @@
             const btn = document.createElement('div');
             btn.className = 'mc-btn offline'; 
             btn.id = `btn-${i}`;
-            btn.innerText = MACHINE_NAMES[i] === "UNKNOW" ? `MESIN ${i}` : MACHINE_NAMES[i];
+            btn.innerText = MACHINE_NAMES[i] || `MESIN ${i}`;
             btn.onclick = () => openModal(i);
             
             gridContainer.appendChild(btn);
@@ -263,7 +279,8 @@
 
         // 2. MQTT SETUP
         function startMqtt() {
-            const clientId = "app_poltek_v3_" + new Date().getTime();
+            // Client ID Unik agar tidak bentrok
+            const clientId = "WebClient-Monitoring-" + new Date().getTime();
             
             client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, clientId);
 
@@ -272,11 +289,10 @@
 
             client.connect({
                 useSSL: true,
-                keepAliveInterval: 30,
                 onSuccess: onConnect,
                 onFailure: (e) => {
-                    console.log("Koneksi Gagal:", e);
-                    document.getElementById('connStatus').innerText = "Connection Failed";
+                    console.log("MQTT Gagal:", e);
+                    document.getElementById('connStatus').innerText = "Conn Failed";
                     document.getElementById('connStatus').className = "error";
                     setTimeout(startMqtt, 5000);
                 }
@@ -285,22 +301,15 @@
 
         function onConnect() {
             console.log("Connected to MQTT");
-            const mode = ENABLE_SIMULATION ? "(SIMULASI)" : "(LIVE)";
-            document.getElementById('connStatus').innerText = `● CONNECTED ${mode}`;
+            document.getElementById('connStatus').innerText = "● LIVE";
             document.getElementById('connStatus').className = "active";
             client.subscribe(MQTT_TOPIC);
-            
-            // JALANKAN SIMULASI JIKA DIAKTIFKAN
-            if (ENABLE_SIMULATION) {
-                console.log("Mode Simulasi Aktif");
-                startSimulation();
-            }
         }
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
                 console.log("Koneksi Putus:", responseObject.errorMessage);
-                document.getElementById('connStatus').innerText = "Lost Connection. Retrying...";
+                document.getElementById('connStatus').innerText = "Reconnecting...";
                 document.getElementById('connStatus').className = "error";
                 setTimeout(startMqtt, 5000); 
             }
@@ -310,22 +319,23 @@
         function onMessageArrived(message) {
             try {
                 const payload = JSON.parse(message.payloadString);
-                // Jika simulasi aktif, abaikan data MQTT asli agar tidak bentrok
-                if (!ENABLE_SIMULATION) {
-                    processData(payload);
-                }
+                processData(payload);
             } catch (e) { console.error("JSON Error", e); }
         }
 
         function processData(payload) {
             const id = payload.id;
             machineData[id] = payload;
-            lastUpdate[id] = Date.now(); // Reset timer watchdog
+            lastUpdate[id] = Date.now(); 
             
-            // Set tombol jadi ONLINE (Biru)
+            // Update Tombol (Biru jika Online)
             const btn = document.getElementById(`btn-${id}`);
             if (btn) {
-                btn.classList.remove('offline'); 
+                if(payload.status === "online") {
+                    btn.classList.remove('offline'); 
+                } else {
+                    btn.classList.add('offline');
+                }
             }
 
             // Update Modal jika sedang dibuka
@@ -334,46 +344,27 @@
             }
         }
 
-        // --- 4. WATCHDOG TIMER (AUTO OFFLINE) ---
-        // Cek setiap 2 detik apakah ada mesin mati
+        // --- 4. WATCHDOG TIMER (AUTO OFFLINE UI) ---
         setInterval(() => {
             const now = Date.now();
             for (let i = 1; i <= 18; i++) {
-                // Jika data expired (> 1.5 menit), set OFFLINE
+                // Jika tidak ada data > 90 detik, set Offline
                 if (lastUpdate[i] > 0 && (now - lastUpdate[i] > OFFLINE_TIMEOUT_MS)) {
                     const btn = document.getElementById(`btn-${i}`);
                     if (btn && !btn.classList.contains('offline')) {
                         btn.classList.add('offline');
+                        // Update status internal jadi offline
                         if(machineData[i]) machineData[i].status = "offline";
                         if (activeModalId === i) renderDetailList(i);
                     }
                 }
             }
-        }, 2000);
+        }, 5000);
 
-
-        // --- 5. FITUR SIMULASI DATA ---
-        function startSimulation() {
-            setInterval(() => {
-                // Random update mesin 1-18
-                const id = Math.floor(Math.random() * 18) + 1;
-                const dummy = {
-                    id: id, status: "online",
-                    EaT: (Math.random()*100).toFixed(2), ErT: (Math.random()*50).toFixed(2),
-                    EaP: (Math.random()*10).toFixed(2), ErP: (Math.random()*5).toFixed(2),
-                    V: (220 + Math.random()*5).toFixed(1),
-                    I1: (Math.random()*10).toFixed(1), I2: (Math.random()*10).toFixed(1), I3: (Math.random()*10).toFixed(1),
-                    P: (Math.random()*5000).toFixed(0), Q: (Math.random()*100).toFixed(0), S: (Math.random()*5000).toFixed(2),
-                    PF: "0.98", T1: "1500", T2: "1500", Hz: "50.00", OpH: (Math.random()*100).toFixed(0)
-                };
-                processData(dummy);
-            }, 200); // Update sangat cepat agar terlihat hidup
-        }
-
-        // 6. RENDER MODAL DETAIL
+        // 5. MODAL DETAIL
         function openModal(id) {
             activeModalId = id;
-            const name = MACHINE_NAMES[id] === "UNKNOW" ? `MESIN ${id}` : MACHINE_NAMES[id];
+            const name = MACHINE_NAMES[id] || `MESIN ${id}`;
             document.getElementById('mTitle').innerText = `INFORMASI ${name}`;
             renderDetailList(id);
             document.getElementById('detailModal').classList.add('active');
@@ -393,17 +384,22 @@
                 return;
             }
 
-            // Jika status offline ATAU timeout watchdog habis
             const isTimeout = (Date.now() - lastUpdate[id]) > OFFLINE_TIMEOUT_MS;
-            
             if (d.status === 'offline' || isTimeout) {
                 listContainer.innerHTML = "<div style='text-align:center; padding:20px; color:#ffcccc; font-weight:bold;'>OFFLINE / NO DATA</div>";
                 return;
             }
 
+            // --- KONVERSI DATA AGAR SESUAI TAMPILAN ---
+            
+            // 1. Operation Time: Jam -> Hari, Jam
             const opHours = Number(d.OpH) || 0;
             const days = Math.floor(opHours / 24);
             const hrs = (opHours % 24).toFixed(1);
+
+            // 2. Apparent Power (S): ESP32 kirim VA, kita tampilkan kVA
+            // Rumus: VA / 1000
+            const kVA = (Number(d.S) / 1000).toFixed(2);
 
             const row = (num, label, val, unit) => `
                 <div class="detail-row">
@@ -413,21 +409,21 @@
             `;
 
             listContainer.innerHTML = `
-                ${row(1, 'Total Ea', d.EaT, 'kWh')}
-                ${row(2, 'Total Er', d.ErT, 'kVARh')}
-                ${row(3, 'Partial Ea', d.EaP, 'kWh')}
-                ${row(4, 'Partial Er', d.ErP, 'kVARh')}
-                ${row(5, 'Voltage', d.V, 'V')}
-                ${row(6, 'Current I1', d.I1, 'A')}
-                ${row(7, 'Current I2', d.I2, 'A')}
-                ${row(8, 'Current I3', d.I3, 'A')}
+                ${row(1, 'Total Ea', Number(d.EaT).toFixed(2), 'kWh')}
+                ${row(2, 'Total Er', Number(d.ErT).toFixed(2), 'kVARh')}
+                ${row(3, 'Partial Ea', Number(d.EaP).toFixed(2), 'kWh')}
+                ${row(4, 'Partial Er', Number(d.ErP).toFixed(2), 'kVARh')}
+                ${row(5, 'Voltage', Number(d.V).toFixed(1), 'V')}
+                ${row(6, 'Current I1', Number(d.I1).toFixed(1), 'A')}
+                ${row(7, 'Current I2', Number(d.I2).toFixed(1), 'A')}
+                ${row(8, 'Current I3', Number(d.I3).toFixed(1), 'A')}
                 ${row(9, 'Total Active(P)', Number(d.P).toLocaleString(), 'Watt')}
                 ${row(10, 'Total Reactive (Q)', Number(d.Q).toLocaleString(), 'VAR')}
-                ${row(11, 'Total Apparent (S)', d.S, 'kVA')}
-                ${row(12, 'PF', d.PF, '')}
-                ${row(13, 'Tarif T1', d.T1, 'kwh')}
-                ${row(14, 'Tarif T2', d.T2, 'kwh')}
-                ${row(15, 'Freq', d.Hz, 'Hz')}
+                ${row(11, 'Total Apparent (S)', kVA, 'kVA')} 
+                ${row(12, 'PF', Number(d.PF).toFixed(3), '')}
+                ${row(13, 'Tarif T1', Number(d.T1).toFixed(2), 'kwh')}
+                ${row(14, 'Tarif T2', Number(d.T2).toFixed(2), 'kwh')}
+                ${row(15, 'Freq', Number(d.Hz).toFixed(2), 'Hz')}
                 ${row(16, 'Op Time', `${days}days`, `, ${hrs}hrs`)}
             `;
         }
