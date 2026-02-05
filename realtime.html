@@ -20,6 +20,7 @@
             --text-dark: #333333;
             --text-white: #ffffff;
             --danger: #ef4444;
+            --success: #22c55e;
             --btn-offline: #64748b;
         }
 
@@ -69,10 +70,18 @@
         #connStatus {
             position: absolute; top: 10px; right: 10px;
             font-size: 0.65rem; color: #999;
-            background: #f1f1f1; padding: 4px 8px; border-radius: 10px;
+            background: #f1f1f1; padding: 4px 10px; border-radius: 20px;
+            display: flex; align-items: center; gap: 5px;
+            border: 1px solid #e5e5e5;
         }
-        #connStatus.active { color: #fff; background: var(--primary-blue); font-weight: bold; }
-        #connStatus.error { color: #fff; background: var(--danger); }
+        #connStatus.active { color: #fff; background: var(--success); border-color: var(--success); font-weight: bold; }
+        #connStatus.error { color: #fff; background: var(--danger); border-color: var(--danger); }
+        
+        .pulse-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: currentColor;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
         /* --- GRID TOMBOL MESIN --- */
         .grid-container {
@@ -93,7 +102,7 @@
             border: none;
             border-radius: 12px;
             padding: 10px;
-            font-size: 0.75rem; /* Font pas agar nama panjang muat */
+            font-size: 0.75rem; 
             font-weight: 700;
             text-transform: uppercase;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
@@ -188,7 +197,9 @@
 <body>
 
     <!-- STATUS KONEKSI -->
-    <div id="connStatus">Connecting...</div>
+    <div id="connStatus">
+        <span class="pulse-dot"></span> <span id="statusText">Connecting...</span>
+    </div>
 
     <!-- HEADER UTAMA -->
     <div class="header-container">
@@ -227,30 +238,22 @@
 
     <!-- LOGIKA JAVASCRIPT -->
     <script>
-        // --- KONFIGURASI NAMA MESIN (Sesuai List Terbaru 1-16 + 2 Cadangan) ---
+        // --- KONFIGURASI NAMA MESIN (List Terbaru 1-18) ---
         const MACHINE_NAMES = {
-            1: "INJECT BLOW LIANXIN",
-            2: "TM EXPRESS 270/2250",
-            3: "ECO POWER 240/750",
-            4: "ECO POWER 210 T",
-            5: "TM EXPRESS 350/3400",
-            6: "+ W833 SAPRO",
-            7: "ECOPOWER EXP 500",
-            8: "ECOPOWER EXP 500 (2)",
-            9: "FCS CT-220 SE",
-            10: "NPC 260 T",
-            11: "ARBURG 270T",
-            12: "FCS SA 380H",
-            13: "EMAC 220 PRO",
-            14: "EMAC 380T",
-            15: "NPC 400 H",
-            16: "ENGEL 280",
-            17: "MC 36", 
-            18: "MC 37"
+            1: "INJECT BLOW LIANXIN", 2: "TM EXPRESS 270/2250", 3: "ECO POWER 240/750",
+            4: "ECO POWER 210 T", 5: "TM EXPRESS 350/3400", 6: "+ W833 SAPRO",
+            7: "ECOPOWER EXP 500", 8: "ECOPOWER EXP 500 (2)", 9: "FCS CT-220 SE",
+            10: "NPC 260 T", 11: "ARBURG 270T", 12: "FCS SA 380H",
+            13: "EMAC 220 PRO", 14: "EMAC 380T", 15: "NPC 400 H",
+            16: "ENGEL 280", 17: "MC 36", 18: "MC 37"
         };
 
+        // --- KONFIGURASI MQTT SECURE (WSS) ---
+        // HiveMQ Public WSS Port: 8884
+        // Path wajib "/mqtt" untuk koneksi secure Paho
         const MQTT_BROKER = "broker.hivemq.com";
-        const MQTT_PORT = 8884; // WebSocket Port (WSS) untuk Web
+        const MQTT_PORT = 8884; 
+        const MQTT_PATH = "/mqtt"; 
         const MQTT_TOPIC = "politeknik/meter/data";
         
         let client;
@@ -258,10 +261,10 @@
         let activeModalId = null; 
         let lastUpdate = {}; 
         
-        // Timeout 1.5 Menit (Agar tidak kedip-kedip)
+        // Timeout 1.5 Menit (Agar status tidak kedip-kedip saat delay upload DB)
         const OFFLINE_TIMEOUT_MS = 90000; 
 
-        // 1. GENERATE TOMBOL (1-18)
+        // 1. GENERATE TOMBOL UI (1-18)
         const gridContainer = document.getElementById('gridContainer');
         
         for (let i = 1; i <= 18; i++) {
@@ -277,50 +280,63 @@
             gridContainer.appendChild(btn);
         }
 
-        // 2. MQTT SETUP
+        // 2. MQTT SETUP (FIXED FOR HTTPS/VERCEL)
         function startMqtt() {
             // Client ID Unik agar tidak bentrok
-            const clientId = "WebClient-Monitoring-" + new Date().getTime();
+            const clientId = "WebClient-Secure-" + new Date().getTime();
             
-            client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, clientId);
+            // Inisialisasi dengan PATH yang eksplisit "/mqtt" agar aman
+            client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, MQTT_PATH, clientId);
 
             client.onConnectionLost = onConnectionLost;
             client.onMessageArrived = onMessageArrived;
 
-            client.connect({
-                useSSL: true,
+            const options = {
+                useSSL: true, // WAJIB TRUE untuk Web HTTPS
                 onSuccess: onConnect,
                 onFailure: (e) => {
-                    console.log("MQTT Gagal:", e);
-                    document.getElementById('connStatus').innerText = "Conn Failed";
-                    document.getElementById('connStatus').className = "error";
+                    console.error("MQTT Gagal Konek:", e);
+                    updateStatus("Conn Failed", "error");
+                    // Retry setelah 5 detik
                     setTimeout(startMqtt, 5000);
                 }
-            });
+            };
+            
+            updateStatus("Connecting...", "");
+            try {
+                client.connect(options);
+            } catch(err) {
+                console.error("Client Init Error:", err);
+            }
+        }
+
+        function updateStatus(text, className) {
+            const el = document.getElementById('connStatus');
+            const txt = document.getElementById('statusText');
+            txt.innerText = text;
+            el.className = className;
         }
 
         function onConnect() {
-            console.log("Connected to MQTT");
-            document.getElementById('connStatus').innerText = "● LIVE";
-            document.getElementById('connStatus').className = "active";
+            console.log("MQTT Connected Securely");
+            updateStatus("LIVE DATA", "active");
             client.subscribe(MQTT_TOPIC);
         }
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
-                console.log("Koneksi Putus:", responseObject.errorMessage);
-                document.getElementById('connStatus').innerText = "Reconnecting...";
-                document.getElementById('connStatus').className = "error";
+                console.warn("Koneksi Putus:", responseObject.errorMessage);
+                updateStatus("Reconnecting...", "error");
                 setTimeout(startMqtt, 5000); 
             }
         }
 
-        // 3. TERIMA DATA
+        // 3. TERIMA DATA DARI ESP32
         function onMessageArrived(message) {
             try {
                 const payload = JSON.parse(message.payloadString);
                 processData(payload);
-            } catch (e) { console.error("JSON Error", e); }
+            } catch (e) { console.error("JSON Parse Error", e); }
         }
 
         function processData(payload) {
@@ -328,7 +344,7 @@
             machineData[id] = payload;
             lastUpdate[id] = Date.now(); 
             
-            // Update Tombol (Biru jika Online)
+            // Update Tampilan Tombol
             const btn = document.getElementById(`btn-${id}`);
             if (btn) {
                 if(payload.status === "online") {
@@ -338,22 +354,21 @@
                 }
             }
 
-            // Update Modal jika sedang dibuka
+            // Update Isi Modal jika sedang terbuka
             if (activeModalId === id) {
                 renderDetailList(id);
             }
         }
 
-        // --- 4. WATCHDOG TIMER (AUTO OFFLINE UI) ---
+        // 4. WATCHDOG TIMER (Auto Offline)
+        // Mengecek setiap 5 detik apakah ada mesin yang 'diam' terlalu lama
         setInterval(() => {
             const now = Date.now();
             for (let i = 1; i <= 18; i++) {
-                // Jika tidak ada data > 90 detik, set Offline
                 if (lastUpdate[i] > 0 && (now - lastUpdate[i] > OFFLINE_TIMEOUT_MS)) {
                     const btn = document.getElementById(`btn-${i}`);
                     if (btn && !btn.classList.contains('offline')) {
                         btn.classList.add('offline');
-                        // Update status internal jadi offline
                         if(machineData[i]) machineData[i].status = "offline";
                         if (activeModalId === i) renderDetailList(i);
                     }
@@ -361,7 +376,7 @@
             }
         }, 5000);
 
-        // 5. MODAL DETAIL
+        // 5. MODAL DETAIL UI
         function openModal(id) {
             activeModalId = id;
             const name = MACHINE_NAMES[id] || `MESIN ${id}`;
@@ -390,15 +405,10 @@
                 return;
             }
 
-            // --- KONVERSI DATA AGAR SESUAI TAMPILAN ---
-            
-            // 1. Operation Time: Jam -> Hari, Jam
+            // Formatting Values
             const opHours = Number(d.OpH) || 0;
             const days = Math.floor(opHours / 24);
             const hrs = (opHours % 24).toFixed(1);
-
-            // 2. Apparent Power (S): ESP32 kirim VA, kita tampilkan kVA
-            // Rumus: VA / 1000
             const kVA = (Number(d.S) / 1000).toFixed(2);
 
             const row = (num, label, val, unit) => `
@@ -428,6 +438,7 @@
             `;
         }
 
+        // Jalankan Koneksi saat halaman dibuka
         startMqtt();
     </script>
 </body>
