@@ -7,7 +7,7 @@
     
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Icon FontAwesome untuk Navigasi Bawah -->
+    <!-- Icon FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
@@ -30,14 +30,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-bottom: 80px; /* Ruang untuk navigasi bawah */
+            padding-bottom: 90px; /* Ruang lebih untuk navigasi bawah */
         }
 
         /* --- CONTAINER UTAMA --- */
         .main-container {
             width: 100%;
-            max-width: 450px; /* Batas lebar tampilan HP */
-            padding: 40px 25px 20px 25px;
+            max-width: 450px;
+            padding: 30px 25px 20px 25px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -55,15 +55,15 @@
             font-size: 1.1rem;
             background: #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .description {
             font-size: 0.8rem;
             color: var(--primary-blue);
             font-weight: 500;
-            line-height: 1.5;
-            margin-bottom: 30px;
+            line-height: 1.4;
+            margin-bottom: 20px;
             padding: 0 10px;
         }
 
@@ -72,25 +72,29 @@
             display: flex;
             gap: 15px;
             width: 100%;
-            margin-bottom: 20px;
+            margin: 0; /* Margin diatur via gambar */
             justify-content: center;
+            z-index: 2; /* Tombol di atas gambar jika ada overlap */
         }
 
         .btn {
             flex: 1;
             padding: 12px 5px;
-            border-radius: 10px;
+            border-radius: 12px;
             text-decoration: none;
             color: white;
             font-weight: 700;
-            font-size: 0.8rem; /* Font agak kecil biar muat */
+            font-size: 0.75rem;
             text-transform: uppercase;
             box-shadow: 0 4px 6px rgba(0,0,0,0.15);
             transition: transform 0.1s;
             display: flex;
             align-items: center;
             justify-content: center;
-            white-space: nowrap; /* Mencegah teks turun baris */
+            text-align: center;
+            min-height: 45px;
+            line-height: 1.2;
+            background-size: 200% auto;
         }
 
         .btn:active { transform: scale(0.95); opacity: 0.9; }
@@ -98,18 +102,29 @@
         .btn-blue { background-color: var(--btn-blue); }
         .btn-gold { background-color: var(--btn-gold); }
 
-        /* --- GAMBAR TENGAH --- */
-        .illustration {
-            width: 250px;
+        /* --- GAMBAR KARAKTER --- */
+        .illustration-cowok {
+            width: 130px; 
             height: auto;
-            margin: 10px 0 30px 0;
-            /* Sedikit animasi agar hidup */
+            margin: 15px 0; /* Jarak atas bawah ke tombol */
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
             animation: float 4s ease-in-out infinite;
+            z-index: 1;
+        }
+
+        .illustration-cewek {
+            width: 130px; 
+            height: auto;
+            margin: 15px 0; /* Jarak atas bawah ke tombol */
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.1));
+            animation: float 4s ease-in-out infinite;
+            animation-delay: 1s; /* Beda fase animasi */
+            z-index: 1;
         }
 
         @keyframes float {
             0% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
+            50% { transform: translateY(-8px); }
             100% { transform: translateY(0px); }
         }
 
@@ -137,7 +152,7 @@
 
         .nav-item.active {
             opacity: 1;
-            color: var(--text-dark);
+            color: var(--primary-blue);
             transform: translateY(-2px);
         }
 
@@ -152,43 +167,45 @@
         <div class="header-pill">MENU UTAMA</div>
         
         <p class="description">
-            Pilih menu yang tersedia untuk mengakses monitoring mesin, tarif, download data dan riwayat sistem
+            Pilih menu yang tersedia untuk mengakses monitoring sistem secara menyeluruh
         </p>
 
-        <!-- 2. Tombol Atas (Monitoring) -->
+        <!-- 2. Baris 1: Monitoring -->
         <div class="btn-row">
             <a href="realtime.html" class="btn btn-blue">MONITORING MESIN</a>
             <a href="tarif.html" class="btn btn-gold">MONITORING TARIF</a>
         </div>
 
-        <!-- 3. Gambar Tengah -->
-        <img src="Utility logo.png" class="illustration" alt="Ilustrasi Teknisi">
+        <!-- 3. Gambar Cowok (Tengah Atas) -->
+        <img src="Logo cowok engineering.png" class="illustration-cowok" alt="Teknisi Cowok">
 
-        <!-- 4. Tombol Bawah (Data & Riwayat) -->
+        <!-- 4. Baris 2: Status & Riwayat -->
         <div class="btn-row">
-            <a href="download_data.html" class="btn btn-blue">DOWNLOAD DATA</a>
+            <a href="status_data.html" class="btn btn-blue">STATUS DATA</a>
             <a href="riwayat.html" class="btn btn-gold">RIWAYAT</a>
+        </div>
+
+        <!-- 5. Gambar Cewek (Tengah Bawah) -->
+        <img src="Logo cewek engineering.png" class="illustration-cewek" alt="Teknisi Cewek">
+
+        <!-- 6. Baris 3: Grafik & Download -->
+        <div class="btn-row">
+            <a href="grafik_data.html" class="btn btn-blue">GRAFIK DATA</a>
+            <a href="download_data.html" class="btn btn-gold">DOWNLOAD DATA</a>
         </div>
     </div>
 
-    <!-- 5. Navigasi Bawah -->
+    <!-- 7. Navigasi Bawah -->
     <nav class="bottom-nav">
-        <!-- Link ke Home -->
         <a href="index.html" class="nav-item">
             <i class="fa-solid fa-house"></i>
         </a>
-        
-        <!-- Menu Utama (Aktif) -->
         <a href="menu_utama.html" class="nav-item active">
             <i class="fa-solid fa-bars"></i>
         </a>
-
-        <!-- Download Data -->
         <a href="download_data.html" class="nav-item">
             <i class="fa-solid fa-download"></i>
         </a>
-
-        <!-- Akun User -->
         <a href="informasi_akun.html" class="nav-item">
             <i class="fa-solid fa-user"></i>
         </a>
