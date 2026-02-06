@@ -204,7 +204,6 @@
 
             try {
                 // 1. Inisialisasi Data Kosong untuk 18 Mesin
-                // Kita pakai Object Map agar mudah diakses: machines[1], machines[2], dst.
                 let machines = {};
                 for (let i = 1; i <= 18; i++) {
                     machines[i] = {
@@ -244,6 +243,28 @@
                 // 4. Render Tabel Statis 1-18
                 tableBody.innerHTML = ''; // Bersihkan loading
 
+                // Daftar Nama Mesin Custom
+                const machineNames = {
+                    1: "UNKNOW",
+                    2: "UNKNOW",
+                    3: "UNKNOW",
+                    4: "UNKNOW",
+                    5: "MESIN 41",
+                    6: "MESIN 40",
+                    7: "MESIN 39",
+                    8: "UNKNOW",
+                    9: "HEATER MC 5",
+                    10: "MESIN 5",
+                    11: "UNKNOW",
+                    12: "MESIN 34",
+                    13: "MESIN 35",
+                    14: "UNKNOW",
+                    15: "UNKNOW",
+                    16: "MESIN 38",
+                    17: "MESIN 36",
+                    18: "MESIN 37"
+                };
+
                 // Loop 1 sampai 18 agar urutan rapi
                 for (let i = 1; i <= 18; i++) {
                     const m = machines[i];
@@ -260,6 +281,9 @@
                     // Jika last_update masih null, berarti tidak ada data di rentang waktu itu -> Angka 0
                     const hasData = m.last_update !== null;
                     const rowClass = hasData ? "font-bold text-gray-800" : "text-gray-400"; // Abu-abu jika 0
+                    
+                    // Ambil nama mesin dari map, default "Mesin X" jika tidak ada di map
+                    const namaMesin = machineNames[i] || `Mesin ${i}`;
 
                     const tr = document.createElement('tr');
                     tr.className = "border-b border-gray-100 hover:bg-blue-50 transition"; // Hover effect
@@ -267,7 +291,7 @@
                     tr.innerHTML = `
                         <td class="py-4 px-4 row-text text-left">${i}.</td>
                         <td class="py-4 px-4 row-text text-left">
-                            <span class="${rowClass}">Mesin ${i}</span>
+                            <span class="${rowClass}">${namaMesin}</span>
                             ${hasData ? `<div class="text-[10px] text-gray-400 font-normal">Updated: ${new Date(m.last_update).toLocaleTimeString('id-ID')}</div>` : ''}
                         </td>
                         <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(m.total_kwh)}</td>
