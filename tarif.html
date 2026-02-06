@@ -55,6 +55,8 @@
             background-color: #286583;
             color: white;
             border-radius: 10px;
+            /* Shadow effect sesuai gambar */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
         
         .table-header th:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
@@ -108,21 +110,22 @@
     </div>
 
     <!-- 3. TABEL DATA -->
-    <div class="w-full max-w-5xl px-4 overflow-x-auto mb-10">
+    <div class="w-full max-w-6xl px-4 overflow-x-auto mb-10">
         <table class="w-full border-collapse">
             <thead class="table-header text-sm md:text-base">
                 <tr>
-                    <th class="py-3 px-4 text-left">No</th>
-                    <th class="py-3 px-4 text-left">Nama Mesin</th>
-                    <th class="py-3 px-4 text-center">Partial Ea (Kwh)</th>
-                    <th class="py-3 px-4 text-center">T 1 (Kwh)</th>
-                    <th class="py-3 px-4 text-center">T 2 (Kwh)</th>
-                    <th class="py-3 px-4 text-right">Total Tarif (Rp)</th>
+                    <th class="py-4 px-4 text-left">no</th>
+                    <th class="py-4 px-4 text-left">nama mesin</th>
+                    <th class="py-4 px-4 text-center">Total Ea Import (Kwh)</th>
+                    <th class="py-4 px-4 text-center">T 1 (Kwh)</th>
+                    <th class="py-4 px-4 text-center">T 2 (Kwh)</th>
+                    <th class="py-4 px-4 text-center leading-tight">Total T1 & T2<br>(Kwh)</th>
+                    <th class="py-4 px-4 text-right">Total Tarif (Rp)</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
                 <tr>
-                    <td colspan="6" class="text-center py-8 text-gray-400">Siap memuat data...</td>
+                    <td colspan="7" class="text-center py-8 text-gray-400">Siap memuat data...</td>
                 </tr>
             </tbody>
         </table>
@@ -186,7 +189,7 @@
             const tableBody = document.getElementById('tableBody');
             const infoDiv = document.getElementById('lastUpdateInfo');
             
-            tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4">Mengambil data terbaru...</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Mengambil data terbaru...</td></tr>`;
             infoDiv.innerText = '';
 
             await fetchSettings();
@@ -245,6 +248,9 @@
                 for (let i = 1; i <= 18; i++) {
                     const m = machines[i];
                     
+                    // Hitung Penjumlahan
+                    const sumT1T2 = m.t1_kwh + m.t2_kwh;
+
                     // Hitung Rupiah
                     const biayaT1 = m.t1_kwh * TARIF_LWBP;
                     const biayaT2 = m.t2_kwh * TARIF_WBP;
@@ -259,15 +265,16 @@
                     tr.className = "border-b border-gray-100 hover:bg-blue-50 transition"; // Hover effect
                     
                     tr.innerHTML = `
-                        <td class="py-3 px-4 row-text text-left">${i}.</td>
-                        <td class="py-3 px-4 row-text text-left">
+                        <td class="py-4 px-4 row-text text-left">${i}.</td>
+                        <td class="py-4 px-4 row-text text-left">
                             <span class="${rowClass}">Mesin ${i}</span>
                             ${hasData ? `<div class="text-[10px] text-gray-400 font-normal">Updated: ${new Date(m.last_update).toLocaleTimeString('id-ID')}</div>` : ''}
                         </td>
-                        <td class="py-3 px-4 text-center ${rowClass}">${formatNumber(m.total_kwh)}</td>
-                        <td class="py-3 px-4 text-center ${rowClass}">${formatNumber(m.t1_kwh)}</td>
-                        <td class="py-3 px-4 text-center ${rowClass}">${formatNumber(m.t2_kwh)}</td>
-                        <td class="py-3 px-4 text-right ${rowClass} font-bold">${formatCurrency(totalTarif)}</td>
+                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(m.total_kwh)}</td>
+                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(m.t1_kwh)}</td>
+                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(m.t2_kwh)}</td>
+                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(sumT1T2)}</td>
+                        <td class="py-4 px-4 text-right ${rowClass} font-bold">${formatCurrency(totalTarif)}</td>
                     `;
                     tableBody.appendChild(tr);
                 }
@@ -276,7 +283,7 @@
 
             } catch (err) {
                 console.error('Error fetching data:', err);
-                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-red-500">Error: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-red-500">Error: ${err.message}</td></tr>`;
             }
         }
 
