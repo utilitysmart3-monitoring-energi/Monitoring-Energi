@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MONITORING MESIN</title>
+    <title>MONITORING MESIN + SUPABASE</title>
     
     <!-- Font & Icon -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -11,6 +11,9 @@
     
     <!-- Paho MQTT Client -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+
+    <!-- SUPABASE CLIENT -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
@@ -39,158 +42,86 @@
 
         /* --- HEADER --- */
         .header-container {
-            margin-top: 30px;
-            margin-bottom: 10px;
-            text-align: center;
-            width: 100%;
-            padding: 0 20px;
+            margin-top: 30px; margin-bottom: 10px; text-align: center; width: 100%; padding: 0 20px;
         }
-
         .header-pill {
-            display: inline-block;
-            border: 2px solid var(--primary-blue);
-            padding: 8px 30px;
-            border-radius: 50px;
-            color: var(--primary-blue);
-            font-weight: 700;
-            font-size: 1.2rem;
-            background: #fff;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: inline-block; border: 2px solid var(--primary-blue); padding: 8px 30px;
+            border-radius: 50px; color: var(--primary-blue); font-weight: 700; font-size: 1.2rem;
+            background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-
         .sub-header {
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: var(--primary-blue);
-            font-weight: 500;
-            font-style: italic;
+            margin-top: 15px; font-size: 0.8rem; color: var(--primary-blue); font-weight: 500; font-style: italic;
         }
 
         /* --- STATUS KONEKSI --- */
         #connStatus {
-            position: absolute; top: 10px; right: 10px;
-            font-size: 0.65rem; color: #999;
+            position: absolute; top: 10px; right: 10px; font-size: 0.65rem; color: #999;
             background: #f1f1f1; padding: 4px 10px; border-radius: 20px;
-            display: flex; align-items: center; gap: 5px;
-            border: 1px solid #e5e5e5;
+            display: flex; align-items: center; gap: 5px; border: 1px solid #e5e5e5; z-index: 500;
         }
         #connStatus.active { color: #fff; background: var(--success); border-color: var(--success); font-weight: bold; }
         #connStatus.error { color: #fff; background: var(--danger); border-color: var(--danger); }
-        
-        .pulse-dot {
-            width: 8px; height: 8px; border-radius: 50%; background: currentColor;
-            animation: pulse 1.5s infinite;
-        }
+        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        /* --- GRID TOMBOL MESIN --- */
-        .grid-container {
-            width: 100%;
-            max-width: 450px;
-            padding: 20px 30px;
+        /* --- DB STATUS INDICATOR --- */
+        #dbIndicator {
+            position: fixed; top: 10px; left: 10px; font-size: 0.7rem; 
+            background: rgba(35, 99, 126, 0.95); color: white; padding: 6px 12px; border-radius: 20px;
+            opacity: 0; transition: opacity 0.5s; z-index: 2000; pointer-events: none;
+            display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
+        /* --- GRID TOMBOL MESIN --- */
+        .grid-container { width: 100%; max-width: 450px; padding: 20px 30px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
 
         .mc-btn {
-            background-color: var(--primary-blue);
-            color: var(--text-white);
-            border: none;
-            border-radius: 12px;
-            padding: 10px;
-            font-size: 0.75rem; 
-            font-weight: 700;
-            text-transform: uppercase;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            cursor: pointer;
-            transition: transform 0.1s;
-            position: relative;
-            overflow: hidden;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 65px;
-            line-height: 1.2;
+            background-color: var(--primary-blue); color: var(--text-white); border: none;
+            border-radius: 12px; padding: 10px; font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.2); cursor: pointer;
+            transition: transform 0.1s; position: relative; overflow: hidden;
+            text-align: center; display: flex; justify-content: center; align-items: center;
+            min-height: 65px; line-height: 1.2;
         }
-
         .mc-btn:active { transform: scale(0.95); }
-        
-        /* Indikator Offline */
         .mc-btn.offline { background-color: var(--btn-offline); color: #cbd5e1; } 
-        .mc-btn.offline::after {
-            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: var(--danger);
-        }
+        .mc-btn.offline::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: var(--danger); }
 
         /* --- MODAL DETAIL --- */
         .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(255,255,255,0.98);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 30px;
-            overflow-y: auto;
+            position: fixed; inset: 0; background: rgba(255,255,255,0.98); z-index: 1000;
+            display: none; flex-direction: column; align-items: center; padding-top: 30px; overflow-y: auto;
         }
         .modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
-
         .modal-card {
-            background-color: var(--card-gold);
-            color: var(--text-white);
-            width: 90%;
-            max-width: 400px;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 25px rgba(158, 127, 35, 0.4);
-            margin-bottom: 100px;
-            position: relative;
+            background-color: var(--card-gold); color: var(--text-white); width: 90%; max-width: 400px;
+            border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(158, 127, 35, 0.4);
+            margin-bottom: 100px; position: relative;
         }
-
         .modal-title {
-            text-align: center; font-weight: 700; font-size: 1.1rem;
-            margin-bottom: 20px; text-transform: uppercase;
-            border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px;
-            line-height: 1.4;
+            text-align: center; font-weight: 700; font-size: 1.1rem; margin-bottom: 20px;
+            text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px;
         }
-
-        .detail-list {
-            font-family: 'Poppins', sans-serif; font-size: 0.85rem; line-height: 1.6;
-        }
-
-        .detail-row {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;
-        }
-        
+        .detail-list { font-family: 'Poppins', sans-serif; font-size: 0.85rem; line-height: 1.6; }
+        .detail-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .d-label { font-weight: 600; text-align: left; width: 50%; }
         .d-val { font-weight: 400; text-align: right; width: 50%; font-family: 'JetBrains Mono', monospace; }
-
         .close-modal-btn {
-            margin-top: 20px; background: transparent;
-            border: 2px solid var(--primary-blue); color: var(--primary-blue);
-            padding: 10px 30px; border-radius: 50px; font-weight: bold; cursor: pointer;
+            margin-top: 20px; background: transparent; border: 2px solid var(--primary-blue);
+            color: var(--primary-blue); padding: 10px 30px; border-radius: 50px; font-weight: bold; cursor: pointer;
         }
 
         /* --- BOTTOM NAVIGASI --- */
         .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #ffffff; height: 70px;
+            position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; height: 70px;
             display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid #eee; box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-            z-index: 2000;
+            border-top: 1px solid #eee; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 2000;
         }
-
-        .nav-item {
-            text-decoration: none; color: var(--text-dark); font-size: 1.5rem;
-            padding: 10px; transition: 0.2s;
-        }
+        .nav-item { text-decoration: none; color: var(--text-dark); font-size: 1.5rem; padding: 10px; transition: 0.2s; }
         .nav-item.active { color: var(--primary-blue); opacity: 1; }
         .nav-item:active { transform: scale(0.9); }
-
+        
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
@@ -201,17 +132,18 @@
         <span class="pulse-dot"></span> <span id="statusText">Connecting...</span>
     </div>
 
+    <!-- DB SAVE INDICATOR -->
+    <div id="dbIndicator"><i class="fa-solid fa-database"></i> Saved</div>
+
     <!-- HEADER UTAMA -->
     <div class="header-container">
         <div class="header-pill">MONITORING MESIN</div>
-        <div class="sub-header">Pilih mesin untuk monitoring</div>
+        <div class="sub-header">Realtime MQTT + Auto Log (10 Min)</div>
     </div>
 
     <!-- GRID TOMBOL MESIN -->
     <div class="grid-container">
-        <div class="grid" id="gridContainer">
-            <!-- Tombol digenerate via JS -->
-        </div>
+        <div class="grid" id="gridContainer"></div>
     </div>
 
     <!-- HALAMAN DETAIL (MODAL) -->
@@ -219,12 +151,10 @@
         <div class="header-container">
             <div class="header-pill">MONITORING MESIN</div>
         </div>
-
         <div class="modal-card">
             <div class="modal-title" id="mTitle">INFORMASI MESIN</div>
             <div class="detail-list" id="modalList"></div>
         </div>
-
         <button class="close-modal-btn" onclick="closeModal()">KEMBALI</button>
     </div>
 
@@ -238,113 +168,163 @@
 
     <!-- LOGIKA JAVASCRIPT -->
     <script>
-        // --- KONFIGURASI NAMA MESIN (List Terbaru 1-18) ---
+        // --- 1. SETUP UI TERLEBIH DAHULU (SUPAYA TOMBOL PASTI MUNCUL) ---
         const MACHINE_NAMES = {
-            1: "INJECT BLOW LIANXIN", 2: "TM EXPRESS 270/2250", 3: "ECO POWER 240/750",
-            4: "ECO POWER 210 T", 5: "TM EXPRESS 350/3400", 6: "+ W833 SAPRO",
-            7: "ECOPOWER EXP 500", 8: "ECOPOWER EXP 500 (2)", 9: "FCS CT-220 SE",
-            10: "NPC 260 T", 11: "ARBURG 270T", 12: "FCS SA 380H",
-            13: "EMAC 220 PRO", 14: "EMAC 380T", 15: "NPC 400 H",
-            16: "ENGEL 280", 17: "MC 36", 18: "MC 37"
+            1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN",
+            4: "UNKNOWN", 5: "MESIN 41", 6: "MESIN 40",
+            7: "MESIN 39", 8: "UNKNOWN", 9: "HEATER MC 5",
+            10: "MESIN 5", 11: "UNKNOWN", 12: "MESIN 34",
+            13: "MESIN 35", 14: "UNKNOWN", 15: "UNKNOWN",
+            16: "MESIN 38", 17: "MESIN 36", 18: "MESIN 37"
         };
-
-        // --- KONFIGURASI MQTT SECURE (WSS) ---
-        // HiveMQ Public WSS Port: 8884
-        // Path wajib "/mqtt" untuk koneksi secure Paho
-        const MQTT_BROKER = "broker.hivemq.com";
-        const MQTT_PORT = 8884; 
-        const MQTT_PATH = "/mqtt"; 
-        const MQTT_TOPIC = "politeknik/meter/data";
         
-        let client;
         let machineData = {}; 
-        let activeModalId = null; 
         let lastUpdate = {}; 
-        
-        // Timeout 1.5 Menit (Agar status tidak kedip-kedip saat delay upload DB)
-        const OFFLINE_TIMEOUT_MS = 90000; 
+        let lastDbSave = {}; 
+        let activeModalId = null; 
 
-        // 1. GENERATE TOMBOL UI (1-18)
+        // Generate Tombol UI SEKARANG (Sebelum Load Library)
         const gridContainer = document.getElementById('gridContainer');
-        
-        for (let i = 1; i <= 18; i++) {
-            machineData[i] = null; 
-            lastUpdate[i] = 0;
+        if (gridContainer) {
+            gridContainer.innerHTML = ""; // Clear
+            for (let i = 1; i <= 18; i++) {
+                machineData[i] = null; 
+                lastUpdate[i] = 0;
+                lastDbSave[i] = 0;
 
-            const btn = document.createElement('div');
-            btn.className = 'mc-btn offline'; 
-            btn.id = `btn-${i}`;
-            btn.innerText = MACHINE_NAMES[i] || `MESIN ${i}`;
-            btn.onclick = () => openModal(i);
-            
-            gridContainer.appendChild(btn);
+                const btn = document.createElement('div');
+                btn.className = 'mc-btn offline'; 
+                btn.id = `btn-${i}`;
+                btn.innerText = MACHINE_NAMES[i] || `MESIN ${i}`;
+                btn.onclick = () => openModal(i);
+                
+                gridContainer.appendChild(btn);
+            }
         }
 
-        // 2. MQTT SETUP (FIXED FOR HTTPS/VERCEL)
-        function startMqtt() {
-            // Client ID Unik agar tidak bentrok
-            const clientId = "WebClient-Secure-" + new Date().getTime();
+        // --- 2. KONFIGURASI SUPABASE (DENGAN SAFETY CHECK & VARIABLE FIX) ---
+        const SB_URL = "https://awyohlizbltikpfanugb.supabase.co";
+        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes";
+        const DB_SAVE_INTERVAL = 600000; // 10 Menit
+
+        // Ganti nama variabel jadi supabaseClient agar tidak bentrok
+        let supabaseClient = null;
+        try {
+            if (window.supabase) {
+                supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
+                console.log("Supabase Client Ready");
+            } else {
+                console.warn("Supabase Library belum load. Cek koneksi internet.");
+            }
+        } catch (e) {
+            console.error("Supabase Init Error:", e);
+        }
+
+        async function saveSnapshotToSupabase(payload) {
+            if (!supabaseClient) return; // Skip jika supabase gagal load
             
-            // Inisialisasi dengan PATH yang eksplisit "/mqtt" agar aman
+            const dataToInsert = {
+                sid_mesin: payload.id,
+                total_kwh: payload.EaT ? parseFloat(payload.EaT) : 0,
+                t1_lwbp_kwh: payload.T1 ? parseFloat(payload.T1) : 0,
+                t2_wbp_kwh: payload.T2 ? parseFloat(payload.T2) : 0
+            };
+
+            const { data, error } = await supabaseClient
+                .from('meter_tariff_snapshot')
+                .insert([dataToInsert]);
+
+            if (error) {
+                console.error("DB Error:", error.message);
+            } else {
+                console.log(`✅ Data Tersimpan ID: ${payload.id}`);
+                showDbIndicator(payload.id);
+            }
+        }
+
+        function showDbIndicator(id) {
+            const el = document.getElementById('dbIndicator');
+            if(el) {
+                el.innerHTML = `<i class="fa-solid fa-database"></i> Saved (ID ${id})`;
+                el.style.opacity = '1';
+                setTimeout(() => { el.style.opacity = '0'; }, 3000);
+            }
+        }
+
+        // --- 3. KONFIGURASI MQTT (HIVEMQ PUBLIC) ---
+        const MQTT_BROKER = "broker.hivemq.com";
+        const MQTT_PORT = 8884; // Port WSS (Secure WebSocket)
+        const MQTT_PATH = "/mqtt"; 
+        const MQTT_TOPIC = "politeknik/meter/data";
+        const OFFLINE_TIMEOUT_MS = 90000; 
+
+        let client;
+
+        function startMqtt() {
+            // Safety check: pastikan library Paho ada
+            if (typeof Paho === 'undefined') {
+                console.error("Library Paho MQTT tidak termuat.");
+                updateStatus("Lib Error", "error");
+                return;
+            }
+
+            const clientId = "WebMonitor-" + new Date().getTime();
             client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, MQTT_PATH, clientId);
 
             client.onConnectionLost = onConnectionLost;
             client.onMessageArrived = onMessageArrived;
 
             const options = {
-                useSSL: true, // WAJIB TRUE untuk Web HTTPS
+                useSSL: true, // Wajib TRUE untuk Port 8884
                 onSuccess: onConnect,
                 onFailure: (e) => {
-                    console.error("MQTT Gagal Konek:", e);
+                    console.error("MQTT Gagal:", e);
                     updateStatus("Conn Failed", "error");
-                    // Retry setelah 5 detik
                     setTimeout(startMqtt, 5000);
                 }
             };
             
             updateStatus("Connecting...", "");
-            try {
-                client.connect(options);
-            } catch(err) {
-                console.error("Client Init Error:", err);
-            }
+            try { client.connect(options); } catch(err) { console.error(err); }
         }
 
         function updateStatus(text, className) {
             const el = document.getElementById('connStatus');
             const txt = document.getElementById('statusText');
-            txt.innerText = text;
-            el.className = className;
+            if(el && txt) {
+                txt.innerText = text;
+                el.className = className;
+            }
         }
 
         function onConnect() {
-            console.log("MQTT Connected Securely");
+            console.log("MQTT Connected");
             updateStatus("LIVE DATA", "active");
             client.subscribe(MQTT_TOPIC);
         }
 
         function onConnectionLost(responseObject) {
             if (responseObject.errorCode !== 0) {
-                console.warn("Koneksi Putus:", responseObject.errorMessage);
                 updateStatus("Reconnecting...", "error");
                 setTimeout(startMqtt, 5000); 
             }
         }
 
-        // 3. TERIMA DATA DARI ESP32
         function onMessageArrived(message) {
             try {
                 const payload = JSON.parse(message.payloadString);
                 processData(payload);
-            } catch (e) { console.error("JSON Parse Error", e); }
+            } catch (e) { console.error("JSON Error", e); }
         }
 
         function processData(payload) {
             const id = payload.id;
             machineData[id] = payload;
-            lastUpdate[id] = Date.now(); 
             
-            // Update Tampilan Tombol
+            const now = Date.now();
+            lastUpdate[id] = now; 
+            
+            // Update UI Button
             const btn = document.getElementById(`btn-${id}`);
             if (btn) {
                 if(payload.status === "online") {
@@ -354,14 +334,19 @@
                 }
             }
 
-            // Update Isi Modal jika sedang terbuka
-            if (activeModalId === id) {
-                renderDetailList(id);
+            // Update Modal jika sedang dibuka
+            if (activeModalId === id) renderDetailList(id);
+
+            // LOGIKA SUPABASE
+            if (payload.status === "online" && !isNaN(payload.EaT) && payload.EaT > 0) {
+                if (lastDbSave[id] === 0 || (now - lastDbSave[id]) > DB_SAVE_INTERVAL) {
+                    saveSnapshotToSupabase(payload);
+                    lastDbSave[id] = now; 
+                }
             }
         }
 
-        // 4. WATCHDOG TIMER (Auto Offline)
-        // Mengecek setiap 5 detik apakah ada mesin yang 'diam' terlalu lama
+        // WATCHDOG
         setInterval(() => {
             const now = Date.now();
             for (let i = 1; i <= 18; i++) {
@@ -376,36 +361,40 @@
             }
         }, 5000);
 
-        // 5. MODAL DETAIL UI
+        // --- 4. HELPER UI ---
         function openModal(id) {
             activeModalId = id;
             const name = MACHINE_NAMES[id] || `MESIN ${id}`;
-            document.getElementById('mTitle').innerText = `INFORMASI ${name}`;
+            const titleEl = document.getElementById('mTitle');
+            if(titleEl) titleEl.innerText = `INFORMASI ${name}`;
+            
             renderDetailList(id);
-            document.getElementById('detailModal').classList.add('active');
+            const modal = document.getElementById('detailModal');
+            if(modal) modal.classList.add('active');
         }
 
         function closeModal() {
-            document.getElementById('detailModal').classList.remove('active');
+            const modal = document.getElementById('detailModal');
+            if(modal) modal.classList.remove('active');
             activeModalId = null;
         }
 
         function renderDetailList(id) {
             const d = machineData[id];
             const listContainer = document.getElementById('modalList');
+            if(!listContainer) return;
 
             if (!d) {
                 listContainer.innerHTML = "<div style='text-align:center; padding:20px;'>Menunggu Data...</div>";
                 return;
             }
-
+            
             const isTimeout = (Date.now() - lastUpdate[id]) > OFFLINE_TIMEOUT_MS;
             if (d.status === 'offline' || isTimeout) {
                 listContainer.innerHTML = "<div style='text-align:center; padding:20px; color:#ffcccc; font-weight:bold;'>OFFLINE / NO DATA</div>";
                 return;
             }
 
-            // Formatting Values
             const opHours = Number(d.OpH) || 0;
             const days = Math.floor(opHours / 24);
             const hrs = (opHours % 24).toFixed(1);
@@ -438,8 +427,8 @@
             `;
         }
 
-        // Jalankan Koneksi saat halaman dibuka
-        startMqtt();
+        // Jalankan Koneksi MQTT di akhir, setelah UI siap
+        setTimeout(startMqtt, 1000);
     </script>
 </body>
 </html>
