@@ -133,12 +133,12 @@
     </div>
 
     <!-- DB SAVE INDICATOR -->
-    <div id="dbIndicator"><i class="fa-solid fa-database"></i> Saved</div>
+    <div id="dbIndicator"><i class="fa-solid fa-database"></i> Global Save</div>
 
     <!-- HEADER UTAMA -->
     <div class="header-container">
         <div class="header-pill">MONITORING MESIN</div>
-        <div class="sub-header">Realtime MQTT + Auto Log (10 Min)</div>
+        <div class="sub-header">Realtime UI + DB Sync (10 Min)</div>
     </div>
 
     <!-- GRID TOMBOL MESIN -->
@@ -168,7 +168,7 @@
 
     <!-- LOGIKA JAVASCRIPT -->
     <script>
-        // --- 1. SETUP UI TERLEBIH DAHULU (SUPAYA TOMBOL PASTI MUNCUL) ---
+        // --- 1. SETUP UI TERLEBIH DAHULU ---
         const MACHINE_NAMES = {
             1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN",
             4: "UNKNOWN", 5: "MESIN 41", 6: "MESIN 40",
@@ -178,19 +178,18 @@
             16: "MESIN 38", 17: "MESIN 36", 18: "MESIN 37"
         };
         
+        // State Buffer (Penyimpanan Sementara Data Realtime)
         let machineData = {}; 
         let lastUpdate = {}; 
-        let lastDbSave = {}; 
         let activeModalId = null; 
 
-        // Generate Tombol UI SEKARANG (Sebelum Load Library)
+        // Generate Tombol UI SEKARANG
         const gridContainer = document.getElementById('gridContainer');
         if (gridContainer) {
             gridContainer.innerHTML = ""; // Clear
             for (let i = 1; i <= 18; i++) {
                 machineData[i] = null; 
                 lastUpdate[i] = 0;
-                lastDbSave[i] = 0;
 
                 const btn = document.createElement('div');
                 btn.className = 'mc-btn offline'; 
@@ -202,17 +201,18 @@
             }
         }
 
-        // --- 2. KONFIGURASI SUPABASE (DENGAN SAFETY CHECK & VARIABLE FIX) ---
+        // --- 2. KONFIGURASI SUPABASE (GLOBAL INTERVAL) ---
         const SB_URL = "https://awyohlizbltikpfanugb.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes";
-        const DB_SAVE_INTERVAL = 600000; // 10 Menit
+        
+        // Interval Global 10 Menit (600.000 ms)
+        const GLOBAL_SAVE_INTERVAL = 600000; 
 
-        // Ganti nama variabel jadi supabaseClient agar tidak bentrok
         let supabaseClient = null;
         try {
             if (window.supabase) {
                 supabaseClient = window.supabase.createClient(SB_URL, SB_KEY);
-                console.log("Supabase Client Ready");
+                console.log("Supabase Client Ready (Mode: Global Interval)");
             } else {
                 console.warn("Supabase Library belum load. Cek koneksi internet.");
             }
@@ -220,40 +220,67 @@
             console.error("Supabase Init Error:", e);
         }
 
-        async function saveSnapshotToSupabase(payload) {
-            if (!supabaseClient) return; // Skip jika supabase gagal load
-            
-            const dataToInsert = {
-                sid_mesin: payload.id,
-                total_kwh: payload.EaT ? parseFloat(payload.EaT) : 0,
-                t1_lwbp_kwh: payload.T1 ? parseFloat(payload.T1) : 0,
-                t2_wbp_kwh: payload.T2 ? parseFloat(payload.T2) : 0
-            };
+        // --- FUNGSI SIMPAN GLOBAL (BATCH) ---
+        // Fungsi ini dipanggil otomatis setiap 10 menit
+        async function saveGlobalSnapshot() {
+            if (!supabaseClient) return;
 
+            console.log("⏳ Memulai penyimpanan Global (Interval 10 Menit)...");
+            const payloadBatch = [];
+
+            // 1. Kumpulkan data valid dari state terakhir (machineData)
+            for (let i = 1; i <= 18; i++) {
+                const data = machineData[i];
+                
+                // VALIDASI KETAT:
+                // - Data tidak null
+                // - Status harus Online
+                // - Energi (EaT) harus angka valid dan > 0
+                if (data && data.status === "online" && !isNaN(data.EaT) && data.EaT > 0) {
+                     payloadBatch.push({
+                        sid_mesin: data.id,
+                        total_kwh: parseFloat(data.EaT),
+                        t1_lwbp_kwh: parseFloat(data.T1 || 0),
+                        t2_wbp_kwh: parseFloat(data.T2 || 0)
+                        // created_at akan diisi otomatis oleh database
+                    });
+                }
+            }
+
+            if (payloadBatch.length === 0) {
+                console.log("⚠️ Tidak ada mesin online/valid untuk disimpan saat ini.");
+                return;
+            }
+
+            // 2. Kirim ke Supabase (Bulk Insert - Lebih Efisien)
             const { data, error } = await supabaseClient
                 .from('meter_tariff_snapshot')
-                .insert([dataToInsert]);
+                .insert(payloadBatch);
 
             if (error) {
-                console.error("DB Error:", error.message);
+                console.error("❌ Global Save Error:", error.message);
             } else {
-                console.log(`✅ Data Tersimpan ID: ${payload.id}`);
-                showDbIndicator(payload.id);
+                console.log(`✅ Berhasil menyimpan snapshot untuk ${payloadBatch.length} mesin.`);
+                showGlobalDbIndicator(payloadBatch.length);
             }
         }
 
-        function showDbIndicator(id) {
+        function showGlobalDbIndicator(count) {
             const el = document.getElementById('dbIndicator');
             if(el) {
-                el.innerHTML = `<i class="fa-solid fa-database"></i> Saved (ID ${id})`;
+                el.innerHTML = `<i class="fa-solid fa-database"></i> Saved (${count} Mesin)`;
                 el.style.opacity = '1';
-                setTimeout(() => { el.style.opacity = '0'; }, 3000);
+                setTimeout(() => { el.style.opacity = '0'; }, 4000);
             }
         }
 
-        // --- 3. KONFIGURASI MQTT (HIVEMQ PUBLIC) ---
+        // JALANKAN TIMER GLOBAL (Setiap 10 Menit)
+        setInterval(saveGlobalSnapshot, GLOBAL_SAVE_INTERVAL);
+
+
+        // --- 3. KONFIGURASI MQTT (REALTIME UI ONLY) ---
         const MQTT_BROKER = "broker.hivemq.com";
-        const MQTT_PORT = 8884; // Port WSS (Secure WebSocket)
+        const MQTT_PORT = 8884; // Port WSS
         const MQTT_PATH = "/mqtt"; 
         const MQTT_TOPIC = "politeknik/meter/data";
         const OFFLINE_TIMEOUT_MS = 90000; 
@@ -261,7 +288,6 @@
         let client;
 
         function startMqtt() {
-            // Safety check: pastikan library Paho ada
             if (typeof Paho === 'undefined') {
                 console.error("Library Paho MQTT tidak termuat.");
                 updateStatus("Lib Error", "error");
@@ -275,7 +301,7 @@
             client.onMessageArrived = onMessageArrived;
 
             const options = {
-                useSSL: true, // Wajib TRUE untuk Port 8884
+                useSSL: true,
                 onSuccess: onConnect,
                 onFailure: (e) => {
                     console.error("MQTT Gagal:", e);
@@ -313,18 +339,22 @@
         function onMessageArrived(message) {
             try {
                 const payload = JSON.parse(message.payloadString);
+                // MQTT HANYA UPDATE UI & BUFFER DATA (TIDAK SAVE DB)
                 processData(payload);
             } catch (e) { console.error("JSON Error", e); }
         }
 
         function processData(payload) {
             const id = payload.id;
+            
+            // 1. Simpan ke Buffer Global (machineData)
+            // Data ini yang nanti akan diambil oleh Timer Global 10 Menit
             machineData[id] = payload;
             
             const now = Date.now();
             lastUpdate[id] = now; 
             
-            // Update UI Button
+            // 2. Update UI (REALTIME - TANPA DELAY)
             const btn = document.getElementById(`btn-${id}`);
             if (btn) {
                 if(payload.status === "online") {
@@ -334,19 +364,11 @@
                 }
             }
 
-            // Update Modal jika sedang dibuka
+            // 3. Update Modal jika sedang dibuka
             if (activeModalId === id) renderDetailList(id);
-
-            // LOGIKA SUPABASE
-            if (payload.status === "online" && !isNaN(payload.EaT) && payload.EaT > 0) {
-                if (lastDbSave[id] === 0 || (now - lastDbSave[id]) > DB_SAVE_INTERVAL) {
-                    saveSnapshotToSupabase(payload);
-                    lastDbSave[id] = now; 
-                }
-            }
         }
 
-        // WATCHDOG
+        // WATCHDOG (Cek Offline Otomatis untuk UI)
         setInterval(() => {
             const now = Date.now();
             for (let i = 1; i <= 18; i++) {
@@ -354,6 +376,7 @@
                     const btn = document.getElementById(`btn-${i}`);
                     if (btn && !btn.classList.contains('offline')) {
                         btn.classList.add('offline');
+                        // Update status di buffer jadi offline agar tidak ikut tersimpan ke DB
                         if(machineData[i]) machineData[i].status = "offline";
                         if (activeModalId === i) renderDetailList(i);
                     }
