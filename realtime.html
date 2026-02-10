@@ -366,21 +366,21 @@
             `;
 
             listContainer.innerHTML = `
-                ${row(1, 'Total Ea', Number(d.EaT).toFixed(2), 'kWh')}
-                ${row(2, 'Total Er', Number(d.ErT).toFixed(2), 'kVARh')}
-                ${row(3, 'Partial Ea', Number(d.EaP).toFixed(2), 'kWh')}
-                ${row(4, 'Partial Er', Number(d.ErP).toFixed(2), 'kVARh')}
-                ${row(5, 'Voltage', Number(d.V).toFixed(1), 'V')}
-                ${row(6, 'Current I1', Number(d.I1).toFixed(1), 'A')}
-                ${row(7, 'Current I2', Number(d.I2).toFixed(1), 'A')}
-                ${row(8, 'Current I3', Number(d.I3).toFixed(1), 'A')}
-                ${row(9, 'Total Active(P)', Number(d.P).toLocaleString(), 'Watt')}
-                ${row(10, 'Total Reactive (Q)', Number(d.Q).toLocaleString(), 'VAR')}
+                ${row(1, 'Total Ea', Number(d.EaT || 0).toFixed(2), 'kWh')}
+                ${row(2, 'Total Er', Number(d.ErT || 0).toFixed(2), 'kVARh')}
+                ${row(3, 'Partial Ea', Number(d.T1 || 0).toFixed(2), 'kWh')}
+                ${row(4, 'Partial Er', Number(d.T2 || 0).toFixed(2), 'kVARh')}
+                ${row(5, 'Voltage', Number(d.V || 0).toFixed(1), 'V')}
+                ${row(6, 'Current I1', Number(d.I1 || 0).toFixed(1), 'A')}
+                ${row(7, 'Current I2', Number(d.I2 || 0).toFixed(1), 'A')}
+                ${row(8, 'Current I3', Number(d.I3 || 0).toFixed(1), 'A')}
+                ${row(9, 'Total Active(P)', Number(d.P || 0).toLocaleString(), 'Watt')}
+                ${row(10, 'Total Reactive (Q)', Number(d.Q || 0).toLocaleString(), 'VAR')}
                 ${row(11, 'Total Apparent (S)', kVA, 'kVA')} 
-                ${row(12, 'Power Faktor', Number(d.PF).toFixed(3), '')}
-                ${row(13, 'Tarif T1', Number(d.T1).toFixed(2), 'kwh')}
-                ${row(14, 'Tarif T2', Number(d.T2).toFixed(2), 'kwh')}
-                ${row(15, 'Freq', Number(d.Hz).toFixed(2), 'Hz')}
+                ${row(12, 'Power Faktor', Number(d.PF || 0).toFixed(3), '')}
+                ${row(13, 'Tarif T1', Number(d.T1 || 0).toFixed(2), 'kwh')}
+                ${row(14, 'Tarif T2', Number(d.T2 || 0).toFixed(2), 'kwh')}
+                ${row(15, 'Freq', Number(d.Hz || 0).toFixed(2), 'Hz')}
                 ${row(16, 'Op Time', `${days}days`, `,${hrs}hrs`)}
             `;
         }
