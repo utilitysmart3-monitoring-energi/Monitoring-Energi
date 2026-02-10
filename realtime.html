@@ -210,8 +210,8 @@
 
     <!-- LEGEND / INDIKATOR -->
     <div class="legend-container">
-        <div class="legend-item"><span class="dot red"></span> OFFLINE (Lost Comm)</div>
-        <div class="legend-item"><span class="dot blue"></span> STANDBY (Data OK)</div>
+        <div class="legend-item"><span class="dot red"></span> OFFLINE</div>
+        <div class="legend-item"><span class="dot blue"></span> STANDBY</div>
         <div class="legend-item"><span class="dot green"></span> RUNNING</div>
     </div>
 
@@ -430,13 +430,13 @@
 
             // LOGIKA DISPLAY MODAL (SAMA DENGAN TOMBOL)
             if (statusEsp === 'offline' || isCommTimeout) {
-                statusText = 'OFFLINE';
+                statusText = 'OFFLINE (LOST COMM)';
                 statusBg = '#dc2626';
             } else if (I1 > 0 || I2 > 0 || I3 > 0) {
                 statusText = 'ONLINE - RUNNING';
                 statusBg = '#22c55e';
             } else {
-                statusText = 'ONLINE';
+                statusText = 'ONLINE - STANDBY';
                 statusBg = '#2563eb';
             }
 
