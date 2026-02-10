@@ -125,7 +125,7 @@
         .mc-btn.idle { background-color: var(--st-blue); }
         .mc-btn.offline { background-color: var(--st-red); opacity: 0.9; }
         
-        /* INDIKATOR KECIL OFFLINE (Biar user ngeh kalau mati) */
+        /* INDIKATOR KECIL OFFLINE */
         .mc-btn.offline::after {
             content: ''; position: absolute; top: 10px; right: 10px;
             width: 6px; height: 6px; border-radius: 50%; background: #ef4444;
@@ -138,7 +138,6 @@
             color: #ffffff;
             opacity: 0.9;
         }
-        /* Indikator titik putih DIHAPUS sesuai permintaan */
 
         /* --- MODAL DETAIL --- */
         .modal-overlay {
@@ -211,8 +210,8 @@
 
     <!-- LEGEND / INDIKATOR -->
     <div class="legend-container">
-        <div class="legend-item"><span class="dot red"></span> OFFLINE</div>
-        <div class="legend-item"><span class="dot blue"></span> STANDBY</div>
+        <div class="legend-item"><span class="dot red"></span> OFFLINE (Lost Comm)</div>
+        <div class="legend-item"><span class="dot blue"></span> STANDBY (Data OK)</div>
         <div class="legend-item"><span class="dot green"></span> RUNNING</div>
     </div>
 
@@ -321,7 +320,7 @@
             } catch (e) { }
         }
 
-        // --- 3. LOGIKA UTAMA (SEDERHANA: 0V = OFFLINE) ---
+        // --- 3. LOGIKA UTAMA (VERSI INDUSTRI) ---
         function processData(payload) {
             const id = payload.id;
             if (!id || id < 1 || id > 18) return;
@@ -349,15 +348,15 @@
             // Reset Semua Kelas
             btn.classList.remove('offline', 'idle', 'running', 'loading');
 
-            // 1. CEK OFFLINE (V <= 0 ATAU Status ESP Offline)
-            if (statusEsp === 'offline' || V <= 0) {
+            // 1. CEK OFFLINE HANYA KARENA STATUS ESP
+            if (statusEsp === 'offline') {
                 btn.classList.add('offline'); // Merah
             } 
-            // 2. CEK RUNNING (Ada Arus)
+            // 2. CEK RUNNING (Jika ada Arus) -> ONLINE
             else if (I1 > 0 || I2 > 0 || I3 > 0) {
                 btn.classList.add('running'); // Hijau
             } 
-            // 3. SISANYA STANDBY (V > 0 tapi Arus 0)
+            // 3. SISANYA STANDBY (V boleh 0 asalkan komunikasi jalan) -> ONLINE
             else {
                 btn.classList.add('idle'); // Biru
             }
@@ -369,9 +368,9 @@
             }
         }
 
-        // --- 4. WATCHDOG (Cek Data Basi > 5 Menit) ---
-        // Jika data mesin tidak masuk lebih dari 5 menit -> OFFLINE
-        const OFFLINE_TIMEOUT_MS = 300000; 
+        // --- 4. WATCHDOG (Cek Data Basi > 10 Menit) ---
+        // Logika Industri: Offline hanya jika lost communication > 10 menit
+        const OFFLINE_TIMEOUT_MS = 600000; 
         setInterval(() => {
             const now = Date.now();
             for (let i = 1; i <= 18; i++) {
@@ -381,10 +380,8 @@
                         btn.classList.remove('running', 'idle', 'loading');
                         btn.classList.add('offline');
                         
-                        // Set flag internal jadi offline agar modal juga update
                         if(machineData[i]) {
                             machineData[i].status = "offline";
-                            machineData[i].V = 0; 
                         }
                     }
                 }
@@ -431,15 +428,15 @@
             let statusText = '';
             let statusBg = '';
 
-            // LOGIKA DISPLAY MODAL (SAMA PERSIS DENGAN TOMBOL)
-            if (statusEsp === 'offline' || V <= 0 || isCommTimeout) {
+            // LOGIKA DISPLAY MODAL (SAMA DENGAN TOMBOL)
+            if (statusEsp === 'offline' || isCommTimeout) {
                 statusText = 'OFFLINE';
                 statusBg = '#dc2626';
             } else if (I1 > 0 || I2 > 0 || I3 > 0) {
                 statusText = 'ONLINE - RUNNING';
                 statusBg = '#22c55e';
             } else {
-                statusText = 'ONLINE - STANDBY';
+                statusText = 'ONLINE';
                 statusBg = '#2563eb';
             }
 
