@@ -15,10 +15,13 @@
     <style>
         :root {
             --bg-body: #ffffff;
-            --primary-blue: #265c75; /* Warna Biru sesuai screenshot */
-            --card-gold: #9e7c22;    /* Warna Emas/Coklat sesuai screenshot */
+            --primary-blue: #265c75;
+            --card-gold: #9e7c22;
             --text-dark: #333333;
             --text-white: #ffffff;
+            --st-red: #dc2626;   /* Offline */
+            --st-blue: #2563eb;  /* Idle */
+            --st-green: #22c55e; /* Running */
             --offline-gray: #64748b;
         }
 
@@ -55,7 +58,7 @@
             margin-top: 15px; font-size: 0.7rem; color: var(--primary-blue); font-weight: 600; font-style: italic;
         }
 
-        /* --- STATUS KONEKSI (Indikator Kecil Pojok Kanan) --- */
+        /* --- STATUS KONEKSI --- */
         #connStatus {
             position: absolute; top: 15px; right: 15px; font-size: 0.6rem; color: #999;
             background: #f1f1f1; padding: 4px 10px; border-radius: 20px;
@@ -65,18 +68,37 @@
         .connected .pulse-dot { background: #22c55e; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        /* --- GRID TOMBOL MESIN --- */
+        /* --- GRID CONTAINER (RESPONSIVE) --- */
         .grid-container {
-            width: 100%; max-width: 400px; padding: 10px 20px;
+            width: 100%; 
+            max-width: 1200px; /* Perlebar max-width untuk Laptop */
+            padding: 20px;
         }
+        
         .grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 Kolom */
-            gap: 12px;
+            gap: 15px;
+            /* DEFAULT: Tampilan Laptop (Horizontal Spread) */
+            /* auto-fit dengan minmax 160px akan otomatis membuat baris baru jika layar sempit */
+            /* Di Laptop (1366px+), ini akan jadi sekitar 5-6 kolom */
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+        }
+
+        /* --- MEDIA QUERY KHUSUS HP (VERTICAL STACK) --- */
+        @media (max-width: 768px) {
+            .grid-container {
+                max-width: 450px; /* Batasi lebar di HP agar rapi */
+            }
+            .grid {
+                /* Di HP Pakai 2 Kolom Vertikal (Standar Aplikasi Mobile) */
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 12px;
+            }
+            /* Jika mau benar-benar 1 baris ke bawah (List View), ganti jadi: */
+            /* grid-template-columns: 1fr; */
         }
 
         .mc-btn {
-            background-color: var(--primary-blue);
             color: var(--text-white);
             border: none;
             border-radius: 12px;
@@ -86,29 +108,29 @@
             text-transform: uppercase;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: transform 0.1s, background-color 0.2s;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 45px;
+            min-height: 55px; /* Sedikit lebih tinggi agar enak disentuh */
             text-align: center;
             position: relative;
+            background-color: var(--offline-gray);
         }
         .mc-btn:active { transform: scale(0.95); }
         
-        /* State Offline (Abu-abu + Indikator) */
-        .mc-btn.offline { 
-            background-color: var(--offline-gray); 
-            opacity: 0.9;
-        }
-        /* Indikator Merah kecil di dalam tombol offline */
+        /* STATUS COLORS */
+        .mc-btn.running { background-color: var(--st-green); }
+        .mc-btn.idle { background-color: var(--st-blue); }
+        .mc-btn.offline { background-color: var(--st-red); opacity: 0.9; }
+        
         .mc-btn.offline::after {
             content: ''; position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
             width: 6px; height: 6px; border-radius: 50%; background: #ef4444;
             box-shadow: 0 0 4px #ef4444;
         }
 
-        /* --- MODAL DETAIL (Warna Emas) --- */
+        /* --- MODAL DETAIL --- */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 1000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
@@ -128,8 +150,14 @@
 
         .modal-title {
             text-align: center; font-weight: 800; font-size: 1.1rem;
-            margin-bottom: 20px; text-transform: uppercase;
+            margin-bottom: 15px; text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+
+        .status-badge {
+            text-align: center; font-weight: bold; margin-bottom: 20px;
+            background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px;
+            font-size: 0.85rem; letter-spacing: 1px;
         }
 
         .detail-list {
@@ -160,7 +188,7 @@
 </head>
 <body>
 
-    <!-- STATUS KONEKSI (Hidden style) -->
+    <!-- STATUS KONEKSI -->
     <div id="connStatus">
         <span class="pulse-dot"></span> <span id="statusText">Connecting...</span>
     </div>
@@ -176,12 +204,13 @@
         <div class="grid" id="gridContainer"></div>
     </div>
 
-    <!-- MODAL DETAIL (POPUP EMAS) -->
+    <!-- MODAL DETAIL -->
     <div class="modal-overlay" id="detailModal" onclick="if(event.target === this) closeModal()">
         <div class="modal-card">
             <div class="modal-title" id="mTitle">INFORMASI MESIN 1</div>
+            <div id="statusIndicator" class="status-badge">Checking...</div>
             <div class="detail-list" id="modalList">
-                <!-- Isi Detail akan di-inject JS -->
+                <!-- Isi Detail -->
             </div>
         </div>
     </div>
@@ -198,11 +227,10 @@
     <script>
         // --- CONFIG ---
         const MQTT_BROKER = "broker.hivemq.com";
-        const MQTT_PORT = 8884; // WSS Port
+        const MQTT_PORT = 8884; 
         const MQTT_PATH = "/mqtt"; 
         const MQTT_TOPIC = "politeknik/meter/data";
         
-        // Nama Mesin sesuai request
         const MACHINE_NAMES = {
             1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN",
             4: "UNKNOWN", 5: "MESIN 41", 6: "MESIN 40",
@@ -213,6 +241,7 @@
         };
         
         let machineData = {}; 
+        let lastUpdate = {}; 
         let client;
 
         // --- 1. RENDER AWAL TOMBOL ---
@@ -220,7 +249,7 @@
         for (let i = 1; i <= 18; i++) {
             machineData[i] = null; 
             const btn = document.createElement('div');
-            btn.className = 'mc-btn offline'; // Default offline
+            btn.className = 'mc-btn offline'; 
             btn.id = `btn-${i}`;
             btn.innerText = MACHINE_NAMES[i] || `MESIN ${i}`;
             btn.onclick = () => openModal(i);
@@ -229,7 +258,7 @@
 
         // --- 2. MQTT LOGIC ---
         function startMqtt() {
-            const clientId = "WebDesain-" + new Date().getTime();
+            const clientId = "WebMonitor-" + new Date().getTime();
             client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, MQTT_PATH, clientId);
 
             client.onConnectionLost = onConnectionLost;
@@ -237,9 +266,7 @@
 
             const options = {
                 useSSL: true, timeout: 3, onSuccess: onConnect,
-                onFailure: () => { 
-                    updateStatus(false); setTimeout(startMqtt, 5000); 
-                }
+                onFailure: () => { updateStatus(false); setTimeout(startMqtt, 5000); }
             };
             try { client.connect(options); } catch(e) { console.error(e); }
         }
@@ -273,28 +300,33 @@
             } catch (e) { }
         }
 
-        // --- 3. LOGIKA UTAMA (INDUSTRI) ---
+        // --- 3. LOGIKA UTAMA (3 STATE) ---
         function processData(payload) {
             const id = payload.id;
             if (!id || id < 1 || id > 18) return;
 
             machineData[id] = payload;
+            lastUpdate[id] = Date.now();
             
             const btn = document.getElementById(`btn-${id}`);
             if (!btn) return;
 
-            // ===== LOGIKA STATUS MESIN =====
-            // Online jika SALAH SATU phase arus > 0
+            // --- EVALUASI STATUS ---
+            const V  = Number(payload.V || 0);
             const I1 = Number(payload.I1 || 0);
             const I2 = Number(payload.I2 || 0);
             const I3 = Number(payload.I3 || 0);
 
-            const isMachineRunning = (I1 > 0 || I2 > 0 || I3 > 0);
+            // Reset Kelas
+            btn.classList.remove('offline', 'idle', 'running');
 
-            if (isMachineRunning) {
-                btn.classList.remove('offline');
+            // Logika Prioritas
+            if (V <= 0) {
+                btn.classList.add('offline'); // Merah
+            } else if (I1 > 0 || I2 > 0 || I3 > 0) {
+                btn.classList.add('running'); // Hijau
             } else {
-                btn.classList.add('offline');
+                btn.classList.add('idle'); // Biru
             }
 
             // Update Modal jika sedang terbuka
@@ -304,7 +336,23 @@
             }
         }
 
-        // --- 4. MODAL LOGIC ---
+        // --- 4. WATCHDOG (Cek Data Basi > 200 Detik) ---
+        const OFFLINE_TIMEOUT_MS = 200000; 
+        setInterval(() => {
+            const now = Date.now();
+            for (let i = 1; i <= 18; i++) {
+                if (lastUpdate[i] > 0 && (now - lastUpdate[i] > OFFLINE_TIMEOUT_MS)) {
+                    const btn = document.getElementById(`btn-${i}`);
+                    if (btn) {
+                        btn.classList.remove('running', 'idle');
+                        btn.classList.add('offline');
+                        if(machineData[i]) machineData[i].V = 0; 
+                    }
+                }
+            }
+        }, 5000);
+
+        // --- 5. MODAL LOGIC ---
         function openModal(id) {
             const name = MACHINE_NAMES[id] || `MESIN ${id}`;
             document.getElementById('mTitle').innerText = `INFORMASI ${name}`;
@@ -323,30 +371,42 @@
         function renderDetailList(id) {
             const d = machineData[id];
             const listContainer = document.getElementById('modalList');
+            const statusLabel = document.getElementById('statusIndicator');
 
             if (!d) {
                 listContainer.innerHTML = "<div style='text-align:center; padding:20px;'>Menunggu Data...</div>";
-                return;
-            }
-            
-            // ===== LOGIKA STATUS MODAL =====
-            const I1 = Number(d.I1 || 0);
-            const I2 = Number(d.I2 || 0);
-            const I3 = Number(d.I3 || 0);
-            
-            // Jika semua arus 0, maka dianggap OFFLINE (mesin mati/idle total)
-            if (I1 === 0 && I2 === 0 && I3 === 0) {
-                listContainer.innerHTML = "<div style='text-align:center; padding:20px; font-weight:bold; font-size:1.1rem;'>OFFLINE / NO LOAD</div>";
+                statusLabel.innerText = "WAITING...";
+                statusLabel.style.background = "rgba(0,0,0,0.2)";
                 return;
             }
 
-            // Format Waktu
+            const V = Number(d.V || 0);
+            const I1 = Number(d.I1 || 0);
+            const I2 = Number(d.I2 || 0);
+            const I3 = Number(d.I3 || 0);
+
+            let statusText = '';
+            let statusBg = '';
+
+            if (V <= 0) {
+                statusText = 'OFFLINE';
+                statusBg = '#dc2626';
+            } else if (I1 > 0 || I2 > 0 || I3 > 0) {
+                statusText = 'ONLINE - RUNNING';
+                statusBg = '#22c55e';
+            } else {
+                statusText = 'ONLINE - IDLE';
+                statusBg = '#2563eb';
+            }
+
+            statusLabel.innerText = statusText;
+            statusLabel.style.backgroundColor = statusBg;
+
             const opHours = Number(d.OpH) || 0;
             const days = Math.floor(opHours / 24);
             const hrs = (opHours % 24).toFixed(1);
             const kVA = (Number(d.S) / 1000).toFixed(2);
 
-            // Helper Row
             const row = (num, label, val, unit) => `
                 <div class="detail-row">
                     <span class="d-label">${num}. ${label}</span>
@@ -354,7 +414,6 @@
                 </div>
             `;
 
-            // MAPPING DATA
             listContainer.innerHTML = `
                 ${row(1, 'Total Ea', Number(d.EaT || 0).toFixed(2), 'kWh')}
                 ${row(2, 'Total Er', Number(d.ErT || 0).toFixed(2), 'kVARh')}
@@ -375,7 +434,6 @@
             `;
         }
 
-        // Start
         setTimeout(startMqtt, 500);
     </script>
 </body>
