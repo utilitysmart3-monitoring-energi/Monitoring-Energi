@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MONITORING MESIN - HIVE BROKER</title>
     
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- MQTT Client (Paho) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
 
     <style>
@@ -110,16 +112,9 @@
         .mc-btn:active { transform: scale(0.96); }
         
         /* STATUS STYLING */
-        /* Offline: Background agak merah pudar, border bawah merah */
         .mc-btn.offline { background-color: #fef2f2; border-bottom-color: var(--st-red); color: var(--st-red); opacity: 0.8; }
-        
-        /* Idle: Background agak biru pudar, border bawah biru */
         .mc-btn.idle { background-color: #eff6ff; border-bottom-color: var(--st-blue); color: var(--st-blue); }
-        
-        /* Running: Background Hijau Solid agar mencolok */
         .mc-btn.running { background-color: var(--st-green); border-bottom-color: #15803d; color: white; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4); }
-
-        /* Loading */
         .mc-btn.loading { background-color: #e2e8f0; color: #94a3b8; }
 
         .btn-sub { font-size: 0.65rem; font-weight: 500; opacity: 0.8; margin-top: 4px; }
@@ -179,7 +174,7 @@
 
     <div class="header-container">
         <div class="header-pill">FACTORY MONITOR</div>
-        <div class="sub-header">Realtime Modbus Data via HiveMQ</div>
+        <div class="sub-header">Realtime Modbus Data via HiveMQ (Secure)</div>
     </div>
 
     <div class="legend-container">
@@ -199,32 +194,34 @@
                 <div id="statusIndicator" class="status-badge">WAITING DATA...</div>
             </div>
             <div class="modal-body" id="modalList">
-                </div>
+                <!-- Content will be injected here -->
+            </div>
             <button class="close-btn" onclick="closeModal()">TUTUP</button>
         </div>
     </div>
 
     <script>
         // ===============================================
-        // 1. KONFIGURASI HIVE MQ (PUBLIC)
+        // 1. KONFIGURASI HIVE MQ (SECURE FOR VERCEL)
         // ===============================================
         const MQTT_BROKER = "broker.hivemq.com";
-        const MQTT_PORT   = 8000;    // Port WebSocket (Bukan 1883!)
-        const MQTT_PATH   = "/mqtt"; // Path standar HiveMQ
+        const MQTT_PORT   = 8884;    // <--- Port WSS (Secure WebSocket)
+        const MQTT_PATH   = "/mqtt"; 
         const MQTT_TOPIC  = "politeknik/meter/data";
         
-        // PENTING: Untuk 'broker.hivemq.com' port 8000 biasanya Non-SSL (ws://)
-        // Jika website ini dihosting di HTTPS, browser mungkin memblokir (Mixed Content).
-        // Untuk testing lokal (file:// atau localhost), useSSL: false paling aman.
-        const USE_SSL     = false; 
+        // PENTING: useSSL = true agar tidak diblokir browser di HTTPS (Vercel)
+        const USE_SSL     = true;   
 
+        // ===============================================
+        // 2. DAFTAR NAMA MESIN (UPDATED)
+        // ===============================================
         const MACHINE_NAMES = {
-            1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN",
-            4: "UNKNOWN", 5: "MESIN 41", 6: "MESIN 40",
-            7: "MESIN 39", 8: "UNKNOWN", 9: "HEATER MC 5",
-            10: "MESIN 5", 11: "UNKNOWN", 12: "MESIN 34",
-            13: "MESIN 35", 14: "UNKNOWN", 15: "UNKNOWN",
-            16: "MESIN 38", 17: "MESIN 36", 18: "MESIN 37"
+            1: "UNKNOWN",      2: "UNKNOWN",      3: "UNKNOWN",
+            4: "UNKNOWN",      5: "MESIN 41",     6: "MESIN 40",
+            7: "MESIN 39",     8: "UNKNOWN",      9: "HEATER MC 5",
+            10: "MESIN 5",     11: "UNKNOWN",     12: "MESIN 34",
+            13: "MESIN 35",    14: "UNKNOWN",     15: "UNKNOWN",
+            16: "MESIN 38",    17: "MESIN 36",    18: "MESIN 37"
         };
         
         let machineData = {}; 
@@ -270,7 +267,7 @@
             };
             
             try { 
-                console.log(`Connecting to ws://${MQTT_BROKER}:${MQTT_PORT}...`);
+                console.log(`Connecting to wss://${MQTT_BROKER}:${MQTT_PORT}...`);
                 client.connect(options); 
             } catch(e) { console.error(e); }
         }
@@ -336,24 +333,28 @@
                 displayClass = 'offline';
                 displaySub = 'OFFLINE';
             } 
-            // 2. Prioritas Running (Ada Arus)
-            else if (I1 > 0.5 || I2 > 0.5 || I3 > 0.5) { // Threshold 0.5A
+            // 2. Prioritas Running (Ada Arus > 0.5A)
+            else if (I1 > 0.5 || I2 > 0.5 || I3 > 0.5) { 
                 displayClass = 'running';
                 displaySub = 'RUNNING';
             }
             
             // Update Tampilan Button
+            const mName = MACHINE_NAMES[id] || `MESIN ${id}`;
             btn.className = `mc-btn ${displayClass}`;
             btn.innerHTML = `
-                <span>${MACHINE_NAMES[id] || `MESIN ${id}`}</span>
+                <span>${mName}</span>
                 <span class="btn-sub">ID:${id} | ${displaySub}</span>
             `;
 
             // Update Modal jika sedang terbuka
             const modal = document.getElementById('detailModal');
             if (modal.style.display === 'flex') {
-                const title = document.getElementById('mTitle').innerText;
-                if (title.includes(MACHINE_NAMES[id] || `MESIN ${id}`)) {
+                const titleEl = document.getElementById('mTitle');
+                // Cek apakah modal yang terbuka adalah mesin yang datanya baru masuk
+                // Kita bandingkan ID di modal title atau simpan ID modal aktif di variabel
+                // Cara sederhana: Cek text title
+                if (titleEl.innerText === mName) {
                     renderDetailList(id);
                 }
             }
@@ -368,11 +369,12 @@
                     const btn = document.getElementById(`btn-${i}`);
                     if (btn) {
                         btn.className = 'mc-btn offline';
+                        const mName = MACHINE_NAMES[i] || `MESIN ${i}`;
                         // Update text
                         const currentHTML = btn.innerHTML;
                         if(!currentHTML.includes("OFFLINE")) {
                              btn.innerHTML = `
-                                <span>${MACHINE_NAMES[i] || `MESIN ${i}`}</span>
+                                <span>${mName}</span>
                                 <span class="btn-sub">ID:${i} | OFFLINE</span>
                             `;
                         }
