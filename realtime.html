@@ -3,26 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MONITORING MESIN</title>
+    <title>MONITORING MESIN - HIVE BROKER</title>
     
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- MQTT Client -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
 
     <style>
         :root {
-            --bg-body: #ffffff;
-            --primary-blue: #265c75;
-            --card-gold: #9e7c22;
-            --text-dark: #333333;
-            --text-white: #ffffff;
-            --st-red: #dc2626;   /* Offline */
-            --st-blue: #2563eb;  /* Idle */
+            --bg-body: #f1f5f9;
+            --primary-blue: #0f172a;
+            --card-bg: #ffffff;
+            --text-dark: #334155;
+            --st-red: #ef4444;   /* Offline */
+            --st-blue: #3b82f6;  /* Idle/Standby */
             --st-green: #22c55e; /* Running */
-            --offline-gray: #64748b;
+            --offline-gray: #94a3b8;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -40,211 +37,187 @@
 
         /* --- HEADER --- */
         .header-container {
-            margin-top: 40px; margin-bottom: 10px; text-align: center; width: 100%; padding: 0 20px;
+            margin-top: 30px; margin-bottom: 20px; text-align: center; width: 100%; padding: 0 20px;
         }
         .header-pill {
             display: inline-block; 
-            background: white; 
-            color: var(--primary-blue);
-            border: 2px solid var(--primary-blue);
-            padding: 10px 40px; 
-            border-radius: 50px; 
-            font-weight: 800; 
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            background: var(--primary-blue); 
+            color: white;
+            padding: 12px 30px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2);
         }
         .sub-header {
-            margin-top: 15px; font-size: 0.7rem; color: var(--primary-blue); font-weight: 600; font-style: italic;
+            margin-top: 10px; font-size: 0.8rem; color: #64748b; font-weight: 500;
         }
 
         /* --- LEGEND (KETERANGAN STATUS) --- */
         .legend-container {
-            display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; width: 100%;
-            flex-wrap: wrap; font-size: 0.7rem; font-weight: 600; color: #64748b;
+            display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; width: 100%;
+            flex-wrap: wrap; font-size: 0.75rem; font-weight: 600; color: #64748b;
         }
-        .legend-item { display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;}
-        .legend-item .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        .legend-item .dot.red { background-color: var(--st-red); box-shadow: 0 0 4px var(--st-red); }
-        .legend-item .dot.blue { background-color: var(--st-blue); box-shadow: 0 0 4px var(--st-blue); }
-        .legend-item .dot.green { background-color: var(--st-green); box-shadow: 0 0 4px var(--st-green); }
+        .legend-item { display: flex; align-items: center; gap: 6px; background: white; padding: 6px 12px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .legend-item .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .legend-item .dot.red { background-color: var(--st-red); box-shadow: 0 0 6px var(--st-red); }
+        .legend-item .dot.blue { background-color: var(--st-blue); box-shadow: 0 0 6px var(--st-blue); }
+        .legend-item .dot.green { background-color: var(--st-green); box-shadow: 0 0 6px var(--st-green); }
 
         /* --- STATUS KONEKSI --- */
         #connStatus {
-            position: absolute; top: 15px; right: 15px; font-size: 0.6rem; color: #999;
-            background: #f1f1f1; padding: 4px 10px; border-radius: 20px;
-            display: flex; align-items: center; gap: 5px;
+            position: absolute; top: 15px; right: 15px; font-size: 0.7rem; color: white;
+            background: var(--offline-gray); padding: 5px 12px; border-radius: 20px;
+            display: flex; align-items: center; gap: 6px; font-weight: 600;
+            transition: background 0.3s;
         }
-        .pulse-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; }
-        .connected .pulse-dot { background: #22c55e; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        #connStatus.connected { background: var(--st-green); }
+        
+        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: white; opacity: 0.8; }
+        .connected .pulse-dot { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
 
         /* --- GRID CONTAINER --- */
-        .grid-container {
-            width: 100%; 
-            max-width: 1200px; 
-            padding: 10px 20px;
-        }
-        
+        .grid-container { width: 100%; max-width: 1000px; padding: 0 15px; }
         .grid {
             display: grid;
-            gap: 15px;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Responsif */
         }
 
-        @media (max-width: 768px) {
-            .grid-container { max-width: 450px; }
-            .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .header-container { margin-top: 30px; }
-        }
-
+        /* --- MACHINE CARD BUTTON --- */
         .mc-btn {
-            color: var(--text-white);
+            background-color: white;
+            color: var(--text-dark);
             border: none;
-            border-radius: 12px;
-            padding: 0 10px;
-            font-size: 0.75rem; 
+            border-radius: 16px;
+            padding: 15px 10px;
+            font-size: 0.85rem; 
             font-weight: 700;
             text-transform: uppercase;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             cursor: pointer;
-            transition: transform 0.1s, background-color 0.2s;
+            transition: all 0.2s;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 60px;
-            text-align: center;
+            min-height: 80px;
             position: relative;
-            background-color: var(--offline-gray);
+            border-bottom: 4px solid transparent; /* Untuk indikator warna */
         }
-        .mc-btn:active { transform: scale(0.95); }
+        .mc-btn:active { transform: scale(0.96); }
         
-        /* STATUS COLORS */
-        .mc-btn.running { background-color: var(--st-green); }
-        .mc-btn.idle { background-color: var(--st-blue); }
-        .mc-btn.offline { background-color: var(--st-red); opacity: 0.9; }
+        /* STATUS STYLING */
+        /* Offline: Background agak merah pudar, border bawah merah */
+        .mc-btn.offline { background-color: #fef2f2; border-bottom-color: var(--st-red); color: var(--st-red); opacity: 0.8; }
         
-        /* INDIKATOR KECIL OFFLINE */
-        .mc-btn.offline::after {
-            content: ''; position: absolute; top: 10px; right: 10px;
-            width: 6px; height: 6px; border-radius: 50%; background: #ef4444;
-            box-shadow: 0 0 4px #ef4444;
-        }
+        /* Idle: Background agak biru pudar, border bawah biru */
+        .mc-btn.idle { background-color: #eff6ff; border-bottom-color: var(--st-blue); color: var(--st-blue); }
+        
+        /* Running: Background Hijau Solid agar mencolok */
+        .mc-btn.running { background-color: var(--st-green); border-bottom-color: #15803d; color: white; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4); }
 
-        /* STATUS LOADING (ABU-ABU POLOS) */
-        .mc-btn.loading {
-            background-color: #94a3b8;
-            color: #ffffff;
-            opacity: 0.9;
-        }
+        /* Loading */
+        .mc-btn.loading { background-color: #e2e8f0; color: #94a3b8; }
+
+        .btn-sub { font-size: 0.65rem; font-weight: 500; opacity: 0.8; margin-top: 4px; }
 
         /* --- MODAL DETAIL --- */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 1000;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px;
+            padding: 20px; backdrop-filter: blur(4px);
         }
-        .modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
 
         .modal-card {
-            background-color: var(--card-gold);
-            color: white;
-            width: 90%; max-width: 360px;
-            border-radius: 20px;
-            padding: 25px 20px;
-            box-shadow: 0 10px 30px rgba(158, 124, 34, 0.3);
-            position: relative;
+            background-color: white;
+            width: 100%; max-width: 400px;
+            border-radius: 24px;
+            padding: 0;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex; flex-direction: column; max-height: 85vh;
         }
 
-        .modal-title {
-            text-align: center; font-weight: 800; font-size: 1.1rem;
-            margin-bottom: 15px; text-transform: uppercase;
-            letter-spacing: 0.5px;
+        .modal-header {
+            background: var(--primary-blue); color: white; padding: 20px; text-align: center;
         }
-
+        .modal-title { font-weight: 800; font-size: 1.2rem; letter-spacing: 0.5px; margin-bottom: 5px; }
         .status-badge {
-            text-align: center; font-weight: bold; margin-bottom: 20px;
-            background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px;
-            font-size: 0.85rem; letter-spacing: 1px;
+            display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px;
+            background: rgba(255,255,255,0.2); letter-spacing: 1px;
         }
 
-        .detail-list {
-            font-family: 'Poppins', sans-serif; font-size: 0.8rem; line-height: 1.6;
-        }
+        .modal-body { padding: 20px; overflow-y: auto; }
 
         .detail-row {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 8px 0; border-bottom: 1px solid #f1f5f9;
         }
+        .detail-row:last-child { border-bottom: none; }
         
-        .d-label { font-weight: 600; text-align: left; }
-        .d-val { font-weight: 500; text-align: right; font-family: 'Poppins', sans-serif; }
+        .d-label { font-size: 0.85rem; color: #64748b; font-weight: 600; }
+        .d-val { font-size: 0.9rem; font-weight: 700; color: #0f172a; font-family: 'JetBrains Mono', monospace; }
 
-        /* Tombol Navigasi Bawah */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #ffffff; height: 70px;
-            display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid #eee; z-index: 2000;
+        .close-btn {
+            background: #f1f5f9; border: none; width: 100%; padding: 15px;
+            font-weight: 700; color: var(--text-dark); cursor: pointer;
+            font-size: 1rem;
         }
-        .nav-item {
-            color: #000; font-size: 1.4rem; padding: 10px; transition: 0.2s;
-        }
-        .nav-item.active { opacity: 1; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     </style>
 </head>
 <body>
 
-    <!-- STATUS KONEKSI -->
     <div id="connStatus">
         <span class="pulse-dot"></span> <span id="statusText">Connecting...</span>
     </div>
 
-    <!-- HEADER -->
     <div class="header-container">
-        <div class="header-pill">MONITORING MESIN</div>
-        <div class="sub-header">Pilih mesin untuk monitoring</div>
+        <div class="header-pill">FACTORY MONITOR</div>
+        <div class="sub-header">Realtime Modbus Data via HiveMQ</div>
     </div>
 
-    <!-- LEGEND / INDIKATOR -->
     <div class="legend-container">
         <div class="legend-item"><span class="dot red"></span> OFFLINE</div>
         <div class="legend-item"><span class="dot blue"></span> STANDBY</div>
         <div class="legend-item"><span class="dot green"></span> RUNNING</div>
     </div>
 
-    <!-- GRID BUTTONS -->
     <div class="grid-container">
         <div class="grid" id="gridContainer"></div>
     </div>
 
-    <!-- MODAL DETAIL -->
     <div class="modal-overlay" id="detailModal" onclick="if(event.target === this) closeModal()">
         <div class="modal-card">
-            <div class="modal-title" id="mTitle">INFORMASI MESIN 1</div>
-            <div id="statusIndicator" class="status-badge">Checking...</div>
-            <div class="detail-list" id="modalList"></div>
+            <div class="modal-header">
+                <div class="modal-title" id="mTitle">MESIN X</div>
+                <div id="statusIndicator" class="status-badge">WAITING DATA...</div>
+            </div>
+            <div class="modal-body" id="modalList">
+                </div>
+            <button class="close-btn" onclick="closeModal()">TUTUP</button>
         </div>
     </div>
 
-    <!-- BOTTOM NAV -->
-    <nav class="bottom-nav">
-        <a href="#" class="nav-item"><i class="fa-solid fa-house"></i></a>
-        <a href="#" class="nav-item"><i class="fa-solid fa-bars"></i></a>
-        <a href="#" class="nav-item"><i class="fa-solid fa-download"></i></a>
-        <a href="#" class="nav-item"><i class="fa-solid fa-user"></i></a>
-    </nav>
-
-    <!-- LOGIKA JAVASCRIPT -->
     <script>
-        // --- CONFIG ---
-        const MQTT_BROKER = "192.168.5.11";
-        const MQTT_PORT = 8884; 
-        const MQTT_PATH = "/mqtt"; 
-        const MQTT_TOPIC = "politeknik/meter/data";
+        // ===============================================
+        // 1. KONFIGURASI HIVE MQ (PUBLIC)
+        // ===============================================
+        const MQTT_BROKER = "broker.hivemq.com";
+        const MQTT_PORT   = 8000;    // Port WebSocket (Bukan 1883!)
+        const MQTT_PATH   = "/mqtt"; // Path standar HiveMQ
+        const MQTT_TOPIC  = "politeknik/meter/data";
         
+        // PENTING: Untuk 'broker.hivemq.com' port 8000 biasanya Non-SSL (ws://)
+        // Jika website ini dihosting di HTTPS, browser mungkin memblokir (Mixed Content).
+        // Untuk testing lokal (file:// atau localhost), useSSL: false paling aman.
+        const USE_SSL     = false; 
+
         const MACHINE_NAMES = {
             1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN",
             4: "UNKNOWN", 5: "MESIN 41", 6: "MESIN 40",
@@ -259,36 +232,47 @@
         let hasData = {}; 
         let client;
 
-        // --- 1. RENDER AWAL TOMBOL ---
+        // --- RENDER AWAL ---
         const gridContainer = document.getElementById('gridContainer');
         for (let i = 1; i <= 18; i++) {
             machineData[i] = null;
             hasData[i] = false; 
 
-            const btn = document.createElement('div');
-            btn.className = 'mc-btn loading'; // Awal: Loading
+            const btn = document.createElement('button');
+            btn.className = 'mc-btn loading';
             btn.id = `btn-${i}`;
             btn.innerHTML = `
-                <span>MEMUAT DATA</span>
-                <span style="font-size: 0.6rem; font-weight: normal; opacity: 0.75; margin-top: 2px;">ID: ${i}</span>
+                <span>MESIN ${i}</span>
+                <span class="btn-sub">WAITING</span>
             `;
             btn.onclick = () => openModal(i);
             gridContainer.appendChild(btn);
         }
 
-        // --- 2. MQTT LOGIC ---
+        // --- MQTT CONNECTION ---
         function startMqtt() {
-            const clientId = "WebMonitor-" + new Date().getTime();
+            const clientId = "WebMon-" + Math.floor(Math.random() * 100000);
             client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, MQTT_PATH, clientId);
 
             client.onConnectionLost = onConnectionLost;
             client.onMessageArrived = onMessageArrived;
 
             const options = {
-                useSSL: true, timeout: 3, onSuccess: onConnect,
-                onFailure: () => { updateStatus(false); setTimeout(startMqtt, 5000); }
+                useSSL: USE_SSL, 
+                timeout: 5, 
+                keepAliveInterval: 60,
+                onSuccess: onConnect,
+                onFailure: (e) => { 
+                    console.log("Conn Failed", e);
+                    updateStatus(false); 
+                    setTimeout(startMqtt, 5000); 
+                }
             };
-            try { client.connect(options); } catch(e) { console.error(e); }
+            
+            try { 
+                console.log(`Connecting to ws://${MQTT_BROKER}:${MQTT_PORT}...`);
+                client.connect(options); 
+            } catch(e) { console.error(e); }
         }
 
         function updateStatus(isConnected) {
@@ -296,31 +280,37 @@
             const txt = document.getElementById('statusText');
             if(isConnected) {
                 el.classList.add('connected');
-                txt.innerText = "Online";
+                txt.innerText = "Connected to Cloud";
+                el.style.backgroundColor = "#22c55e";
             } else {
                 el.classList.remove('connected');
                 txt.innerText = "Reconnecting...";
+                el.style.backgroundColor = "#94a3b8";
             }
         }
 
         function onConnect() {
+            console.log("MQTT Connected!");
             updateStatus(true);
             client.subscribe(MQTT_TOPIC);
         }
 
         function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0) {
+                console.log("Connection Lost: " + responseObject.errorMessage);
+            }
             updateStatus(false);
-            if (responseObject.errorCode !== 0) setTimeout(startMqtt, 5000);
+            setTimeout(startMqtt, 5000);
         }
 
         function onMessageArrived(message) {
             try {
                 const payload = JSON.parse(message.payloadString);
                 processData(payload);
-            } catch (e) { }
+            } catch (e) { console.error("JSON Error", e); }
         }
 
-        // --- 3. LOGIKA UTAMA (VERSI INDUSTRI) ---
+        // --- LOGIKA VISUALISASI DATA ---
         function processData(payload) {
             const id = payload.id;
             if (!id || id < 1 || id > 18) return;
@@ -332,44 +322,44 @@
             const btn = document.getElementById(`btn-${id}`);
             if (!btn) return;
 
-            // Kembalikan nama mesin
-            btn.innerHTML = `
-                <span>${MACHINE_NAMES[id] || `MESIN ${id}`}</span>
-                <span style="font-size: 0.6rem; font-weight: normal; opacity: 0.75; margin-top: 2px;">ID: ${id}</span>
-            `;
-
-            // --- EVALUASI STATUS ---
+            // Logika Status
             const statusEsp = payload.status; 
-            const V  = Number(payload.V || 0);
             const I1 = Number(payload.I1 || 0);
             const I2 = Number(payload.I2 || 0);
             const I3 = Number(payload.I3 || 0);
 
-            // Reset Semua Kelas
-            btn.classList.remove('offline', 'idle', 'running', 'loading');
+            let displayClass = 'idle';
+            let displaySub = 'STANDBY';
 
-            // 1. CEK OFFLINE HANYA KARENA STATUS ESP
+            // 1. Prioritas Offline
             if (statusEsp === 'offline') {
-                btn.classList.add('offline'); // Merah
+                displayClass = 'offline';
+                displaySub = 'OFFLINE';
             } 
-            // 2. CEK RUNNING (Jika ada Arus) -> ONLINE
-            else if (I1 > 0 || I2 > 0 || I3 > 0) {
-                btn.classList.add('running'); // Hijau
-            } 
-            // 3. SISANYA STANDBY (V boleh 0 asalkan komunikasi jalan) -> ONLINE
-            else {
-                btn.classList.add('idle'); // Biru
+            // 2. Prioritas Running (Ada Arus)
+            else if (I1 > 0.5 || I2 > 0.5 || I3 > 0.5) { // Threshold 0.5A
+                displayClass = 'running';
+                displaySub = 'RUNNING';
             }
+            
+            // Update Tampilan Button
+            btn.className = `mc-btn ${displayClass}`;
+            btn.innerHTML = `
+                <span>${MACHINE_NAMES[id] || `MESIN ${id}`}</span>
+                <span class="btn-sub">ID:${id} | ${displaySub}</span>
+            `;
 
             // Update Modal jika sedang terbuka
             const modal = document.getElementById('detailModal');
-            if (modal.style.display === 'flex' && document.getElementById('mTitle').innerText.includes(MACHINE_NAMES[id])) {
-                renderDetailList(id);
+            if (modal.style.display === 'flex') {
+                const title = document.getElementById('mTitle').innerText;
+                if (title.includes(MACHINE_NAMES[id] || `MESIN ${id}`)) {
+                    renderDetailList(id);
+                }
             }
         }
 
-        // --- 4. WATCHDOG (Cek Data Basi > 10 Menit) ---
-        // Logika Industri: Offline hanya jika lost communication > 10 menit
+        // --- WATCHDOG (Cek Data Basi > 10 Menit) ---
         const OFFLINE_TIMEOUT_MS = 600000; 
         setInterval(() => {
             const now = Date.now();
@@ -377,31 +367,40 @@
                 if (hasData[i] && (now - lastUpdate[i] > OFFLINE_TIMEOUT_MS)) {
                     const btn = document.getElementById(`btn-${i}`);
                     if (btn) {
-                        btn.classList.remove('running', 'idle', 'loading');
-                        btn.classList.add('offline');
-                        
-                        if(machineData[i]) {
-                            machineData[i].status = "offline";
+                        btn.className = 'mc-btn offline';
+                        // Update text
+                        const currentHTML = btn.innerHTML;
+                        if(!currentHTML.includes("OFFLINE")) {
+                             btn.innerHTML = `
+                                <span>${MACHINE_NAMES[i] || `MESIN ${i}`}</span>
+                                <span class="btn-sub">ID:${i} | OFFLINE</span>
+                            `;
                         }
+                        if(machineData[i]) machineData[i].status = "offline";
                     }
                 }
             }
         }, 5000);
 
-        // --- 5. MODAL LOGIC ---
+        // --- MODAL FUNCTIONS ---
         function openModal(id) {
             const name = MACHINE_NAMES[id] || `MESIN ${id}`;
-            document.getElementById('mTitle').innerText = `INFORMASI ${name}`;
+            document.getElementById('mTitle').innerText = name;
             renderDetailList(id);
             document.getElementById('detailModal').style.display = 'flex';
-            document.getElementById('detailModal').classList.add('active');
+            setTimeout(() => document.getElementById('detailModal').classList.add('active'), 10);
         }
 
         function closeModal() {
             document.getElementById('detailModal').classList.remove('active');
             setTimeout(() => {
                 document.getElementById('detailModal').style.display = 'none';
-            }, 300);
+            }, 200);
+        }
+
+        function fmt(num, digit=2) {
+            if(num === undefined || num === null) return "-";
+            return Number(num).toLocaleString('id-ID', { minimumFractionDigits: digit, maximumFractionDigits: digit });
         }
 
         function renderDetailList(id) {
@@ -410,72 +409,56 @@
             const statusLabel = document.getElementById('statusIndicator');
 
             if (!d) {
-                listContainer.innerHTML = "<div style='text-align:center; padding:20px;'>Menunggu Data...</div>";
-                statusLabel.innerText = "WAITING...";
-                statusLabel.style.background = "rgba(0,0,0,0.2)";
+                listContainer.innerHTML = "<div style='text-align:center; color:#94a3b8; padding:20px;'>Menunggu Data Masuk...</div>";
                 return;
             }
 
-            const V = Number(d.V || 0);
-            const I1 = Number(d.I1 || 0);
-            const I2 = Number(d.I2 || 0);
-            const I3 = Number(d.I3 || 0);
-            const statusEsp = d.status;
-            
-            // Hitung watchdog timeout
-            const isCommTimeout = (Date.now() - lastUpdate[id] > OFFLINE_TIMEOUT_MS);
+            const isTimeout = (Date.now() - lastUpdate[id] > OFFLINE_TIMEOUT_MS);
+            let statusText = 'STANDBY';
+            let statusColor = '#3b82f6'; // Blue
 
-            let statusText = '';
-            let statusBg = '';
-
-            // LOGIKA DISPLAY MODAL (SAMA DENGAN TOMBOL)
-            if (statusEsp === 'offline' || isCommTimeout) {
-                statusText = 'OFFLINE (LOST COMM)';
-                statusBg = '#dc2626';
-            } else if (I1 > 0 || I2 > 0 || I3 > 0) {
-                statusText = 'ONLINE - RUNNING';
-                statusBg = '#22c55e';
-            } else {
-                statusText = 'ONLINE - STANDBY';
-                statusBg = '#2563eb';
+            // Logika Warna Header Modal
+            if (d.status === 'offline' || isTimeout) {
+                statusText = 'OFFLINE'; statusColor = '#ef4444';
+            } else if (Number(d.I1)>0.5 || Number(d.I2)>0.5 || Number(d.I3)>0.5) {
+                statusText = 'RUNNING'; statusColor = '#22c55e';
             }
 
             statusLabel.innerText = statusText;
-            statusLabel.style.backgroundColor = statusBg;
+            statusLabel.style.backgroundColor = statusColor;
+            document.querySelector('.modal-header').style.backgroundColor = statusColor;
 
+            // Hitung Hari/Jam
             const opHours = Number(d.OpH) || 0;
             const days = Math.floor(opHours / 24);
             const hrs = (opHours % 24).toFixed(1);
-            const kVA = (Number(d.S) / 1000).toFixed(2);
 
-            const row = (num, label, val, unit) => `
+            const row = (label, val, unit) => `
                 <div class="detail-row">
-                    <span class="d-label">${num}. ${label}</span>
-                    <span class="d-val">=${val} ${unit}</span>
+                    <span class="d-label">${label}</span>
+                    <span class="d-val">${val} <small style="font-size:0.7em; color:#64748b;">${unit}</small></span>
                 </div>
             `;
 
             listContainer.innerHTML = `
-                ${row(1, 'Total Ea', Number(d.EaT || 0).toFixed(2), 'kWh')}
-                ${row(2, 'Total Er', Number(d.ErT || 0).toFixed(2), 'kVARh')}
-                ${row(3, 'Partial Ea', Number(d.T1 || 0).toFixed(2), 'kWh')}
-                ${row(4, 'Partial Er', Number(d.T2 || 0).toFixed(2), 'kVARh')}
-                ${row(5, 'Voltage', Number(d.V || 0).toFixed(1), 'V')}
-                ${row(6, 'Current I1', Number(d.I1 || 0).toFixed(1), 'A')}
-                ${row(7, 'Current I2', Number(d.I2 || 0).toFixed(1), 'A')}
-                ${row(8, 'Current I3', Number(d.I3 || 0).toFixed(1), 'A')}
-                ${row(9, 'Total Active(P)', Number(d.P || 0).toLocaleString(), 'Watt')}
-                ${row(10, 'Total Reactive (Q)', Number(d.Q || 0).toLocaleString(), 'VAR')}
-                ${row(11, 'Total Apparent (S)', kVA, 'kVA')} 
-                ${row(12, 'Power Faktor', Number(d.PF || 0).toFixed(3), '')}
-                ${row(13, 'Tarif T1', Number(d.T1 || 0).toFixed(2), 'kwh')}
-                ${row(14, 'Tarif T2', Number(d.T2 || 0).toFixed(2), 'kwh')}
-                ${row(15, 'Freq', Number(d.Hz || 0).toFixed(2), 'Hz')}
-                ${row(16, 'Op Time', `=${days}days`, `,${hrs}hrs`)}
+                ${row('Tegangan (V)', fmt(d.V, 1), 'Volt')}
+                ${row('Arus R (I1)', fmt(d.I1, 2), 'Amp')}
+                ${row('Arus S (I2)', fmt(d.I2, 2), 'Amp')}
+                ${row('Arus T (I3)', fmt(d.I3, 2), 'Amp')}
+                <hr style="border:0; border-top:1px dashed #e2e8f0; margin:10px 0;">
+                ${row('Daya Aktif (P)', fmt(d.P, 0), 'Watt')}
+                ${row('Daya Semu (S)', fmt(d.S/1000, 2), 'kVA')}
+                ${row('Power Factor', fmt(d.PF, 3), '')}
+                ${row('Frekuensi', fmt(d.Hz, 2), 'Hz')}
+                <hr style="border:0; border-top:1px dashed #e2e8f0; margin:10px 0;">
+                ${row('Total Energi (EaT)', fmt(d.EaT, 1), 'kWh')}
+                ${row('Total Reactive (ErT)', fmt(d.ErT, 1), 'kVARh')}
+                ${row('Jam Operasi', `${days}h ${hrs}j`, '')}
             `;
         }
 
-        setTimeout(startMqtt, 500);
+        // Start
+        setTimeout(startMqtt, 1000);
     </script>
 </body>
 </html>
