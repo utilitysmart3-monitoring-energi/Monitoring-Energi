@@ -40,7 +40,7 @@
 
         /* --- HEADER --- */
         .header-container {
-            margin-top: 40px; margin-bottom: 20px; text-align: center; width: 100%; padding: 0 20px;
+            margin-top: 40px; margin-bottom: 10px; text-align: center; width: 100%; padding: 0 20px;
         }
         .header-pill {
             display: inline-block; 
@@ -58,6 +58,17 @@
             margin-top: 15px; font-size: 0.7rem; color: var(--primary-blue); font-weight: 600; font-style: italic;
         }
 
+        /* --- LEGEND (KETERANGAN STATUS) --- */
+        .legend-container {
+            display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; width: 100%;
+            flex-wrap: wrap; font-size: 0.7rem; font-weight: 600; color: #64748b;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; background: #f8fafc; padding: 4px 10px; border-radius: 12px; border: 1px solid #e2e8f0;}
+        .legend-item .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .legend-item .dot.red { background-color: var(--st-red); box-shadow: 0 0 4px var(--st-red); }
+        .legend-item .dot.blue { background-color: var(--st-blue); box-shadow: 0 0 4px var(--st-blue); }
+        .legend-item .dot.green { background-color: var(--st-green); box-shadow: 0 0 4px var(--st-green); }
+
         /* --- STATUS KONEKSI --- */
         #connStatus {
             position: absolute; top: 15px; right: 15px; font-size: 0.6rem; color: #999;
@@ -68,34 +79,23 @@
         .connected .pulse-dot { background: #22c55e; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        /* --- GRID CONTAINER (RESPONSIVE) --- */
+        /* --- GRID CONTAINER --- */
         .grid-container {
             width: 100%; 
-            max-width: 1200px; /* Perlebar max-width untuk Laptop */
-            padding: 20px;
+            max-width: 1200px; 
+            padding: 10px 20px;
         }
         
         .grid {
             display: grid;
             gap: 15px;
-            /* DEFAULT: Tampilan Laptop (Horizontal Spread) */
-            /* auto-fit dengan minmax 160px akan otomatis membuat baris baru jika layar sempit */
-            /* Di Laptop (1366px+), ini akan jadi sekitar 5-6 kolom */
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
         }
 
-        /* --- MEDIA QUERY KHUSUS HP (VERTICAL STACK) --- */
         @media (max-width: 768px) {
-            .grid-container {
-                max-width: 450px; /* Batasi lebar di HP agar rapi */
-            }
-            .grid {
-                /* Di HP Pakai 2 Kolom Vertikal (Standar Aplikasi Mobile) */
-                grid-template-columns: repeat(2, 1fr); 
-                gap: 12px;
-            }
-            /* Jika mau benar-benar 1 baris ke bawah (List View), ganti jadi: */
-            /* grid-template-columns: 1fr; */
+            .grid-container { max-width: 450px; }
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .header-container { margin-top: 30px; }
         }
 
         .mc-btn {
@@ -110,9 +110,10 @@
             cursor: pointer;
             transition: transform 0.1s, background-color 0.2s;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 55px; /* Sedikit lebih tinggi agar enak disentuh */
+            min-height: 60px;
             text-align: center;
             position: relative;
             background-color: var(--offline-gray);
@@ -124,11 +125,20 @@
         .mc-btn.idle { background-color: var(--st-blue); }
         .mc-btn.offline { background-color: var(--st-red); opacity: 0.9; }
         
+        /* INDIKATOR KECIL OFFLINE (Biar user ngeh kalau mati) */
         .mc-btn.offline::after {
-            content: ''; position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
+            content: ''; position: absolute; top: 10px; right: 10px;
             width: 6px; height: 6px; border-radius: 50%; background: #ef4444;
             box-shadow: 0 0 4px #ef4444;
         }
+
+        /* STATUS LOADING (ABU-ABU POLOS) */
+        .mc-btn.loading {
+            background-color: #94a3b8;
+            color: #ffffff;
+            opacity: 0.9;
+        }
+        /* Indikator titik putih DIHAPUS sesuai permintaan */
 
         /* --- MODAL DETAIL --- */
         .modal-overlay {
@@ -199,6 +209,13 @@
         <div class="sub-header">Pilih mesin untuk monitoring</div>
     </div>
 
+    <!-- LEGEND / INDIKATOR -->
+    <div class="legend-container">
+        <div class="legend-item"><span class="dot red"></span> OFFLINE</div>
+        <div class="legend-item"><span class="dot blue"></span> STANDBY</div>
+        <div class="legend-item"><span class="dot green"></span> RUNNING</div>
+    </div>
+
     <!-- GRID BUTTONS -->
     <div class="grid-container">
         <div class="grid" id="gridContainer"></div>
@@ -209,9 +226,7 @@
         <div class="modal-card">
             <div class="modal-title" id="mTitle">INFORMASI MESIN 1</div>
             <div id="statusIndicator" class="status-badge">Checking...</div>
-            <div class="detail-list" id="modalList">
-                <!-- Isi Detail -->
-            </div>
+            <div class="detail-list" id="modalList"></div>
         </div>
     </div>
 
@@ -242,16 +257,22 @@
         
         let machineData = {}; 
         let lastUpdate = {}; 
+        let hasData = {}; 
         let client;
 
         // --- 1. RENDER AWAL TOMBOL ---
         const gridContainer = document.getElementById('gridContainer');
         for (let i = 1; i <= 18; i++) {
-            machineData[i] = null; 
+            machineData[i] = null;
+            hasData[i] = false; 
+
             const btn = document.createElement('div');
-            btn.className = 'mc-btn offline'; 
+            btn.className = 'mc-btn loading'; // Awal: Loading
             btn.id = `btn-${i}`;
-            btn.innerText = MACHINE_NAMES[i] || `MESIN ${i}`;
+            btn.innerHTML = `
+                <span>MEMUAT DATA</span>
+                <span style="font-size: 0.6rem; font-weight: normal; opacity: 0.75; margin-top: 2px;">ID: ${i}</span>
+            `;
             btn.onclick = () => openModal(i);
             gridContainer.appendChild(btn);
         }
@@ -300,32 +321,44 @@
             } catch (e) { }
         }
 
-        // --- 3. LOGIKA UTAMA (3 STATE) ---
+        // --- 3. LOGIKA UTAMA (SEDERHANA: 0V = OFFLINE) ---
         function processData(payload) {
             const id = payload.id;
             if (!id || id < 1 || id > 18) return;
 
             machineData[id] = payload;
             lastUpdate[id] = Date.now();
+            hasData[id] = true; 
             
             const btn = document.getElementById(`btn-${id}`);
             if (!btn) return;
 
+            // Kembalikan nama mesin
+            btn.innerHTML = `
+                <span>${MACHINE_NAMES[id] || `MESIN ${id}`}</span>
+                <span style="font-size: 0.6rem; font-weight: normal; opacity: 0.75; margin-top: 2px;">ID: ${id}</span>
+            `;
+
             // --- EVALUASI STATUS ---
+            const statusEsp = payload.status; 
             const V  = Number(payload.V || 0);
             const I1 = Number(payload.I1 || 0);
             const I2 = Number(payload.I2 || 0);
             const I3 = Number(payload.I3 || 0);
 
-            // Reset Kelas
-            btn.classList.remove('offline', 'idle', 'running');
+            // Reset Semua Kelas
+            btn.classList.remove('offline', 'idle', 'running', 'loading');
 
-            // Logika Prioritas
-            if (V <= 0) {
+            // 1. CEK OFFLINE (V <= 0 ATAU Status ESP Offline)
+            if (statusEsp === 'offline' || V <= 0) {
                 btn.classList.add('offline'); // Merah
-            } else if (I1 > 0 || I2 > 0 || I3 > 0) {
+            } 
+            // 2. CEK RUNNING (Ada Arus)
+            else if (I1 > 0 || I2 > 0 || I3 > 0) {
                 btn.classList.add('running'); // Hijau
-            } else {
+            } 
+            // 3. SISANYA STANDBY (V > 0 tapi Arus 0)
+            else {
                 btn.classList.add('idle'); // Biru
             }
 
@@ -336,17 +369,23 @@
             }
         }
 
-        // --- 4. WATCHDOG (Cek Data Basi > 200 Detik) ---
-        const OFFLINE_TIMEOUT_MS = 200000; 
+        // --- 4. WATCHDOG (Cek Data Basi > 5 Menit) ---
+        // Jika data mesin tidak masuk lebih dari 5 menit -> OFFLINE
+        const OFFLINE_TIMEOUT_MS = 300000; 
         setInterval(() => {
             const now = Date.now();
             for (let i = 1; i <= 18; i++) {
-                if (lastUpdate[i] > 0 && (now - lastUpdate[i] > OFFLINE_TIMEOUT_MS)) {
+                if (hasData[i] && (now - lastUpdate[i] > OFFLINE_TIMEOUT_MS)) {
                     const btn = document.getElementById(`btn-${i}`);
                     if (btn) {
-                        btn.classList.remove('running', 'idle');
+                        btn.classList.remove('running', 'idle', 'loading');
                         btn.classList.add('offline');
-                        if(machineData[i]) machineData[i].V = 0; 
+                        
+                        // Set flag internal jadi offline agar modal juga update
+                        if(machineData[i]) {
+                            machineData[i].status = "offline";
+                            machineData[i].V = 0; 
+                        }
                     }
                 }
             }
@@ -384,18 +423,23 @@
             const I1 = Number(d.I1 || 0);
             const I2 = Number(d.I2 || 0);
             const I3 = Number(d.I3 || 0);
+            const statusEsp = d.status;
+            
+            // Hitung watchdog timeout
+            const isCommTimeout = (Date.now() - lastUpdate[id] > OFFLINE_TIMEOUT_MS);
 
             let statusText = '';
             let statusBg = '';
 
-            if (V <= 0) {
+            // LOGIKA DISPLAY MODAL (SAMA PERSIS DENGAN TOMBOL)
+            if (statusEsp === 'offline' || V <= 0 || isCommTimeout) {
                 statusText = 'OFFLINE';
                 statusBg = '#dc2626';
             } else if (I1 > 0 || I2 > 0 || I3 > 0) {
                 statusText = 'ONLINE - RUNNING';
                 statusBg = '#22c55e';
             } else {
-                statusText = 'ONLINE - IDLE';
+                statusText = 'ONLINE - STANDBY';
                 statusBg = '#2563eb';
             }
 
