@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MONITORING MESIN</title>
     
-    <!-- Font & Icon -->
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -15,9 +15,8 @@
     <style>
         :root {
             --bg-body: #ffffff;
-            --primary-blue: #2c5e75; /* Warna Biru Tombol sesuai gambar */
-            --header-border: #2c5e75;
-            --card-gold: #a67c00; /* Warna Emas/Brown Modal sesuai gambar */
+            --primary-blue: #265c75; /* Warna Biru sesuai screenshot */
+            --card-gold: #9e7c22;    /* Warna Emas/Coklat sesuai screenshot */
             --text-dark: #333333;
             --text-white: #ffffff;
             --offline-gray: #64748b;
@@ -36,29 +35,29 @@
             align-items: center;
         }
 
-        /* --- HEADER (Sesuai Gambar: Putih Garis Biru) --- */
+        /* --- HEADER --- */
         .header-container {
-            margin-top: 30px; margin-bottom: 10px; text-align: center; width: 100%; padding: 0 20px;
+            margin-top: 40px; margin-bottom: 20px; text-align: center; width: 100%; padding: 0 20px;
         }
         .header-pill {
             display: inline-block; 
             background: white; 
-            color: var(--header-border);
-            border: 2px solid var(--header-border);
-            padding: 8px 40px; 
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+            padding: 10px 40px; 
             border-radius: 50px; 
-            font-weight: 700; 
+            font-weight: 800; 
             font-size: 1.1rem;
             text-transform: uppercase;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         .sub-header {
-            margin-top: 15px; font-size: 0.75rem; color: var(--header-border); font-weight: 500; font-style: italic;
+            margin-top: 15px; font-size: 0.7rem; color: var(--primary-blue); font-weight: 600; font-style: italic;
         }
 
-        /* --- STATUS KONEKSI (Kecil di pojok) --- */
+        /* --- STATUS KONEKSI (Indikator Kecil Pojok Kanan) --- */
         #connStatus {
-            position: absolute; top: 10px; right: 10px; font-size: 0.6rem; color: #999;
+            position: absolute; top: 15px; right: 15px; font-size: 0.6rem; color: #999;
             background: #f1f1f1; padding: 4px 10px; border-radius: 20px;
             display: flex; align-items: center; gap: 5px;
         }
@@ -66,22 +65,22 @@
         .connected .pulse-dot { background: #22c55e; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        /* --- GRID TOMBOL MESIN (Sesuai Gambar Kiri) --- */
+        /* --- GRID TOMBOL MESIN --- */
         .grid-container {
-            width: 100%; max-width: 450px; padding: 20px 30px;
+            width: 100%; max-width: 400px; padding: 10px 20px;
         }
         .grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr); /* 2 Kolom */
-            gap: 15px;
+            gap: 12px;
         }
 
         .mc-btn {
-            background-color: var(--primary-blue); /* Biru Laut */
+            background-color: var(--primary-blue);
             color: var(--text-white);
             border: none;
-            border-radius: 15px; /* Rounded */
-            padding: 10px;
+            border-radius: 12px;
+            padding: 0 10px;
             font-size: 0.75rem; 
             font-weight: 700;
             text-transform: uppercase;
@@ -91,60 +90,60 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 55px; /* Tinggi tombol */
+            min-height: 45px;
             text-align: center;
-            line-height: 1.2;
             position: relative;
         }
         .mc-btn:active { transform: scale(0.95); }
         
-        /* State Offline (Abu-abu) */
+        /* State Offline (Abu-abu + Indikator) */
         .mc-btn.offline { 
             background-color: var(--offline-gray); 
-            opacity: 0.8;
+            opacity: 0.9;
         }
-        /* Indikator Merah kecil jika offline */
+        /* Indikator Merah kecil di dalam tombol offline */
         .mc-btn.offline::after {
-            content: ''; position: absolute; top: 5px; right: 5px;
+            content: ''; position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
             width: 6px; height: 6px; border-radius: 50%; background: #ef4444;
+            box-shadow: 0 0 4px #ef4444;
         }
 
-        /* --- MODAL DETAIL (Sesuai Gambar Kanan: Emas) --- */
+        /* --- MODAL DETAIL (Warna Emas) --- */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(255,255,255,0.8); z-index: 1000;
+            position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 1000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             padding: 20px;
         }
         .modal-overlay.active { display: flex; animation: fadeIn 0.3s; }
 
         .modal-card {
-            background-color: var(--card-gold); /* Warna Emas/Coklat */
+            background-color: var(--card-gold);
             color: white;
-            width: 90%; max-width: 380px;
-            border-radius: 25px; /* Rounded banget */
-            padding: 30px 25px;
-            box-shadow: 0 15px 40px rgba(166, 124, 0, 0.4);
+            width: 90%; max-width: 360px;
+            border-radius: 20px;
+            padding: 25px 20px;
+            box-shadow: 0 10px 30px rgba(158, 124, 34, 0.3);
             position: relative;
         }
 
         .modal-title {
-            text-align: center; font-weight: 700; font-size: 1.2rem;
-            margin-bottom: 25px; text-transform: uppercase;
-            letter-spacing: 1px;
+            text-align: center; font-weight: 800; font-size: 1.1rem;
+            margin-bottom: 20px; text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .detail-list {
-            font-family: 'Poppins', sans-serif; font-size: 0.85rem; line-height: 1.8;
+            font-family: 'Poppins', sans-serif; font-size: 0.8rem; line-height: 1.6;
         }
 
         .detail-row {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
         }
         
         .d-label { font-weight: 600; text-align: left; }
-        .d-val { font-weight: 400; text-align: right; font-family: 'JetBrains Mono', monospace; }
+        .d-val { font-weight: 500; text-align: right; font-family: 'Poppins', sans-serif; }
 
-        /* Tombol Navigasi Bawah (Hitam/Gelap) */
+        /* Tombol Navigasi Bawah */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: #ffffff; height: 70px;
@@ -152,8 +151,7 @@
             border-top: 1px solid #eee; z-index: 2000;
         }
         .nav-item {
-            color: #000; /* Hitam sesuai gambar */
-            font-size: 1.5rem; padding: 10px; transition: 0.2s;
+            color: #000; font-size: 1.4rem; padding: 10px; transition: 0.2s;
         }
         .nav-item.active { opacity: 1; }
         
@@ -178,15 +176,14 @@
         <div class="grid" id="gridContainer"></div>
     </div>
 
-    <!-- MODAL DETAIL (POPUP) -->
+    <!-- MODAL DETAIL (POPUP EMAS) -->
     <div class="modal-overlay" id="detailModal" onclick="if(event.target === this) closeModal()">
         <div class="modal-card">
             <div class="modal-title" id="mTitle">INFORMASI MESIN 1</div>
             <div class="detail-list" id="modalList">
-                <!-- Isi Detail -->
+                <!-- Isi Detail akan di-inject JS -->
             </div>
         </div>
-        <!-- Klik area luar untuk tutup -->
     </div>
 
     <!-- BOTTOM NAV -->
@@ -197,17 +194,14 @@
         <a href="#" class="nav-item"><i class="fa-solid fa-user"></i></a>
     </nav>
 
-    <!-- LOGIKA JAVASCRIPT (MQTT HIVEMQ) -->
+    <!-- LOGIKA JAVASCRIPT -->
     <script>
         // --- CONFIG ---
         const MQTT_BROKER = "broker.hivemq.com";
-        const MQTT_PORT = 8884; // WSS
+        const MQTT_PORT = 8884; // WSS Port
         const MQTT_PATH = "/mqtt"; 
         const MQTT_TOPIC = "politeknik/meter/data";
         
-        // Timeout Offline UI (90 Detik)
-        const OFFLINE_TIMEOUT_MS = 90000; 
-
         // Nama Mesin sesuai request
         const MACHINE_NAMES = {
             1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN",
@@ -219,21 +213,17 @@
         };
         
         let machineData = {}; 
-        let lastUpdate = {}; 
         let client;
 
         // --- 1. RENDER AWAL TOMBOL ---
         const gridContainer = document.getElementById('gridContainer');
         for (let i = 1; i <= 18; i++) {
             machineData[i] = null; 
-            lastUpdate[i] = 0;
-
             const btn = document.createElement('div');
-            btn.className = 'mc-btn offline'; 
+            btn.className = 'mc-btn offline'; // Default offline
             btn.id = `btn-${i}`;
             btn.innerText = MACHINE_NAMES[i] || `MESIN ${i}`;
             btn.onclick = () => openModal(i);
-            
             gridContainer.appendChild(btn);
         }
 
@@ -262,7 +252,7 @@
                 txt.innerText = "Online";
             } else {
                 el.classList.remove('connected');
-                txt.innerText = "Connecting...";
+                txt.innerText = "Reconnecting...";
             }
         }
 
@@ -283,21 +273,28 @@
             } catch (e) { }
         }
 
+        // --- 3. LOGIKA UTAMA (INDUSTRI) ---
         function processData(payload) {
             const id = payload.id;
             if (!id || id < 1 || id > 18) return;
 
             machineData[id] = payload;
-            lastUpdate[id] = Date.now();
             
-            // Update Warna Tombol
             const btn = document.getElementById(`btn-${id}`);
-            if (btn) {
-                if(payload.status === "online") {
-                    btn.classList.remove('offline'); 
-                } else {
-                    btn.classList.add('offline');
-                }
+            if (!btn) return;
+
+            // ===== LOGIKA STATUS MESIN =====
+            // Online jika SALAH SATU phase arus > 0
+            const I1 = Number(payload.I1 || 0);
+            const I2 = Number(payload.I2 || 0);
+            const I3 = Number(payload.I3 || 0);
+
+            const isMachineRunning = (I1 > 0 || I2 > 0 || I3 > 0);
+
+            if (isMachineRunning) {
+                btn.classList.remove('offline');
+            } else {
+                btn.classList.add('offline');
             }
 
             // Update Modal jika sedang terbuka
@@ -306,20 +303,6 @@
                 renderDetailList(id);
             }
         }
-
-        // --- 3. WATCHDOG DATA ---
-        setInterval(() => {
-            const now = Date.now();
-            for (let i = 1; i <= 18; i++) {
-                if (lastUpdate[i] > 0 && (now - lastUpdate[i] > OFFLINE_TIMEOUT_MS)) {
-                    const btn = document.getElementById(`btn-${i}`);
-                    if (btn && !btn.classList.contains('offline')) {
-                        btn.classList.add('offline');
-                        if(machineData[i]) machineData[i].status = "offline";
-                    }
-                }
-            }
-        }, 5000);
 
         // --- 4. MODAL LOGIC ---
         function openModal(id) {
@@ -346,18 +329,24 @@
                 return;
             }
             
-            // Format Data
-            const isTimeout = (Date.now() - lastUpdate[id]) > OFFLINE_TIMEOUT_MS;
-            if (d.status === 'offline' || isTimeout) {
-                listContainer.innerHTML = "<div style='text-align:center; padding:20px; font-weight:bold;'>OFFLINE / NO DATA</div>";
+            // ===== LOGIKA STATUS MODAL =====
+            const I1 = Number(d.I1 || 0);
+            const I2 = Number(d.I2 || 0);
+            const I3 = Number(d.I3 || 0);
+            
+            // Jika semua arus 0, maka dianggap OFFLINE (mesin mati/idle total)
+            if (I1 === 0 && I2 === 0 && I3 === 0) {
+                listContainer.innerHTML = "<div style='text-align:center; padding:20px; font-weight:bold; font-size:1.1rem;'>OFFLINE / NO LOAD</div>";
                 return;
             }
 
+            // Format Waktu
             const opHours = Number(d.OpH) || 0;
             const days = Math.floor(opHours / 24);
             const hrs = (opHours % 24).toFixed(1);
             const kVA = (Number(d.S) / 1000).toFixed(2);
 
+            // Helper Row
             const row = (num, label, val, unit) => `
                 <div class="detail-row">
                     <span class="d-label">${num}. ${label}</span>
@@ -365,6 +354,7 @@
                 </div>
             `;
 
+            // MAPPING DATA
             listContainer.innerHTML = `
                 ${row(1, 'Total Ea', Number(d.EaT || 0).toFixed(2), 'kWh')}
                 ${row(2, 'Total Er', Number(d.ErT || 0).toFixed(2), 'kVARh')}
@@ -381,7 +371,7 @@
                 ${row(13, 'Tarif T1', Number(d.T1 || 0).toFixed(2), 'kwh')}
                 ${row(14, 'Tarif T2', Number(d.T2 || 0).toFixed(2), 'kwh')}
                 ${row(15, 'Freq', Number(d.Hz || 0).toFixed(2), 'Hz')}
-                ${row(16, 'Op Time', `${days}days`, `,${hrs}hrs`)}
+                ${row(16, 'Op Time', `=${days}days`, `,${hrs}hrs`)}
             `;
         }
 
