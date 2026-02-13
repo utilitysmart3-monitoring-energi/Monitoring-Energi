@@ -1,25 +1,35 @@
 from pymodbus.client import ModbusTcpClient
+from supabase import create_client, Client
 import struct
 import time
 import os
 
-# --- KONFIGURASI ---
+# --- KONFIGURASI MODBUS ---
 IP_USR = '192.168.5.20'
 PORT = 502
-TARGET_IDS = list(range(1, 19)) # Scan ID 1 s/d 18
+
+# --- KONFIGURASI SUPABASE ---
+SUPABASE_URL = "https://awyohlizbltikpfanugb.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes"
+
+# Inisialisasi Supabase
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# --- PEMBAGIAN KELOMPOK ID ---
+GROUP_1 = list(range(1, 7))   # ID 1 - 6
+GROUP_2 = list(range(7, 13))  # ID 7 - 12
+GROUP_3 = list(range(13, 19)) # ID 13 - 18
 
 def decode_int64(registers):
-    # Gabung 4 register (16-bit x 4) menjadi 1 angka besar (64-bit Integer)
-    # Urutan: Big Endian (High Word First)
+    # Gabung 4 register jadi INT64, bagi 1000 buat ke kWh
     packed = struct.pack('>HHHH', registers[0], registers[1], registers[2], registers[3])
-    val_int = struct.unpack('>Q', packed)[0] # Q = Unsigned Long Long (64-bit)
-    
-    # Schneider biasanya simpan dalam Wh, kita ubah ke kWh (dibagi 1000)
+    val_int = struct.unpack('>Q', packed)[0]
     return val_int / 1000.0
 
 def get_energy_data(client, slave_id):
     try:
-        # PENTING: count=4 karena formatnya INT64
+        # Baca 4 parameter utama (Total, Partial, T1, T2)
+        # Format INT64 (4 Register)
         
         # 1. Total Ea (Reg 3204 -> Addr 3203)
         r1 = client.read_holding_registers(address=3203, count=4, device_id=slave_id)
@@ -41,34 +51,73 @@ def get_energy_data(client, slave_id):
     except:
         return (None, None, None, None)
 
+def process_group(client, group_ids, group_name):
+    print(f"\n🚀 MEMPROSES {group_name} (ID {group_ids[0]}-{group_ids[-1]})")
+    print("-" * 60)
+    print(f"{'ID':<4} | {'TOTAL (kWh)':<12} | {'STATUS KIRIM':<15}")
+    print("-" * 60)
+
+    for slave_id in group_ids:
+        # 1. Ambil Data dari Meteran
+        total, partial, t1, t2 = get_energy_data(client, slave_id)
+
+        status_kirim = "❌ SKIP (Err)"
+        
+        if total is not None:
+            # 2. Siapkan Payload Data
+            data_payload = {
+                "meter_id": slave_id,
+                "total_ea": total,
+                "partial_ea": partial,
+                "tarif_t1": t1,
+                "tarif_t2": t2
+            }
+
+            # 3. Kirim ke Supabase
+            try:
+                response = supabase.table("energi_db").insert(data_payload).execute()
+                status_kirim = "✅ TERKIRIM"
+            except Exception as e:
+                status_kirim = f"❌ GAGAL API: {e}"
+            
+            print(f"{slave_id:<4} | {total:>12.2f} | {status_kirim}")
+        else:
+            print(f"{slave_id:<4} | {'ERROR':>12} | {status_kirim}")
+
 def main():
     client = ModbusTcpClient(IP_USR, port=PORT)
     
     while True:
+        os.system('clear')
+        print(f"==========================================================")
+        print(f"   MONITORING & UPLOAD SUPABASE - {time.strftime('%H:%M:%S')}")
+        print(f"==========================================================")
+
         if not client.connect():
-            print("❌ Gagal Konek USR... Retrying...")
-            time.sleep(5)
+            print("❌ Gagal konek ke USR (Modbus Gateway). Retrying 10s...")
+            time.sleep(10)
             continue
 
-        os.system('clear')
-        print(f"==========================================================================")
-        print(f"   AUDIT ENERGI SCHNEIDER (INT64 FORMAT) - {time.strftime('%H:%M:%S')}")
-        print(f"==========================================================================")
-        print(f"ID  | TOTAL Ea (kWh) | PARTIAL (kWh)| TARIF T1   | TARIF T2   ")
-        print(f"----|----------------|--------------|------------|------------")
+        # --- FASE 1: ID 1-6 (5 Menit Pertama) ---
+        process_group(client, GROUP_1, "KELOMPOK 1")
+        print("\n⏳ Selesai Kelompok 1. Menunggu 5 Menit untuk Kelompok 2...")
+        time.sleep(300) # Tidur 300 detik (5 Menit)
 
-        for slave_id in TARGET_IDS:
-            total, partial, t1, t2 = get_energy_data(client, slave_id)
-            
-            if total is not None:
-                # Format print biar rapi
-                print(f"{slave_id:<3} | {total:>14.2f} | {partial:>12.2f} | {t1:>10.2f} | {t2:>10.2f}")
-            else:
-                print(f"{slave_id:<3} |          ERROR |        ERROR |      ERROR |      ERROR")
-        
-        print(f"==========================================================================")
-        print("Update data dalam 5 detik...")
-        time.sleep(5)
+        # --- FASE 2: ID 7-12 (5 Menit Kedua) ---
+        process_group(client, GROUP_2, "KELOMPOK 2")
+        print("\n⏳ Selesai Kelompok 2. Menunggu 5 Menit untuk Kelompok 3...")
+        time.sleep(300) # Tidur 300 detik (5 Menit)
+
+        # --- FASE 3: ID 13-18 (5 Menit Terakhir) ---
+        process_group(client, GROUP_3, "KELOMPOK 3")
+        print("\n⏳ Selesai Kelompok 3. Menunggu 5 Menit (Siklus Selesai)...")
+        time.sleep(300) # Tidur 300 detik (5 Menit)
+
+        # --- DELAY TAMBAHAN 1 MENIT ---
+        print("\n☕ Istirahat 1 Menit sebelum siklus baru...")
+        time.sleep(60)
+
+        # Setelah ini loop akan kembali ke atas (Clear screen -> Kelompok 1 lagi)
 
 if __name__ == "__main__":
     main()
