@@ -10,11 +10,12 @@
 
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        .navbar { background-color: #1f1f1f !important; border-bottom: 2px solid #00e5ff; }
-        .card-meter { background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; margin-bottom: 20px; }
+        .navbar { background-color: #1f1f1f !important; border-bottom: 2px solid #00e5ff; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .card-meter { background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; margin-bottom: 20px; transition: transform 0.2s; }
+        .card-meter:hover { transform: translateY(-2px); border-color: #00e5ff; }
         .meter-header { background-color: #2c2c2c; padding: 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
         .meter-title { font-weight: bold; color: #00e5ff; margin: 0; }
-        .status-dot { height: 10px; width: 10px; background-color: #555; border-radius: 50%; display: inline-block; }
+        .status-dot { height: 10px; width: 10px; background-color: #555; border-radius: 50%; display: inline-block; box-shadow: 0 0 5px #555; }
         .status-online { background-color: #00ff00; box-shadow: 0 0 8px #00ff00; }
         .status-offline { background-color: #ff0000; box-shadow: 0 0 8px #ff0000; }
         .param-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 10px; font-size: 0.8rem; }
@@ -42,15 +43,15 @@
     </div>
 
 <script>
-    // --- KONFIGURASI SESUAI PYTHON ---
+    // --- KONFIGURASI MQTT (SECURE WSS) ---
     const mqttBroker = "broker.hivemq.com";
-    const mqttPort = 8000; // WebSocket Port
-    const topicBase = "monitoring/data/powermeter"; // HARUS SAMA PERSIS DENGAN PYTHON
+    const mqttPort = 8884; // PORT WSS (Secure WebSocket) - WAJIB UTK VERCEL/HTTPS
+    const topicBase = "monitoring/data/powermeter"; 
     
-    const clientID = "WebMonitor_" + new Date().getTime(); 
+    const clientID = "WebMonitor_SECURE_" + new Date().getTime(); 
     const client = new Paho.MQTT.Client(mqttBroker, mqttPort, clientID);
 
-    // 1. Generate 18 Cards
+    // 1. Generate 18 Cards UI
     const container = document.getElementById('meter-container');
     for (let i = 1; i <= 18; i++) {
         let html = `
@@ -73,14 +74,14 @@
 
     // 2. MQTT Logic
     function onConnect() {
-        console.log("✅ Connected to MQTT");
+        console.log("✅ Connected to HiveMQ Secure WebSocket");
         document.getElementById('mqtt-status').className = 'badge bg-success me-2';
-        document.getElementById('mqtt-status').innerText = 'Connected';
-        client.subscribe(topicBase + "/#"); // Subscribe ke SEMUA meter
+        document.getElementById('mqtt-status').innerText = 'Connected (Secure)';
+        client.subscribe(topicBase + "/#"); // Subscribe semua meter
     }
 
     function onMessageArrived(message) {
-        console.log("📩 Data Masuk: " + message.payloadString); // Cek Console F12
+        // console.log("📩 Data:", message.payloadString); 
         try {
             const topicParts = message.destinationName.split("/");
             const meterId = topicParts[topicParts.length - 1]; 
@@ -97,15 +98,15 @@
         dot.className = "status-dot status-online";
         
         // Update Angka (Pake ?. biar aman)
-        if(data.total_ea) document.getElementById(`tot-ea-${id}`).innerText = data.total_ea.toFixed(2);
-        if(data.voltage) document.getElementById(`volt-${id}`).innerText = data.voltage.toFixed(1);
-        if(data.current_i1) document.getElementById(`i1-${id}`).innerText = data.current_i1.toFixed(2);
-        if(data.current_i2) document.getElementById(`i2-${id}`).innerText = data.current_i2.toFixed(2);
-        if(data.current_i3) document.getElementById(`i3-${id}`).innerText = data.current_i3.toFixed(2);
-        if(data.tarif_t1) document.getElementById(`t1-${id}`).innerText = data.tarif_t1.toFixed(1);
-        if(data.tarif_t2) document.getElementById(`t2-${id}`).innerText = data.tarif_t2.toFixed(1);
+        if(data.total_ea !== undefined) document.getElementById(`tot-ea-${id}`).innerText = data.total_ea.toFixed(2);
+        if(data.voltage !== undefined) document.getElementById(`volt-${id}`).innerText = data.voltage.toFixed(1);
+        if(data.current_i1 !== undefined) document.getElementById(`i1-${id}`).innerText = data.current_i1.toFixed(2);
+        if(data.current_i2 !== undefined) document.getElementById(`i2-${id}`).innerText = data.current_i2.toFixed(2);
+        if(data.current_i3 !== undefined) document.getElementById(`i3-${id}`).innerText = data.current_i3.toFixed(2);
+        if(data.tarif_t1 !== undefined) document.getElementById(`t1-${id}`).innerText = data.tarif_t1.toFixed(1);
+        if(data.tarif_t2 !== undefined) document.getElementById(`t2-${id}`).innerText = data.tarif_t2.toFixed(1);
 
-        // Reset ke Offline stlh 6 menit
+        // Reset ke Offline stlh 6 menit (Watchdog)
         clearTimeout(window[`timer_${id}`]);
         window[`timer_${id}`] = setTimeout(() => {
             dot.className = "status-dot status-offline";
@@ -121,9 +122,14 @@
     client.onMessageArrived = onMessageArrived;
 
     function connectMQTT() {
-        client.connect({ onSuccess: onConnect, onFailure: (e) => { console.log("Fail:", e); setTimeout(connectMQTT, 5000); }});
+        client.connect({ 
+            useSSL: true, // <--- WAJIB TRUE BUAT VERCEL/HTTPS
+            onSuccess: onConnect, 
+            onFailure: (e) => { console.log("Fail:", e); setTimeout(connectMQTT, 5000); }
+        });
     }
 
+    // Start
     connectMQTT();
     setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
 </script>
