@@ -164,7 +164,7 @@ def main():
     time.sleep(10) # Kasih waktu worker baca data dulu
 
     while True:
-        os.system('clear')
+
         print(f"==========================================================")
         print(f"   SMART MONITORING SYSTEM (SINGLE CONNECTION)")
         print(f"   [REALTIME]: MQTT ID 1-18 (Continuous)")
