@@ -9,105 +9,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
 
     <style>
-        body {
-            background-color: #121212;
-            color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        .navbar {
-            background-color: #1f1f1f !important;
-            border-bottom: 2px solid #00e5ff;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .card-meter {
-            background-color: #1e1e1e;
-            border: 1px solid #333;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .card-meter:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);
-            border-color: #00e5ff;
-        }
-        .meter-header {
-            background-color: #2c2c2c;
-            padding: 10px;
-            border-bottom: 1px solid #444;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-radius: 8px 8px 0 0;
-        }
-        .meter-title {
-            font-weight: bold;
-            color: #00e5ff;
-            margin: 0;
-        }
-        .status-dot {
-            height: 10px;
-            width: 10px;
-            background-color: #555; /* Default Gray */
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 5px #555;
-        }
+        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .navbar { background-color: #1f1f1f !important; border-bottom: 2px solid #00e5ff; }
+        .card-meter { background-color: #1e1e1e; border: 1px solid #333; border-radius: 8px; margin-bottom: 20px; }
+        .meter-header { background-color: #2c2c2c; padding: 10px; border-bottom: 1px solid #444; display: flex; justify-content: space-between; align-items: center; border-radius: 8px 8px 0 0; }
+        .meter-title { font-weight: bold; color: #00e5ff; margin: 0; }
+        .status-dot { height: 10px; width: 10px; background-color: #555; border-radius: 50%; display: inline-block; }
         .status-online { background-color: #00ff00; box-shadow: 0 0 8px #00ff00; }
         .status-offline { background-color: #ff0000; box-shadow: 0 0 8px #ff0000; }
-
-        .param-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 5px;
-            padding: 10px;
-            font-size: 0.8rem;
-        }
-        .param-row {
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 1px solid #333;
-            padding: 2px 0;
-        }
-        .param-label { color: #aaa; }
-        .param-val { 
-            font-family: 'Consolas', 'Courier New', monospace; 
-            font-weight: bold; 
-            color: #fff;
-        }
-        .highlight-val { color: #ffeb3b; font-size: 0.9rem; } /* Voltage/Current Highlight */
-        .kwh-display {
-            background-color: #000;
-            color: #00ff00;
-            font-family: 'Consolas', monospace;
-            font-size: 1.2rem;
-            text-align: right;
-            padding: 5px 10px;
-            margin: 10px;
-            border: 1px solid #444;
-            border-radius: 4px;
-        }
-        .last-update {
-            font-size: 0.7rem;
-            color: #666;
-            text-align: right;
-            padding: 0 10px 10px 0;
-            font-style: italic;
-        }
-        
-        /* Utility Colors */
+        .param-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 10px; font-size: 0.8rem; }
+        .param-row { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 2px 0; }
+        .param-val { font-family: 'Consolas', monospace; font-weight: bold; color: #fff; }
+        .highlight-val { color: #ffeb3b; } 
+        .kwh-display { background-color: #000; color: #00ff00; font-family: 'Consolas', monospace; font-size: 1.2rem; text-align: right; padding: 5px 10px; margin: 10px; border: 1px solid #444; border-radius: 4px; }
         .txt-cyan { color: #00e5ff; }
-        .txt-red { color: #ff5252; }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-bolt txt-cyan"></i> MONITORING ENERGI 
-                <span class="badge bg-dark border border-secondary ms-2" style="font-size: 0.7em;">18 UNIT</span>
-            </a>
+            <a class="navbar-brand" href="#"><i class="fas fa-bolt txt-cyan"></i> MONITORING ENERGI</a>
             <div class="d-flex align-items-center">
                 <span id="mqtt-status" class="badge bg-danger me-2">Disconnected</span>
                 <span id="clock" class="text-white" style="font-family: monospace;">00:00:00</span>
@@ -116,162 +38,94 @@
     </nav>
 
     <div class="container-fluid mt-3">
-        <div class="row" id="meter-container">
-            </div>
+        <div class="row" id="meter-container"></div>
     </div>
 
 <script>
-    // --- KONFIGURASI MQTT ---
+    // --- KONFIGURASI SESUAI PYTHON ---
     const mqttBroker = "broker.hivemq.com";
-    const mqttPort = 8000; // Port WebSocket HiveMQ (Bukan 1883)
-    const topicBase = "monitoring/data/powermeter";
+    const mqttPort = 8000; // WebSocket Port
+    const topicBase = "monitoring/data/powermeter"; // HARUS SAMA PERSIS DENGAN PYTHON
     
-    // Auto Generate Client ID unik
     const clientID = "WebMonitor_" + new Date().getTime(); 
     const client = new Paho.MQTT.Client(mqttBroker, mqttPort, clientID);
 
-    // --- 1. GENERATE UI (18 CARD) ---
+    // 1. Generate 18 Cards
     const container = document.getElementById('meter-container');
-    
     for (let i = 1; i <= 18; i++) {
         let html = `
             <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
                 <div class="card card-meter">
-                    <div class="meter-header">
-                        <h6 class="meter-title">METER #${i}</h6>
-                        <span id="status-${i}" class="status-dot"></span>
-                    </div>
-                    
-                    <div class="kwh-display">
-                        <span id="tot-ea-${i}">0.00</span> <span style="font-size:0.6em">kWh</span>
-                    </div>
-
+                    <div class="meter-header"><h6 class="meter-title">METER #${i}</h6><span id="status-${i}" class="status-dot"></span></div>
+                    <div class="kwh-display"><span id="tot-ea-${i}">0.00</span> <span style="font-size:0.6em">kWh</span></div>
                     <div class="param-grid">
-                        <div class="param-row"><span class="param-label">Volt:</span> <span id="volt-${i}" class="param-val highlight-val">0.0</span>V</div>
-                        <div class="param-row"><span class="param-label">Freq:</span> <span id="freq-${i}" class="param-val">0.0</span>Hz</div>
-                        
-                        <div class="param-row"><span class="param-label">I1:</span> <span id="i1-${i}" class="param-val txt-cyan">0.0</span>A</div>
-                        <div class="param-row"><span class="param-label">I2:</span> <span id="i2-${i}" class="param-val txt-cyan">0.0</span>A</div>
-                        <div class="param-row"><span class="param-label">I3:</span> <span id="i3-${i}" class="param-val txt-cyan">0.0</span>A</div>
-                        <div class="param-row"><span class="param-label">PF:</span> <span id="pf-${i}" class="param-val">0.0</span></div>
-
-                        <div class="param-row"><span class="param-label">kW:</span> <span id="p-${i}" class="param-val">0</span></div>
-                        <div class="param-row"><span class="param-label">kVAR:</span> <span id="q-${i}" class="param-val">0</span></div>
-                        <div class="param-row"><span class="param-label">kVA:</span> <span id="s-${i}" class="param-val">0</span></div>
-                        
-                        <div class="param-row"><span class="param-label">T1:</span> <span id="t1-${i}" class="param-val">0</span></div>
-                        <div class="param-row"><span class="param-label">T2:</span> <span id="t2-${i}" class="param-val">0</span></div>
+                        <div class="param-row"><span>Volt:</span> <span id="volt-${i}" class="param-val highlight-val">0.0</span>V</div>
+                        <div class="param-row"><span>I1:</span> <span id="i1-${i}" class="param-val txt-cyan">0.0</span>A</div>
+                        <div class="param-row"><span>I2:</span> <span id="i2-${i}" class="param-val txt-cyan">0.0</span>A</div>
+                        <div class="param-row"><span>I3:</span> <span id="i3-${i}" class="param-val txt-cyan">0.0</span>A</div>
+                        <div class="param-row"><span>T1:</span> <span id="t1-${i}" class="param-val">0</span></div>
+                        <div class="param-row"><span>T2:</span> <span id="t2-${i}" class="param-val">0</span></div>
                     </div>
-                    
-                    <div class="last-update" id="update-${i}">Waiting data...</div>
                 </div>
-            </div>
-        `;
+            </div>`;
         container.innerHTML += html;
     }
 
-    // --- 2. LOGIC MQTT ---
-    
-    // Callback ketika koneksi sukses
+    // 2. MQTT Logic
     function onConnect() {
-        console.log("✅ Connected to MQTT Broker");
+        console.log("✅ Connected to MQTT");
         document.getElementById('mqtt-status').className = 'badge bg-success me-2';
         document.getElementById('mqtt-status').innerText = 'Connected';
-        
-        // Subscribe ke Wildcard (#) untuk menangkap semua meteran (1-18)
-        client.subscribe(topicBase + "/#");
+        client.subscribe(topicBase + "/#"); // Subscribe ke SEMUA meter
     }
 
-    // Callback ketika koneksi putus
-    function onConnectionLost(responseObject) {
-        if (responseObject.errorCode !== 0) {
-            console.log("❌ Connection Lost: " + responseObject.errorMessage);
-            document.getElementById('mqtt-status').className = 'badge bg-danger me-2';
-            document.getElementById('mqtt-status').innerText = 'Lost. Retrying...';
-            setTimeout(connectMQTT, 5000); // Reconnect after 5s
-        }
-    }
-
-    // Callback ketika pesan masuk
     function onMessageArrived(message) {
+        console.log("📩 Data Masuk: " + message.payloadString); // Cek Console F12
         try {
-            // Topic contoh: monitoring/data/powermeter/5
             const topicParts = message.destinationName.split("/");
-            const meterId = topicParts[topicParts.length - 1]; // Ambil angka terakhir (ID)
-            const payload = JSON.parse(message.payloadString);
-
-            updateCard(meterId, payload);
-        } catch (e) {
-            console.error("Error parsing message:", e);
-        }
+            const meterId = topicParts[topicParts.length - 1]; 
+            const data = JSON.parse(message.payloadString);
+            updateCard(meterId, data);
+        } catch (e) { console.error("Error parse:", e); }
     }
 
-    // Fungsi Connect
-    function connectMQTT() {
-        client.connect({
-            onSuccess: onConnect, 
-            onFailure: (e) => { 
-                console.log("Gagal konek: ", e); 
-                setTimeout(connectMQTT, 5000); 
-            }
-        });
-    }
-
-    // Set callback handler
-    client.onConnectionLost = onConnectionLost;
-    client.onMessageArrived = onMessageArrived;
-
-    // Mulai Koneksi
-    connectMQTT();
-
-    // --- 3. FUNGSI UPDATE UI ---
     function updateCard(id, data) {
-        // Cek jika ID valid (1-18)
         if (id < 1 || id > 18) return;
-
-        // Efek visual 'Online'
+        
+        // Indikator Online
         const dot = document.getElementById(`status-${id}`);
         dot.className = "status-dot status-online";
         
-        // Update Nilai (Gunakan Optional Chaining ?. biar gak error kalau data null)
-        document.getElementById(`tot-ea-${id}`).innerText = data.total_ea?.toFixed(2) || "0.00";
-        
-        document.getElementById(`volt-${id}`).innerText = data.voltage?.toFixed(1) || "0.0";
-        document.getElementById(`freq-${id}`).innerText = data.freq?.toFixed(2) || "0.0";
-        
-        document.getElementById(`i1-${id}`).innerText = data.current_i1?.toFixed(2) || "0.0";
-        document.getElementById(`i2-${id}`).innerText = data.current_i2?.toFixed(2) || "0.0";
-        document.getElementById(`i3-${id}`).innerText = data.current_i3?.toFixed(2) || "0.0";
-        
-        document.getElementById(`pf-${id}`).innerText = data.pf?.toFixed(3) || "0.0";
-        
-        // Power (dibagi 1000 biar jadi kW/kVAR/kVA kalau data aslinya masih satuan dasar)
-        // Sesuaikan dengan data JSON dari Python, di sana Active P dlm Watt, jadi /1000
-        document.getElementById(`p-${id}`).innerText = (data.active_p / 1000)?.toFixed(2) + " kW";
-        document.getElementById(`q-${id}`).innerText = (data.reactive_q / 1000)?.toFixed(2) + " kVAR";
-        document.getElementById(`s-${id}`).innerText = (data.apparent_s / 1000)?.toFixed(2) + " kVA";
+        // Update Angka (Pake ?. biar aman)
+        if(data.total_ea) document.getElementById(`tot-ea-${id}`).innerText = data.total_ea.toFixed(2);
+        if(data.voltage) document.getElementById(`volt-${id}`).innerText = data.voltage.toFixed(1);
+        if(data.current_i1) document.getElementById(`i1-${id}`).innerText = data.current_i1.toFixed(2);
+        if(data.current_i2) document.getElementById(`i2-${id}`).innerText = data.current_i2.toFixed(2);
+        if(data.current_i3) document.getElementById(`i3-${id}`).innerText = data.current_i3.toFixed(2);
+        if(data.tarif_t1) document.getElementById(`t1-${id}`).innerText = data.tarif_t1.toFixed(1);
+        if(data.tarif_t2) document.getElementById(`t2-${id}`).innerText = data.tarif_t2.toFixed(1);
 
-        document.getElementById(`t1-${id}`).innerText = data.tarif_t1?.toFixed(1) + " kWh";
-        document.getElementById(`t2-${id}`).innerText = data.tarif_t2?.toFixed(1) + " kWh";
-
-        // Timestamp
-        const now = new Date();
-        document.getElementById(`update-${id}`).innerText = "Upd: " + now.toLocaleTimeString();
-
-        // Reset status ke offline setelah 6 menit tidak ada data (Watchdog)
+        // Reset ke Offline stlh 6 menit
         clearTimeout(window[`timer_${id}`]);
         window[`timer_${id}`] = setTimeout(() => {
-            document.getElementById(`status-${id}`).className = "status-dot status-offline";
-            document.getElementById(`update-${id}`).innerText = "Offline/Delay";
-        }, 360000); // 6 menit (karena siklus kirim per 5 menit)
+            dot.className = "status-dot status-offline";
+        }, 360000);
     }
 
-    // Jam Digital Pojok Kanan
-    setInterval(() => {
-        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
-    }, 1000);
+    client.onConnectionLost = (resp) => { 
+        console.log("Lost:", resp); 
+        document.getElementById('mqtt-status').className = 'badge bg-danger me-2';
+        document.getElementById('mqtt-status').innerText = 'Reconnecting...';
+        setTimeout(connectMQTT, 5000); 
+    };
+    client.onMessageArrived = onMessageArrived;
 
+    function connectMQTT() {
+        client.connect({ onSuccess: onConnect, onFailure: (e) => { console.log("Fail:", e); setTimeout(connectMQTT, 5000); }});
+    }
+
+    connectMQTT();
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
 </script>
-
 </body>
 </html>
