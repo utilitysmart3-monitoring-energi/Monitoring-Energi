@@ -2,465 +2,276 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MONITORING MESIN - HIVE BROKER</title>
-    
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- MQTT Client (Paho) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ MONITORING ENERGI 18 UNIT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
 
     <style>
-        :root {
-            --bg-body: #f1f5f9;
-            --primary-blue: #0f172a;
-            --card-bg: #ffffff;
-            --text-dark: #334155;
-            --st-red: #ef4444;   /* Offline */
-            --st-blue: #3b82f6;  /* Idle/Standby */
-            --st-green: #22c55e; /* Running */
-            --offline-gray: #94a3b8;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
         body {
-            background-color: var(--bg-body);
-            color: var(--text-dark);
-            font-family: 'Poppins', sans-serif;
-            padding-bottom: 80px;
-            min-height: 100vh;
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background-color: #1f1f1f !important;
+            border-bottom: 2px solid #00e5ff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .card-meter {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-meter:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);
+            border-color: #00e5ff;
+        }
+        .meter-header {
+            background-color: #2c2c2c;
+            padding: 10px;
+            border-bottom: 1px solid #444;
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
+            border-radius: 8px 8px 0 0;
         }
+        .meter-title {
+            font-weight: bold;
+            color: #00e5ff;
+            margin: 0;
+        }
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            background-color: #555; /* Default Gray */
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 5px #555;
+        }
+        .status-online { background-color: #00ff00; box-shadow: 0 0 8px #00ff00; }
+        .status-offline { background-color: #ff0000; box-shadow: 0 0 8px #ff0000; }
 
-        /* --- HEADER --- */
-        .header-container {
-            margin-top: 30px; margin-bottom: 20px; text-align: center; width: 100%; padding: 0 20px;
-        }
-        .header-pill {
-            display: inline-block; 
-            background: var(--primary-blue); 
-            color: white;
-            padding: 12px 30px; 
-            border-radius: 12px; 
-            font-weight: 700; 
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2);
-        }
-        .sub-header {
-            margin-top: 10px; font-size: 0.8rem; color: #64748b; font-weight: 500;
-        }
-
-        /* --- LEGEND (KETERANGAN STATUS) --- */
-        .legend-container {
-            display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; width: 100%;
-            flex-wrap: wrap; font-size: 0.75rem; font-weight: 600; color: #64748b;
-        }
-        .legend-item { display: flex; align-items: center; gap: 6px; background: white; padding: 6px 12px; border-radius: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .legend-item .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .legend-item .dot.red { background-color: var(--st-red); box-shadow: 0 0 6px var(--st-red); }
-        .legend-item .dot.blue { background-color: var(--st-blue); box-shadow: 0 0 6px var(--st-blue); }
-        .legend-item .dot.green { background-color: var(--st-green); box-shadow: 0 0 6px var(--st-green); }
-
-        /* --- STATUS KONEKSI --- */
-        #connStatus {
-            position: absolute; top: 15px; right: 15px; font-size: 0.7rem; color: white;
-            background: var(--offline-gray); padding: 5px 12px; border-radius: 20px;
-            display: flex; align-items: center; gap: 6px; font-weight: 600;
-            transition: background 0.3s;
-        }
-        #connStatus.connected { background: var(--st-green); }
-        
-        .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: white; opacity: 0.8; }
-        .connected .pulse-dot { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-
-        /* --- GRID CONTAINER --- */
-        .grid-container { width: 100%; max-width: 1000px; padding: 0 15px; }
-        .grid {
+        .param-grid {
             display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Responsif */
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            padding: 10px;
+            font-size: 0.8rem;
         }
-
-        /* --- MACHINE CARD BUTTON --- */
-        .mc-btn {
-            background-color: white;
-            color: var(--text-dark);
-            border: none;
-            border-radius: 16px;
-            padding: 15px 10px;
-            font-size: 0.85rem; 
-            font-weight: 700;
-            text-transform: uppercase;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: all 0.2s;
+        .param-row {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 80px;
-            position: relative;
-            border-bottom: 4px solid transparent; /* Untuk indikator warna */
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+            padding: 2px 0;
         }
-        .mc-btn:active { transform: scale(0.96); }
+        .param-label { color: #aaa; }
+        .param-val { 
+            font-family: 'Consolas', 'Courier New', monospace; 
+            font-weight: bold; 
+            color: #fff;
+        }
+        .highlight-val { color: #ffeb3b; font-size: 0.9rem; } /* Voltage/Current Highlight */
+        .kwh-display {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Consolas', monospace;
+            font-size: 1.2rem;
+            text-align: right;
+            padding: 5px 10px;
+            margin: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+        }
+        .last-update {
+            font-size: 0.7rem;
+            color: #666;
+            text-align: right;
+            padding: 0 10px 10px 0;
+            font-style: italic;
+        }
         
-        /* STATUS STYLING */
-        .mc-btn.offline { background-color: #fef2f2; border-bottom-color: var(--st-red); color: var(--st-red); opacity: 0.8; }
-        .mc-btn.idle { background-color: #eff6ff; border-bottom-color: var(--st-blue); color: var(--st-blue); }
-        .mc-btn.running { background-color: var(--st-green); border-bottom-color: #15803d; color: white; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4); }
-        .mc-btn.loading { background-color: #e2e8f0; color: #94a3b8; }
-
-        .btn-sub { font-size: 0.65rem; font-weight: 500; opacity: 0.8; margin-top: 4px; }
-
-        /* --- MODAL DETAIL --- */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px; backdrop-filter: blur(4px);
-        }
-        .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
-
-        .modal-card {
-            background-color: white;
-            width: 100%; max-width: 400px;
-            border-radius: 24px;
-            padding: 0;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            overflow: hidden;
-            display: flex; flex-direction: column; max-height: 85vh;
-        }
-
-        .modal-header {
-            background: var(--primary-blue); color: white; padding: 20px; text-align: center;
-        }
-        .modal-title { font-weight: 800; font-size: 1.2rem; letter-spacing: 0.5px; margin-bottom: 5px; }
-        .status-badge {
-            display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 4px 12px; border-radius: 20px;
-            background: rgba(255,255,255,0.2); letter-spacing: 1px;
-        }
-
-        .modal-body { padding: 20px; overflow-y: auto; }
-
-        .detail-row {
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 8px 0; border-bottom: 1px solid #f1f5f9;
-        }
-        .detail-row:last-child { border-bottom: none; }
-        
-        .d-label { font-size: 0.85rem; color: #64748b; font-weight: 600; }
-        .d-val { font-size: 0.9rem; font-weight: 700; color: #0f172a; font-family: 'JetBrains Mono', monospace; }
-
-        .close-btn {
-            background: #f1f5f9; border: none; width: 100%; padding: 15px;
-            font-weight: 700; color: var(--text-dark); cursor: pointer;
-            font-size: 1rem;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        /* Utility Colors */
+        .txt-cyan { color: #00e5ff; }
+        .txt-red { color: #ff5252; }
     </style>
 </head>
 <body>
 
-    <div id="connStatus">
-        <span class="pulse-dot"></span> <span id="statusText">Connecting...</span>
-    </div>
-
-    <div class="header-container">
-        <div class="header-pill">FACTORY MONITOR</div>
-        <div class="sub-header">Realtime Modbus Data via HiveMQ (Secure)</div>
-    </div>
-
-    <div class="legend-container">
-        <div class="legend-item"><span class="dot red"></span> OFFLINE</div>
-        <div class="legend-item"><span class="dot blue"></span> STANDBY</div>
-        <div class="legend-item"><span class="dot green"></span> RUNNING</div>
-    </div>
-
-    <div class="grid-container">
-        <div class="grid" id="gridContainer"></div>
-    </div>
-
-    <div class="modal-overlay" id="detailModal" onclick="if(event.target === this) closeModal()">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div class="modal-title" id="mTitle">MESIN X</div>
-                <div id="statusIndicator" class="status-badge">WAITING DATA...</div>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-bolt txt-cyan"></i> MONITORING ENERGI 
+                <span class="badge bg-dark border border-secondary ms-2" style="font-size: 0.7em;">18 UNIT</span>
+            </a>
+            <div class="d-flex align-items-center">
+                <span id="mqtt-status" class="badge bg-danger me-2">Disconnected</span>
+                <span id="clock" class="text-white" style="font-family: monospace;">00:00:00</span>
             </div>
-            <div class="modal-body" id="modalList">
-                <!-- Content will be injected here -->
-            </div>
-            <button class="close-btn" onclick="closeModal()">TUTUP</button>
         </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="row" id="meter-container">
+            </div>
     </div>
 
-    <script>
-        // ===============================================
-        // 1. KONFIGURASI HIVE MQ (SECURE FOR VERCEL)
-        // ===============================================
-        const MQTT_BROKER = "broker.hivemq.com";
-        const MQTT_PORT   = 8884;    // <--- Port WSS (Secure WebSocket)
-        const MQTT_PATH   = "/mqtt"; 
-        const MQTT_TOPIC  = "politeknik/meter/data";
-        
-        // PENTING: useSSL = true agar tidak diblokir browser di HTTPS (Vercel)
-        const USE_SSL     = true;   
+<script>
+    // --- KONFIGURASI MQTT ---
+    const mqttBroker = "broker.hivemq.com";
+    const mqttPort = 8000; // Port WebSocket HiveMQ (Bukan 1883)
+    const topicBase = "monitoring/data/powermeter";
+    
+    // Auto Generate Client ID unik
+    const clientID = "WebMonitor_" + new Date().getTime(); 
+    const client = new Paho.MQTT.Client(mqttBroker, mqttPort, clientID);
 
-        // ===============================================
-        // 2. DAFTAR NAMA MESIN (UPDATED)
-        // ===============================================
-        const MACHINE_NAMES = {
-            1: "UNKNOWN",      2: "UNKNOWN",      3: "UNKNOWN",
-            4: "UNKNOWN",      5: "MESIN 41",     6: "MESIN 40",
-            7: "MESIN 39",     8: "UNKNOWN",      9: "HEATER MC 5",
-            10: "MESIN 5",     11: "UNKNOWN",     12: "MESIN 34",
-            13: "MESIN 35",    14: "UNKNOWN",     15: "UNKNOWN",
-            16: "MESIN 38",    17: "MESIN 36",    18: "MESIN 37"
-        };
-        
-        let machineData = {}; 
-        let lastUpdate = {}; 
-        let hasData = {}; 
-        let client;
+    // --- 1. GENERATE UI (18 CARD) ---
+    const container = document.getElementById('meter-container');
+    
+    for (let i = 1; i <= 18; i++) {
+        let html = `
+            <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                <div class="card card-meter">
+                    <div class="meter-header">
+                        <h6 class="meter-title">METER #${i}</h6>
+                        <span id="status-${i}" class="status-dot"></span>
+                    </div>
+                    
+                    <div class="kwh-display">
+                        <span id="tot-ea-${i}">0.00</span> <span style="font-size:0.6em">kWh</span>
+                    </div>
 
-        // --- RENDER AWAL ---
-        const gridContainer = document.getElementById('gridContainer');
-        for (let i = 1; i <= 18; i++) {
-            machineData[i] = null;
-            hasData[i] = false; 
+                    <div class="param-grid">
+                        <div class="param-row"><span class="param-label">Volt:</span> <span id="volt-${i}" class="param-val highlight-val">0.0</span>V</div>
+                        <div class="param-row"><span class="param-label">Freq:</span> <span id="freq-${i}" class="param-val">0.0</span>Hz</div>
+                        
+                        <div class="param-row"><span class="param-label">I1:</span> <span id="i1-${i}" class="param-val txt-cyan">0.0</span>A</div>
+                        <div class="param-row"><span class="param-label">I2:</span> <span id="i2-${i}" class="param-val txt-cyan">0.0</span>A</div>
+                        <div class="param-row"><span class="param-label">I3:</span> <span id="i3-${i}" class="param-val txt-cyan">0.0</span>A</div>
+                        <div class="param-row"><span class="param-label">PF:</span> <span id="pf-${i}" class="param-val">0.0</span></div>
 
-            const btn = document.createElement('button');
-            btn.className = 'mc-btn loading';
-            btn.id = `btn-${i}`;
-            btn.innerHTML = `
-                <span>MESIN ${i}</span>
-                <span class="btn-sub">WAITING</span>
-            `;
-            btn.onclick = () => openModal(i);
-            gridContainer.appendChild(btn);
-        }
-
-        // --- MQTT CONNECTION ---
-        function startMqtt() {
-            const clientId = "WebMon-" + Math.floor(Math.random() * 100000);
-            client = new Paho.MQTT.Client(MQTT_BROKER, MQTT_PORT, MQTT_PATH, clientId);
-
-            client.onConnectionLost = onConnectionLost;
-            client.onMessageArrived = onMessageArrived;
-
-            const options = {
-                useSSL: USE_SSL, 
-                timeout: 5, 
-                keepAliveInterval: 60,
-                onSuccess: onConnect,
-                onFailure: (e) => { 
-                    console.log("Conn Failed", e);
-                    updateStatus(false); 
-                    setTimeout(startMqtt, 5000); 
-                }
-            };
-            
-            try { 
-                console.log(`Connecting to wss://${MQTT_BROKER}:${MQTT_PORT}...`);
-                client.connect(options); 
-            } catch(e) { console.error(e); }
-        }
-
-        function updateStatus(isConnected) {
-            const el = document.getElementById('connStatus');
-            const txt = document.getElementById('statusText');
-            if(isConnected) {
-                el.classList.add('connected');
-                txt.innerText = "Connected to Cloud";
-                el.style.backgroundColor = "#22c55e";
-            } else {
-                el.classList.remove('connected');
-                txt.innerText = "Reconnecting...";
-                el.style.backgroundColor = "#94a3b8";
-            }
-        }
-
-        function onConnect() {
-            console.log("MQTT Connected!");
-            updateStatus(true);
-            client.subscribe(MQTT_TOPIC);
-        }
-
-        function onConnectionLost(responseObject) {
-            if (responseObject.errorCode !== 0) {
-                console.log("Connection Lost: " + responseObject.errorMessage);
-            }
-            updateStatus(false);
-            setTimeout(startMqtt, 5000);
-        }
-
-        function onMessageArrived(message) {
-            try {
-                const payload = JSON.parse(message.payloadString);
-                processData(payload);
-            } catch (e) { console.error("JSON Error", e); }
-        }
-
-        // --- LOGIKA VISUALISASI DATA ---
-        function processData(payload) {
-            const id = payload.id;
-            if (!id || id < 1 || id > 18) return;
-
-            machineData[id] = payload;
-            lastUpdate[id] = Date.now();
-            hasData[id] = true; 
-            
-            const btn = document.getElementById(`btn-${id}`);
-            if (!btn) return;
-
-            // Logika Status
-            const statusEsp = payload.status; 
-            const I1 = Number(payload.I1 || 0);
-            const I2 = Number(payload.I2 || 0);
-            const I3 = Number(payload.I3 || 0);
-
-            let displayClass = 'idle';
-            let displaySub = 'STANDBY';
-
-            // 1. Prioritas Offline
-            if (statusEsp === 'offline') {
-                displayClass = 'offline';
-                displaySub = 'OFFLINE';
-            } 
-            // 2. Prioritas Running (Ada Arus > 0.5A)
-            else if (I1 > 0.5 || I2 > 0.5 || I3 > 0.5) { 
-                displayClass = 'running';
-                displaySub = 'RUNNING';
-            }
-            
-            // Update Tampilan Button
-            const mName = MACHINE_NAMES[id] || `MESIN ${id}`;
-            btn.className = `mc-btn ${displayClass}`;
-            btn.innerHTML = `
-                <span>${mName}</span>
-                <span class="btn-sub">ID:${id} | ${displaySub}</span>
-            `;
-
-            // Update Modal jika sedang terbuka
-            const modal = document.getElementById('detailModal');
-            if (modal.style.display === 'flex') {
-                const titleEl = document.getElementById('mTitle');
-                // Cek apakah modal yang terbuka adalah mesin yang datanya baru masuk
-                // Kita bandingkan ID di modal title atau simpan ID modal aktif di variabel
-                // Cara sederhana: Cek text title
-                if (titleEl.innerText === mName) {
-                    renderDetailList(id);
-                }
-            }
-        }
-
-        // --- WATCHDOG (Cek Data Basi > 10 Menit) ---
-        const OFFLINE_TIMEOUT_MS = 600000; 
-        setInterval(() => {
-            const now = Date.now();
-            for (let i = 1; i <= 18; i++) {
-                if (hasData[i] && (now - lastUpdate[i] > OFFLINE_TIMEOUT_MS)) {
-                    const btn = document.getElementById(`btn-${i}`);
-                    if (btn) {
-                        btn.className = 'mc-btn offline';
-                        const mName = MACHINE_NAMES[i] || `MESIN ${i}`;
-                        // Update text
-                        const currentHTML = btn.innerHTML;
-                        if(!currentHTML.includes("OFFLINE")) {
-                             btn.innerHTML = `
-                                <span>${mName}</span>
-                                <span class="btn-sub">ID:${i} | OFFLINE</span>
-                            `;
-                        }
-                        if(machineData[i]) machineData[i].status = "offline";
-                    }
-                }
-            }
-        }, 5000);
-
-        // --- MODAL FUNCTIONS ---
-        function openModal(id) {
-            const name = MACHINE_NAMES[id] || `MESIN ${id}`;
-            document.getElementById('mTitle').innerText = name;
-            renderDetailList(id);
-            document.getElementById('detailModal').style.display = 'flex';
-            setTimeout(() => document.getElementById('detailModal').classList.add('active'), 10);
-        }
-
-        function closeModal() {
-            document.getElementById('detailModal').classList.remove('active');
-            setTimeout(() => {
-                document.getElementById('detailModal').style.display = 'none';
-            }, 200);
-        }
-
-        function fmt(num, digit=2) {
-            if(num === undefined || num === null) return "-";
-            return Number(num).toLocaleString('id-ID', { minimumFractionDigits: digit, maximumFractionDigits: digit });
-        }
-
-        function renderDetailList(id) {
-            const d = machineData[id];
-            const listContainer = document.getElementById('modalList');
-            const statusLabel = document.getElementById('statusIndicator');
-
-            if (!d) {
-                listContainer.innerHTML = "<div style='text-align:center; color:#94a3b8; padding:20px;'>Menunggu Data Masuk...</div>";
-                return;
-            }
-
-            const isTimeout = (Date.now() - lastUpdate[id] > OFFLINE_TIMEOUT_MS);
-            let statusText = 'STANDBY';
-            let statusColor = '#3b82f6'; // Blue
-
-            // Logika Warna Header Modal
-            if (d.status === 'offline' || isTimeout) {
-                statusText = 'OFFLINE'; statusColor = '#ef4444';
-            } else if (Number(d.I1)>0.5 || Number(d.I2)>0.5 || Number(d.I3)>0.5) {
-                statusText = 'RUNNING'; statusColor = '#22c55e';
-            }
-
-            statusLabel.innerText = statusText;
-            statusLabel.style.backgroundColor = statusColor;
-            document.querySelector('.modal-header').style.backgroundColor = statusColor;
-
-            // Hitung Hari/Jam
-            const opHours = Number(d.OpH) || 0;
-            const days = Math.floor(opHours / 24);
-            const hrs = (opHours % 24).toFixed(1);
-
-            const row = (label, val, unit) => `
-                <div class="detail-row">
-                    <span class="d-label">${label}</span>
-                    <span class="d-val">${val} <small style="font-size:0.7em; color:#64748b;">${unit}</small></span>
+                        <div class="param-row"><span class="param-label">kW:</span> <span id="p-${i}" class="param-val">0</span></div>
+                        <div class="param-row"><span class="param-label">kVAR:</span> <span id="q-${i}" class="param-val">0</span></div>
+                        <div class="param-row"><span class="param-label">kVA:</span> <span id="s-${i}" class="param-val">0</span></div>
+                        
+                        <div class="param-row"><span class="param-label">T1:</span> <span id="t1-${i}" class="param-val">0</span></div>
+                        <div class="param-row"><span class="param-label">T2:</span> <span id="t2-${i}" class="param-val">0</span></div>
+                    </div>
+                    
+                    <div class="last-update" id="update-${i}">Waiting data...</div>
                 </div>
-            `;
+            </div>
+        `;
+        container.innerHTML += html;
+    }
 
-            listContainer.innerHTML = `
-                ${row('Tegangan (V)', fmt(d.V, 1), 'Volt')}
-                ${row('Arus R (I1)', fmt(d.I1, 2), 'Amp')}
-                ${row('Arus S (I2)', fmt(d.I2, 2), 'Amp')}
-                ${row('Arus T (I3)', fmt(d.I3, 2), 'Amp')}
-                <hr style="border:0; border-top:1px dashed #e2e8f0; margin:10px 0;">
-                ${row('Daya Aktif (P)', fmt(d.P, 0), 'Watt')}
-                ${row('Daya Semu (S)', fmt(d.S/1000, 2), 'kVA')}
-                ${row('Power Factor', fmt(d.PF, 3), '')}
-                ${row('Frekuensi', fmt(d.Hz, 2), 'Hz')}
-                <hr style="border:0; border-top:1px dashed #e2e8f0; margin:10px 0;">
-                ${row('Total Energi (EaT)', fmt(d.EaT, 1), 'kWh')}
-                ${row('Total Reactive (ErT)', fmt(d.ErT, 1), 'kVARh')}
-                ${row('Jam Operasi', `${days}h ${hrs}j`, '')}
-            `;
+    // --- 2. LOGIC MQTT ---
+    
+    // Callback ketika koneksi sukses
+    function onConnect() {
+        console.log("✅ Connected to MQTT Broker");
+        document.getElementById('mqtt-status').className = 'badge bg-success me-2';
+        document.getElementById('mqtt-status').innerText = 'Connected';
+        
+        // Subscribe ke Wildcard (#) untuk menangkap semua meteran (1-18)
+        client.subscribe(topicBase + "/#");
+    }
+
+    // Callback ketika koneksi putus
+    function onConnectionLost(responseObject) {
+        if (responseObject.errorCode !== 0) {
+            console.log("❌ Connection Lost: " + responseObject.errorMessage);
+            document.getElementById('mqtt-status').className = 'badge bg-danger me-2';
+            document.getElementById('mqtt-status').innerText = 'Lost. Retrying...';
+            setTimeout(connectMQTT, 5000); // Reconnect after 5s
         }
+    }
 
-        // Start
-        setTimeout(startMqtt, 1000);
-    </script>
+    // Callback ketika pesan masuk
+    function onMessageArrived(message) {
+        try {
+            // Topic contoh: monitoring/data/powermeter/5
+            const topicParts = message.destinationName.split("/");
+            const meterId = topicParts[topicParts.length - 1]; // Ambil angka terakhir (ID)
+            const payload = JSON.parse(message.payloadString);
+
+            updateCard(meterId, payload);
+        } catch (e) {
+            console.error("Error parsing message:", e);
+        }
+    }
+
+    // Fungsi Connect
+    function connectMQTT() {
+        client.connect({
+            onSuccess: onConnect, 
+            onFailure: (e) => { 
+                console.log("Gagal konek: ", e); 
+                setTimeout(connectMQTT, 5000); 
+            }
+        });
+    }
+
+    // Set callback handler
+    client.onConnectionLost = onConnectionLost;
+    client.onMessageArrived = onMessageArrived;
+
+    // Mulai Koneksi
+    connectMQTT();
+
+    // --- 3. FUNGSI UPDATE UI ---
+    function updateCard(id, data) {
+        // Cek jika ID valid (1-18)
+        if (id < 1 || id > 18) return;
+
+        // Efek visual 'Online'
+        const dot = document.getElementById(`status-${id}`);
+        dot.className = "status-dot status-online";
+        
+        // Update Nilai (Gunakan Optional Chaining ?. biar gak error kalau data null)
+        document.getElementById(`tot-ea-${id}`).innerText = data.total_ea?.toFixed(2) || "0.00";
+        
+        document.getElementById(`volt-${id}`).innerText = data.voltage?.toFixed(1) || "0.0";
+        document.getElementById(`freq-${id}`).innerText = data.freq?.toFixed(2) || "0.0";
+        
+        document.getElementById(`i1-${id}`).innerText = data.current_i1?.toFixed(2) || "0.0";
+        document.getElementById(`i2-${id}`).innerText = data.current_i2?.toFixed(2) || "0.0";
+        document.getElementById(`i3-${id}`).innerText = data.current_i3?.toFixed(2) || "0.0";
+        
+        document.getElementById(`pf-${id}`).innerText = data.pf?.toFixed(3) || "0.0";
+        
+        // Power (dibagi 1000 biar jadi kW/kVAR/kVA kalau data aslinya masih satuan dasar)
+        // Sesuaikan dengan data JSON dari Python, di sana Active P dlm Watt, jadi /1000
+        document.getElementById(`p-${id}`).innerText = (data.active_p / 1000)?.toFixed(2) + " kW";
+        document.getElementById(`q-${id}`).innerText = (data.reactive_q / 1000)?.toFixed(2) + " kVAR";
+        document.getElementById(`s-${id}`).innerText = (data.apparent_s / 1000)?.toFixed(2) + " kVA";
+
+        document.getElementById(`t1-${id}`).innerText = data.tarif_t1?.toFixed(1) + " kWh";
+        document.getElementById(`t2-${id}`).innerText = data.tarif_t2?.toFixed(1) + " kWh";
+
+        // Timestamp
+        const now = new Date();
+        document.getElementById(`update-${id}`).innerText = "Upd: " + now.toLocaleTimeString();
+
+        // Reset status ke offline setelah 6 menit tidak ada data (Watchdog)
+        clearTimeout(window[`timer_${id}`]);
+        window[`timer_${id}`] = setTimeout(() => {
+            document.getElementById(`status-${id}`).className = "status-dot status-offline";
+            document.getElementById(`update-${id}`).innerText = "Offline/Delay";
+        }, 360000); // 6 menit (karena siklus kirim per 5 menit)
+    }
+
+    // Jam Digital Pojok Kanan
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+</script>
+
 </body>
 </html>
