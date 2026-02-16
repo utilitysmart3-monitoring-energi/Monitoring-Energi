@@ -51,6 +51,9 @@
             align-items: center;
             justify-content: center;
             min-height: 80px;
+            /* Update Style Agar Lebih Rapi & Kapital */
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .btn-machine:hover {
             transform: scale(1.02);
@@ -61,6 +64,7 @@
             opacity: 0.8;
             font-weight: normal;
             margin-top: 4px;
+            text-transform: none; /* Biar ID tetap normal */
         }
         .status-dot {
             height: 10px;
@@ -85,7 +89,7 @@
             padding: 20px;
             margin: 20px;
         }
-        .info-title { text-align: center; font-weight: bold; margin-bottom: 5px; font-size: 1.2rem; }
+        .info-title { text-align: center; font-weight: bold; margin-bottom: 5px; font-size: 1.2rem; text-transform: uppercase; }
         .info-subtitle { text-align: center; font-size: 0.8rem; opacity: 0.8; margin-bottom: 15px; }
         
         .param-row {
@@ -184,12 +188,8 @@
     const btnContainer = document.getElementById('button-container');
     
     for (let i = 1; i <= totalMesin; i++) {
-        // LOGIKA: Jika nama di data adalah "UNKNOW", tampilkan "METER [ID]" (TANPA PAGAR).
-        let displayName = machineNames[i];
-        
-        if (displayName === "UNKNOW" || displayName === "UNKNOWN") {
-            displayName = `METER ${i}`; // <--- Revisi: Hapus tanda #
-        }
+        // [REVISI] Langsung ambil nama dari object tanpa diubah-ubah
+        let displayName = machineNames[i]; 
 
         btnContainer.innerHTML += `
             <button class="btn-machine" onclick="showDetail(${i})">
@@ -204,9 +204,8 @@
     function showDetail(id) {
         selectedMachineId = id;
         
-        // Di dalam Pop-up juga sama (TANPA PAGAR)
+        // [REVISI] Langsung ambil nama asli
         let displayName = machineNames[id];
-        if (displayName === "UNKNOW" || displayName === "UNKNOWN") displayName = `METER ${id}`; // <--- Revisi: Hapus tanda #
 
         document.getElementById('modal-machine-name').innerText = displayName;
         document.getElementById('modal-machine-id').innerText = `ID DATABASE: ${id}`;
