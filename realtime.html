@@ -184,12 +184,11 @@
     const btnContainer = document.getElementById('button-container');
     
     for (let i = 1; i <= totalMesin; i++) {
-        // LOGIKA: Jika nama di data adalah "UNKNOW", tampilkan "METER #ID" biar rapi.
+        // LOGIKA: Jika nama di data adalah "UNKNOW", tampilkan "METER [ID]" (TANPA PAGAR).
         let displayName = machineNames[i];
         
-        // Cek "UNKNOW" (Sesuai request) atau "UNKNOWN" (Jaga-jaga typo)
         if (displayName === "UNKNOW" || displayName === "UNKNOWN") {
-            displayName = `METER #${i}`;
+            displayName = `METER ${i}`; // <--- Revisi: Hapus tanda #
         }
 
         btnContainer.innerHTML += `
@@ -205,9 +204,9 @@
     function showDetail(id) {
         selectedMachineId = id;
         
-        // Di dalam Pop-up juga sama, kalau UNKNOW ganti jadi Meter ID
+        // Di dalam Pop-up juga sama (TANPA PAGAR)
         let displayName = machineNames[id];
-        if (displayName === "UNKNOW" || displayName === "UNKNOWN") displayName = `METER #${id}`;
+        if (displayName === "UNKNOW" || displayName === "UNKNOWN") displayName = `METER ${id}`; // <--- Revisi: Hapus tanda #
 
         document.getElementById('modal-machine-name').innerText = displayName;
         document.getElementById('modal-machine-id').innerText = `ID DATABASE: ${id}`;
