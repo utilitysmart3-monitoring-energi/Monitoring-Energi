@@ -96,16 +96,19 @@
 
         /* --- HEADER ROW (HAMBURGER + PILL) --- */
         .header-row {
+            position: relative; /* Diubah agar button bisa absolute di kiri */
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 15px;
+            justify-content: center; /* Tetap center untuk Pill */
             margin-bottom: 10px;
             width: 100%;
+            min-height: 50px; /* Menjaga tinggi agar tidak collapse */
         }
 
         /* TOMBOL HAMBURGER (GARIS TIGA) */
         .btn-menu-toggle {
+            position: absolute; /* Posisi Absolute */
+            left: 0;            /* Paling Kiri dari container */
             color: var(--sidebar-theme); /* Warna #2b6c8a */
             font-size: 1.8rem;
             background: none;
@@ -128,6 +131,7 @@
             font-size: 1.1rem;
             background: #fff;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            z-index: 1; /* Di atas elemen lain jika perlu */
         }
 
         .description {
@@ -202,7 +206,7 @@
     <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title">DASHBOARD</h5>
+            <h5 class="offcanvas-title">MENU</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column justify-content-center p-4">
@@ -235,12 +239,12 @@
         
         <!-- 1. Header Row (Hamburger + Pill) -->
         <div class="header-row">
-            <!-- Tombol Hamburger (Warna #2b6c8a) -->
+            <!-- Tombol Hamburger (Posisi Absolute Paling Kiri) -->
             <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
                 <i class="fas fa-bars"></i>
             </button>
             
-            <!-- Pill Menu Utama (Warna #2b6c8a) -->
+            <!-- Pill Menu Utama -->
             <div class="header-pill">MENU UTAMA</div>
         </div>
         
