@@ -42,7 +42,7 @@
             border: none;
             border-radius: 12px;
             padding: 15px;
-            font-size: 1rem; /* Sedikit dikecilkan biar nama panjang muat */
+            font-size: 1rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             transition: transform 0.1s;
             position: relative;
@@ -152,23 +152,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // --- KONFIGURASI NAMA MESIN ---
+    // --- KONFIGURASI NAMA MESIN (PLEK KETIPLEK) ---
     const machineNames = {
-        1: "UNKNOWN",
-        2: "UNKNOWN",
-        3: "UNKNOWN",
-        4: "UNKNOWN",
+        1: "UNKNOW",
+        2: "UNKNOW",
+        3: "UNKNOW",
+        4: "UNKNOW",
         5: "MESIN 41",
         6: "MESIN 40",
         7: "MESIN 39",
-        8: "UNKNOWN",
+        8: "UNKNOW",
         9: "HEATER MC 5",
         10: "MESIN 5",
-        11: "UNKNOWN",
+        11: "UNKNOW",
         12: "MESIN 34",
         13: "MESIN 35",
-        14: "UNKNOWN",
-        15: "UNKNOWN",
+        14: "UNKNOW",
+        15: "UNKNOW",
         16: "MESIN 38",
         17: "MESIN 36",
         18: "MESIN 37"
@@ -184,9 +184,11 @@
     const btnContainer = document.getElementById('button-container');
     
     for (let i = 1; i <= totalMesin; i++) {
-        // Logika Nama: Jika UNKNOWN, pakai "METER #ID". Jika ada nama, pakai Namanya.
+        // LOGIKA: Jika nama di data adalah "UNKNOW", tampilkan "METER #ID" biar rapi.
         let displayName = machineNames[i];
-        if (displayName === "UNKNOWN") {
+        
+        // Cek "UNKNOW" (Sesuai request) atau "UNKNOWN" (Jaga-jaga typo)
+        if (displayName === "UNKNOW" || displayName === "UNKNOWN") {
             displayName = `METER #${i}`;
         }
 
@@ -203,14 +205,14 @@
     function showDetail(id) {
         selectedMachineId = id;
         
-        // Set Judul Modal
+        // Di dalam Pop-up juga sama, kalau UNKNOW ganti jadi Meter ID
         let displayName = machineNames[id];
-        if (displayName === "UNKNOWN") displayName = `METER #${id}`; // Fallback nama
+        if (displayName === "UNKNOW" || displayName === "UNKNOWN") displayName = `METER #${id}`;
 
         document.getElementById('modal-machine-name').innerText = displayName;
         document.getElementById('modal-machine-id').innerText = `ID DATABASE: ${id}`;
         
-        updateModalUI(id); // Isi angka 0 atau data terakhir
+        updateModalUI(id); 
         
         if (!detailModal) detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
         detailModal.show();
