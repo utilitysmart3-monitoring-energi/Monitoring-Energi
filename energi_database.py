@@ -8,7 +8,7 @@ import json
 import threading
 
 # --- KONFIGURASI ---
-IP_USR = '192.168.5.20'
+IP_USR = '192.168.7.8'
 PORT = 502
 
 # Supabase
