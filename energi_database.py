@@ -9,7 +9,7 @@ import threading
 
 # --- KONFIGURASI ---
 IP_USR = '192.168.7.8'
-PORT = 502
+PORT = 26
 
 # Supabase
 SUPABASE_URL = "https://awyohlizbltikpfanugb.supabase.co"
