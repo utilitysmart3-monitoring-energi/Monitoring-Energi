@@ -9,6 +9,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Supabase JS -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
     <style>
         :root {
             --bg-body: #525659;
@@ -28,6 +31,47 @@
             align-items: center;
             padding: 20px 0 100px 0;
         }
+
+        /* --- CONTROL PANEL (NON-PRINTABLE) --- */
+        .no-print-panel {
+            background: white;
+            width: var(--paper-width);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+        .filter-item input {
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+        .btn-tarik {
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-tarik:hover { background: #1a4a5e; }
 
         /* --- KERTAS A4 --- */
         .page {
@@ -97,7 +141,8 @@
         .input-line {
             display: inline-block;
             border-bottom: 1px dotted black;
-            width: 200px;
+            min-width: 300px;
+            padding-left: 5px;
         }
 
         /* --- MAIN DATA TABLE --- */
@@ -115,7 +160,7 @@
         .col-ket { width: 15%; text-align: center; }
         .col-rst { width: 5%; text-align: center; }
         .col-stand { width: 10%; text-align: center; }
-        .col-total { width: 10%; text-align: center; }
+        .col-total { width: 10%; text-align: center; font-weight: bold; }
 
         /* --- TOMBOL AKSI --- */
         .action-bar {
@@ -143,15 +188,28 @@
         .nav-item.active { opacity: 1; color: var(--primary-blue); }
         .nav-item:hover { opacity: 1; }
 
+        /* Hilangkan elemen yang tidak perlu saat di-print */
         @media print {
             body { background: white; padding: 0; -webkit-print-color-adjust: exact; }
             .page { box-shadow: none; margin: 0; width: 100%; height: auto; padding: 10mm; }
-            .action-bar, .bottom-nav { display: none !important; }
+            .action-bar, .bottom-nav, .no-print-panel { display: none !important; }
             @page { margin: 0; }
         }
     </style>
 </head>
 <body>
+
+    <!-- CONTROL PANEL (TIDAK TERCETAK) -->
+    <div class="no-print-panel">
+        <h3 style="color: var(--primary-blue); border-bottom: 2px solid #eee; padding-bottom: 10px;"><i class="fa-solid fa-filter"></i> Filter Tarikan Data Database</h3>
+        <div class="filter-grid">
+            <div class="filter-item">Tanggal Mulai <input type="date" id="startDate"></div>
+            <div class="filter-item">Jam Mulai <input type="time" id="startTime" value="00:00"></div>
+            <div class="filter-item">Tanggal Akhir <input type="date" id="endDate"></div>
+            <div class="filter-item">Jam Akhir <input type="time" id="endTime" value="23:59"></div>
+        </div>
+        <button class="btn-tarik" onclick="fetchData()">TARIK DATA KE KERTAS &nbsp;<i class="fa-solid fa-bolt"></i></button>
+    </div>
 
     <!-- Tombol Aksi -->
     <div class="action-bar">
@@ -198,9 +256,9 @@
             </tr>
         </table>
 
-        <!-- Input Tanggal -->
+        <!-- Input Tanggal Dinamis -->
         <div class="input-section">
-            HARI/TANGGAL : <span class="input-line"></span>
+            HARI/TANGGAL : <span class="input-line" id="hariTanggalLabel">____________________</span>
         </div>
 
         <!-- Tabel Data Utama -->
@@ -219,218 +277,104 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- 1 -->
-                <tr>
-                    <td align="center">1</td>
-                    <td>INJECT BLOW LIANXIN IBM30H</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 2 -->
-                <tr>
-                    <td align="center">2</td>
-                    <td>TM EXPRESS 270/2250 (+ Robot Wittman 822)</td>
-                    <td align="center">POMPA</td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td></td><td></td>
-                    <td align="center">HEATER</td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 3 -->
-                <tr>
-                    <td align="center">3</td>
-                    <td>ECO POWER 240/750 (+ Robot Wittman 822)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 4 -->
-                <tr>
-                    <td align="center">4</td>
-                    <td>ECO POWER 210 T (+ Robot Wittman 823 UHS)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 5 -->
+                <!-- BARIS MESIN 1 - 4 (KOSONGAN CONTOH) -->
+                <tr><td align="center">1</td><td>INJECT BLOW LIANXIN IBM30H</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">2</td><td>TM EXPRESS 270/2250 (+ Robot Wittman 822)</td><td align="center">POMPA</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td></td><td></td><td align="center">HEATER</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">3</td><td>ECO POWER 240/750 (+ Robot Wittman 822)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">4</td><td>ECO POWER 210 T (+ Robot Wittman 823 UHS)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                
+                <!-- BARIS 5 (ADA ID 10 DAN ID 9) -->
                 <tr>
                     <td align="center">5</td>
                     <td>TM EXPRESS 350/3400 (+ Robot jet engine)</td>
-                    <td align="center">POMPA</td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">POMPA</td>
+                    <td></td><td></td><td></td>
+                    <td id="awal-5-pompa" align="center"></td>
+                    <td id="akhir-5-pompa" align="center"></td>
+                    <td id="total-5-pompa" class="col-total"></td>
                 </tr>
                 <tr>
                     <td></td><td></td>
-                    <td align="center">HEATER</td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 6 -->
-                <tr>
-                    <td align="center">6</td>
-                    <td>+ W833 SAPRO</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 7 -->
-                <tr>
-                    <td align="center">7</td>
-                    <td>ECOPOWER EXPRESS 500/3300 (+ Robot Wittman)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 8 -->
-                <tr>
-                    <td align="center">8</td>
-                    <td>ECOPOWER EXPRESS 500/3300 (+ Robot Wittman)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 9 -->
-                <tr>
-                    <td align="center">9</td>
-                    <td>FCS CT-220 SE (+ Robot Sepro)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 10 -->
-                <tr>
-                    <td align="center">10</td>
-                    <td>NPC 260 T (+ Robot Wittman 818)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 11 -->
-                <tr>
-                    <td align="center">11</td>
-                    <td>ARBURG 270T WOLVERINE (Robot Wittment 818)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 12 -->
-                <tr>
-                    <td align="center">12</td>
-                    <td>FCS SA 380H (Sepro S5-25)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 13 -->
-                <tr>
-                    <td align="center">13</td>
-                    <td>EMAC 220 PRO (ROBOT PRIMUS 26)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 14 -->
-                <tr>
-                    <td align="center">14</td>
-                    <td>EMAC 380T (ROBOT WX 142)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 15 -->
-                <tr>
-                    <td align="center">15</td>
-                    <td>NPC 400 H (Sepro S5-25)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <!-- 16 -->
-                <tr>
-                    <td align="center">16</td>
-                    <td>ENGEL 280 ( Sepro S5-25)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">HEATER</td>
+                    <td></td><td></td><td></td>
+                    <td id="awal-5-heater" align="center"></td>
+                    <td id="akhir-5-heater" align="center"></td>
+                    <td id="total-5-heater" class="col-total"></td>
                 </tr>
 
-                <!-- LONCAT KE 31 - 47 -->
+                <!-- BARIS MESIN 6 - 33 KOSONGAN -->
+                <tr><td align="center">6</td><td>+ W833 SAPRO</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">7</td><td>ECOPOWER EXPRESS 500/3300 (+ Robot Wittman)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">8</td><td>ECOPOWER EXPRESS 500/3300 (+ Robot Wittman)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">9</td><td>FCS CT-220 SE (+ Robot Sepro)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">10</td><td>NPC 260 T (+ Robot Wittman 818)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">11</td><td>ARBURG 270T WOLVERINE (Robot Wittment 818)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">12</td><td>FCS SA 380H (Sepro S5-25)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">13</td><td>EMAC 220 PRO (ROBOT PRIMUS 26)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">14</td><td>EMAC 380T (ROBOT WX 142)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">15</td><td>NPC 400 H (Sepro S5-25)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">16</td><td>ENGEL 280 ( Sepro S5-25)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">31</td><td>FCS HT-100 SV</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">32</td><td>FCS HT-100 SV</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">33</td><td>NPC 160 T (Robot Wittment 818)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+
+                <!-- BARIS MESIN 34 - 41 BERISI DATA AKTIF -->
                 <tr>
-                    <td align="center">31</td>
-                    <td>FCS HT-100 SV</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">34</td><td>FCS HT-150 SV</td><td></td><td></td><td></td><td></td>
+                    <td id="awal-34" align="center"></td><td id="akhir-34" align="center"></td><td id="total-34" class="col-total"></td>
                 </tr>
                 <tr>
-                    <td align="center">32</td>
-                    <td>FCS HT-100 SV</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">35</td><td>FCS HT-150 SV</td><td></td><td></td><td></td><td></td>
+                    <td id="awal-35" align="center"></td><td id="akhir-35" align="center"></td><td id="total-35" class="col-total"></td>
                 </tr>
                 <tr>
-                    <td align="center">33</td>
-                    <td>NPC 160 T (Robot Wittment 818)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">36</td><td>NPC 160</td><td></td><td></td><td></td><td></td>
+                    <td id="awal-36" align="center"></td><td id="akhir-36" align="center"></td><td id="total-36" class="col-total"></td>
                 </tr>
                 <tr>
-                    <td align="center">34</td>
-                    <td>FCS HT-150 SV</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">37</td><td>ZSI-328T</td><td></td><td></td><td></td><td></td>
+                    <td id="awal-37" align="center"></td><td id="akhir-37" align="center"></td><td id="total-37" class="col-total"></td>
                 </tr>
                 <tr>
-                    <td align="center">35</td>
-                    <td>FCS HT-150 SV</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">38</td><td>NPC 200T</td><td></td><td></td><td></td><td></td>
+                    <td id="awal-38" align="center"></td><td id="akhir-38" align="center"></td><td id="total-38" class="col-total"></td>
                 </tr>
                 <tr>
-                    <td align="center">36</td>
-                    <td>NPC 160</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">39</td><td>FCS HT-100 SV</td><td></td><td></td><td></td><td></td>
+                    <td id="awal-39" align="center"></td><td id="akhir-39" align="center"></td><td id="total-39" class="col-total"></td>
                 </tr>
                 <tr>
-                    <td align="center">37</td>
-                    <td>ZSI-328T</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">40</td><td>FCS 250T CYCLOPS</td><td></td><td></td><td></td><td></td>
+                    <td id="awal-40" align="center"></td><td id="akhir-40" align="center"></td><td id="total-40" class="col-total"></td>
                 </tr>
                 <tr>
-                    <td align="center">38</td>
-                    <td>NPC 200T</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td align="center">41</td><td>SDP A CHILLER UTAMA</td><td></td><td></td><td></td><td></td>
+                    <td id="awal-41" align="center"></td><td id="akhir-41" align="center"></td><td id="total-41" class="col-total"></td>
                 </tr>
-                <tr>
-                    <td align="center">39</td>
-                    <td>FCS HT-100 SV</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td align="center">40</td>
-                    <td>FCS 250T CYCLOPS</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td align="center">41</td>
-                    <td>SDP A CHILLER UTAMA</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td align="center">42</td>
-                    <td>SDP 11</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td align="center">43</td>
-                    <td>SDP 11.1</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td align="center">44</td>
-                    <td>SDP 11.2</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td align="center">45</td>
-                    <td>SDP 11.3</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td align="center">46</td>
-                    <td>SDP 01 KOLAM</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
-                <tr>
-                    <td align="center">47</td>
-                    <td>SDP 10 (KOMPRESSOR)</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                </tr>
+
+                <!-- BARIS MESIN 42 - 47 KOSONGAN -->
+                <tr><td align="center">42</td><td>SDP 11</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">43</td><td>SDP 11.1</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">44</td><td>SDP 11.2</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">45</td><td>SDP 11.3</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">46</td><td>SDP 01 KOLAM</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+                <tr><td align="center">47</td><td>SDP 10 (KOMPRESSOR)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
             </tbody>
         </table>
 
         <!-- FOOTER TANDA TANGAN (3 KOLOM) -->
         <div style="margin-top: 30px; font-size: 10pt; display: flex; justify-content: space-between;">
-            <!-- Kolom Kiri -->
             <div style="text-align: center; width: 30%;">
-                <p>Dibuat,</p>
-                <br><br><br>
+                <p>Dibuat,</p><br><br><br>
                 <p style="border-top: 1px solid black; display: inline-block; width: 80%; padding-top: 2px;">Utility</p>
             </div>
-            <!-- Kolom Tengah -->
             <div style="text-align: center; width: 30%;">
-                <p>Diperiksa,</p>
-                <br><br><br>
+                <p>Diperiksa,</p><br><br><br>
                 <p style="border-top: 1px solid black; display: inline-block; width: 80%; padding-top: 2px;">Utility Coord</p>
             </div>
-            <!-- Kolom Kanan -->
             <div style="text-align: center; width: 30%;">
-                <p>Diketahui,</p>
-                <br><br><br>
+                <p>Diketahui,</p><br><br><br>
                 <p style="border-top: 1px solid black; display: inline-block; width: 80%; padding-top: 2px;">Superintendent Utility</p>
             </div>
         </div>
@@ -438,19 +382,148 @@
 
     <!-- Navigasi Bawah -->
     <nav class="bottom-nav">
-        <a href="home.html" class="nav-item">
-            <i class="fa-solid fa-house"></i>
-        </a>
-        <a href="menu_utama.html" class="nav-item">
-            <i class="fa-solid fa-bars"></i>
-        </a>
-        <a href="download_data.html" class="nav-item active">
-            <i class="fa-solid fa-download"></i>
-        </a>
-        <a href="informasi_akun.html" class="nav-item">
-            <i class="fa-solid fa-user"></i>
-        </a>
+        <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
+        <a href="menu_utama.html" class="nav-item"><i class="fa-solid fa-bars"></i></a>
+        <a href="download_data.html" class="nav-item active"><i class="fa-solid fa-download"></i></a>
+        <a href="informasi_akun.html" class="nav-item"><i class="fa-solid fa-user"></i></a>
     </nav>
 
+    <script>
+        // ==========================================
+        // KONFIGURASI SUPABASE
+        // ==========================================
+        const SUPABASE_URL = 'https://awyohlizbltikpfanugb.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes'; 
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const formatNumber = (num) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num || 0);
+
+        // ==========================================
+        // MAPPING ID MESIN -> ROW DI KERTAS
+        // ==========================================
+        const mappingMesin = [
+            { meter_id: 16, row_id: '38' },
+            { meter_id: 17, row_id: '36' },
+            { meter_id: 18, row_id: '37' },
+            { meter_id: 12, row_id: '34' },
+            { meter_id: 13, row_id: '35' },
+            { meter_id: 9,  row_id: '5-heater' },
+            { meter_id: 10, row_id: '5-pompa' },
+            { meter_id: 5,  row_id: '41' },
+            { meter_id: 6,  row_id: '40' },
+            { meter_id: 7,  row_id: '39' }
+        ];
+
+        // Format Tampilan Tanggal "15 Okt 2023 08:00 - 16 Okt 2023 08:00"
+        function formatLabelWaktu(start, end) {
+            const options = { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            const ds = new Date(start).toLocaleDateString('id-ID', options);
+            const de = new Date(end).toLocaleDateString('id-ID', options);
+            return `${ds} s/d ${de}`;
+        }
+
+        async function fetchData() {
+            // Ambil inputan user
+            const startDateStr = document.getElementById('startDate').value;
+            const endDateStr = document.getElementById('endDate').value;
+            const startTimeStr = document.getElementById('startTime').value;
+            const endTimeStr = document.getElementById('endTime').value;
+
+            if(!startDateStr || !endDateStr) {
+                alert("Harap pilih tanggal mulai dan akhir.");
+                return;
+            }
+
+            const startISO = `${startDateStr}T${startTimeStr}:00+07:00`;
+            const endISO = `${endDateStr}T${endTimeStr}:59+07:00`;
+
+            // Ubah text "HARI/TANGGAL"
+            document.getElementById('hariTanggalLabel').innerText = formatLabelWaktu(startISO, endISO);
+
+            // Karena format A4 butuh STAND AWAL dan STAND AKHIR, kita akan query langsung
+            // record pertama (awal) dan record terakhir (akhir) untuk setiap ID.
+            const btn = document.querySelector('.btn-tarik');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'SEDANG MENARIK DATA... <i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                // Tarik data secara paralel untuk mempercepat performa
+                const promises = mappingMesin.map(async (mesin) => {
+                    // 1. Ambil Stand Awal (Data pertama di periode)
+                    const { data: dataAwal } = await client.from('energi_db')
+                        .select('tarif_t1, tarif_t2')
+                        .eq('meter_id', mesin.meter_id)
+                        .gte('waktu_jakarta', startISO)
+                        .lte('waktu_jakarta', endISO)
+                        .order('waktu_jakarta', { ascending: true })
+                        .limit(1)
+                        .single();
+
+                    // 2. Ambil Stand Akhir (Data terakhir di periode)
+                    const { data: dataAkhir } = await client.from('energi_db')
+                        .select('tarif_t1, tarif_t2')
+                        .eq('meter_id', mesin.meter_id)
+                        .gte('waktu_jakarta', startISO)
+                        .lte('waktu_jakarta', endISO)
+                        .order('waktu_jakarta', { ascending: false })
+                        .limit(1)
+                        .single();
+
+                    // Kalkulasi KWh (T1 + T2)
+                    let standAwal = 0;
+                    let standAkhir = 0;
+                    
+                    if (dataAwal) standAwal = dataAwal.tarif_t1 + dataAwal.tarif_t2;
+                    if (dataAkhir) standAkhir = dataAkhir.tarif_t1 + dataAkhir.tarif_t2;
+                    
+                    const totalKwh = Math.max(0, standAkhir - standAwal);
+
+                    return {
+                        rowId: mesin.row_id,
+                        awal: standAwal,
+                        akhir: standAkhir,
+                        total: totalKwh,
+                        hasData: !!(dataAwal && dataAkhir)
+                    };
+                });
+
+                const results = await Promise.all(promises);
+
+                // Tulis hasil ke dalam tabel A4
+                results.forEach(res => {
+                    const elAwal = document.getElementById(`awal-${res.rowId}`);
+                    const elAkhir = document.getElementById(`akhir-${res.rowId}`);
+                    const elTotal = document.getElementById(`total-${res.rowId}`);
+
+                    if (elAwal && elAkhir && elTotal) {
+                        if (res.hasData) {
+                            elAwal.innerText = formatNumber(res.awal);
+                            elAkhir.innerText = formatNumber(res.akhir);
+                            elTotal.innerText = formatNumber(res.total);
+                        } else {
+                            elAwal.innerText = '-';
+                            elAkhir.innerText = '-';
+                            elTotal.innerText = '-';
+                        }
+                    }
+                });
+
+            } catch (err) {
+                console.error("Error fetching data:", err);
+                alert("Terjadi kesalahan saat menarik data. Cek koneksi internet.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Inisialisasi Tanggal
+        window.onload = () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+        };
+    </script>
 </body>
 </html>
