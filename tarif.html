@@ -221,15 +221,18 @@
                     }
                 });
 
-                console.log("⬇️ Data Delta T1/T2 dari RPC ⬇️");
-                console.table(rpcData);
-                console.log("⬇️ Data Partial Ea Murni Terakhir ⬇️");
-                console.table(latestPartials);
-
                 // ========================================================
                 // MERGE & RENDER
                 // ========================================================
                 tableBody.innerHTML = '';
+
+                // Variabel untuk menjumlahkan total semua 18 mesin
+                let sumPartialEa = 0;
+                let sumT1 = 0;
+                let sumT2 = 0;
+                let sumTotalT1T2 = 0;
+                let sumCostPartial = 0;
+                let sumCostT1T2 = 0;
 
                 // Loop 1 sampai 18
                 for (let i = 1; i <= 18; i++) {
@@ -250,6 +253,14 @@
                     // 3. PERHITUNGAN BIAYA
                     const costPartial = pEa * TARIF_LWBP;
                     const costT1T2 = (t1 * TARIF_LWBP) + (t2 * TARIF_WBP);
+                    
+                    // Tambahkan ke akumulator Total Keseluruhan
+                    sumPartialEa += pEa;
+                    sumT1 += t1;
+                    sumT2 += t2;
+                    sumTotalT1T2 += totalT1T2;
+                    sumCostPartial += costPartial;
+                    sumCostT1T2 += costT1T2;
                     
                     // Styling dinamis: Abu-abu jika tidak ada pemakaian atau mesin UNKNOWN
                     let rowClass = "text-gray-400";
@@ -279,6 +290,22 @@
                     `;
                     tableBody.appendChild(tr);
                 }
+
+                // ========================================================
+                // RENDER ROW TOTAL KESELURUHAN DI BAWAH LOOP
+                // ========================================================
+                const totalTr = document.createElement('tr');
+                totalTr.className = "bg-[#f1f5f9] border-t-2 border-[#286583] text-[#286583] uppercase tracking-wide";
+                totalTr.innerHTML = `
+                    <td class="py-4 px-4 text-center font-extrabold" colspan="2">TOTAL KESELURUHAN</td>
+                    <td class="py-4 px-4 text-center font-extrabold text-blue-900">${formatNumber(sumPartialEa)}</td>
+                    <td class="py-4 px-4 text-center font-extrabold">${formatNumber(sumT1)}</td>
+                    <td class="py-4 px-4 text-center font-extrabold">${formatNumber(sumT2)}</td>
+                    <td class="py-4 px-4 text-center font-extrabold">${formatNumber(sumTotalT1T2)}</td>
+                    <td class="py-4 px-4 text-right font-extrabold text-blue-900">Rp ${formatCurrency(sumCostPartial)}</td>
+                    <td class="py-4 px-4 text-right font-extrabold text-green-700">Rp ${formatCurrency(sumCostT1T2)}</td>
+                `;
+                tableBody.appendChild(totalTr);
 
                 infoDiv.innerText = `Data T1 & T2 menampilkan selisih dari ${startISO.replace('T', ' ').slice(0, 16)} s/d ${endISO.replace('T', ' ').slice(0, 16)} WIB. Data Partial Ea menampilkan total utuh terbaru alat.`;
                 infoDiv.classList.remove('hidden');
