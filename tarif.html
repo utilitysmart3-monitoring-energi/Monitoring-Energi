@@ -15,122 +15,123 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #ffffff;
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #ffffff; 
         }
         
-        .custom-input {
-            border: 2px solid #6B8E9E;
-            color: #2C5F78;
-            font-weight: 600;
-            border-radius: 9999px;
-            padding: 0.5rem 1.5rem;
-            text-align: center;
-            outline: none;
-            transition: all 0.2s;
-            cursor: pointer;
-            width: 100%;
-            max-width: 250px;
-        }
-
-        .custom-input:focus {
-            border-color: #206A8C;
-            box-shadow: 0 0 0 2px rgba(32, 106, 140, 0.2);
-        }
-
-        .title-pill {
-            border: 2px solid #2C6E91;
-            color: #2C6E91;
-            border-radius: 9999px;
-            padding: 0.5rem 3rem;
-            display: inline-block;
-            font-weight: 800;
-            font-size: 1.25rem;
-            text-transform: uppercase;
-            margin-bottom: 2rem;
-        }
-
-        .table-header {
-            background-color: #286583;
-            color: white;
-            border-radius: 10px;
-            /* Shadow effect sesuai gambar */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        .custom-input { 
+            border: 2px solid #6B8E9E; 
+            color: #2C5F78; 
+            font-weight: 600; 
+            border-radius: 9999px; 
+            padding: 0.5rem 1.5rem; 
+            text-align: center; 
+            outline: none; 
+            transition: all 0.2s; 
+            cursor: pointer; 
+            width: 100%; 
+            max-width: 250px; 
         }
         
-        .table-header th:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; }
-        .table-header th:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; }
-
-        .row-text {
-            color: #286583;
-            font-weight: 700;
+        .custom-input:focus { 
+            border-color: #206A8C; 
+            box-shadow: 0 0 0 2px rgba(32, 106, 140, 0.2); 
         }
-
-        /* Zebra striping halus agar baris 1-18 mudah dilihat */
-        tbody tr:nth-child(even) {
-            background-color: #f8fafc;
+        
+        .title-pill { 
+            border: 2px solid #2C6E91; 
+            color: #2C6E91; 
+            border-radius: 9999px; 
+            padding: 0.5rem 3rem; 
+            display: inline-block; 
+            font-weight: 800; 
+            font-size: 1.25rem; 
+            text-transform: uppercase; 
+            margin-bottom: 2rem; 
+        }
+        
+        .table-header { 
+            background-color: #286583; 
+            color: white; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+        }
+        
+        .table-header th:first-child { 
+            border-top-left-radius: 10px; 
+            border-bottom-left-radius: 10px; 
+        }
+        
+        .table-header th:last-child { 
+            border-top-right-radius: 10px; 
+            border-bottom-right-radius: 10px; 
+        }
+        
+        .row-text { 
+            color: #286583; 
+            font-weight: 700; 
+        }
+        
+        tbody tr:nth-child(even) { 
+            background-color: #f8fafc; 
         }
     </style>
 </head>
 <body class="flex flex-col items-center py-10 min-h-screen">
 
     <!-- 1. JUDUL -->
-    <div class="title-pill">
+    <div class="title-pill shadow-sm">
         MONITORING TARIF
     </div>
 
     <!-- 2. FILTER INPUTS -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 w-full max-w-2xl px-4 justify-items-center">
         <div class="relative w-full flex justify-center">
-            <input type="date" id="startDate" class="custom-input uppercase text-sm">
+            <input type="date" id="startDate" class="custom-input uppercase text-sm shadow-sm">
         </div>
         <div class="relative w-full flex justify-center">
-            <input type="date" id="endDate" class="custom-input uppercase text-sm">
+            <input type="date" id="endDate" class="custom-input uppercase text-sm shadow-sm">
         </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 w-full max-w-2xl px-4 justify-items-center">
         <div class="relative w-full flex justify-center">
-            <input type="time" id="startTime" class="custom-input uppercase text-sm" value="00:00">
+            <input type="time" id="startTime" class="custom-input uppercase text-sm shadow-sm" value="00:00">
         </div>
         <div class="relative w-full flex justify-center">
-            <input type="time" id="endTime" class="custom-input uppercase text-sm" value="23:59">
+            <input type="time" id="endTime" class="custom-input uppercase text-sm shadow-sm" value="23:59">
         </div>
     </div>
 
-    <!-- Tombol Hitung -->
-    <button onclick="fetchData()" class="mb-8 bg-[#286583] hover:bg-[#1e4d63] text-white font-bold py-2 px-8 rounded-full shadow-md transition transform hover:scale-105">
+    <button onclick="fetchData()" class="mb-8 bg-[#286583] hover:bg-[#1e4d63] text-white font-bold py-3 px-10 rounded-full shadow-md transition transform hover:scale-105 active:scale-95">
         Hitung / Refresh Data
     </button>
 
-    <!-- INFO TARIF AKTIF -->
-    <div id="tarifInfo" class="mb-4 text-xs font-semibold text-gray-500 bg-gray-100 px-4 py-2 rounded-full hidden">
-        Memuat Tarif...
-    </div>
-
     <!-- 3. TABEL DATA -->
-    <div class="w-full max-w-6xl px-4 overflow-x-auto mb-10">
-        <table class="w-full border-collapse">
-            <thead class="table-header text-sm md:text-base">
+    <div class="w-full max-w-7xl px-4 overflow-x-auto mb-10 shadow-lg rounded-xl pb-2">
+        <table class="w-full border-collapse bg-white rounded-xl">
+            <thead class="table-header text-sm md:text-sm">
                 <tr>
-                    <th class="py-4 px-4 text-left">no</th>
-                    <th class="py-4 px-4 text-left">nama mesin</th>
-                    <th class="py-4 px-4 text-center">Partial Ea (Kwh)</th>
-                    <th class="py-4 px-4 text-center">T 1 (Kwh)</th>
-                    <th class="py-4 px-4 text-center">T 2 (Kwh)</th>
-                    <th class="py-4 px-4 text-center leading-tight">Total T1 & T2<br>(Kwh)</th>
-                    <th class="py-4 px-4 text-right">Total Tarif (Rp)</th>
+                    <th class="py-4 px-4 text-left">No</th>
+                    <th class="py-4 px-4 text-left">Nama Mesin</th>
+                    <th class="py-4 px-4 text-center">Partial Ea<br><span class="text-xs font-normal">(Kwh)</span></th>
+                    <th class="py-4 px-4 text-center">T 1<br><span class="text-xs font-normal">(Kwh)</span></th>
+                    <th class="py-4 px-4 text-center">T 2<br><span class="text-xs font-normal">(Kwh)</span></th>
+                    <th class="py-4 px-4 text-center leading-tight">Total T1 & T2<br><span class="text-xs font-normal">(Kwh)</span></th>
+                    <th class="py-4 px-4 text-right">Total Tarif<br>Partial Ea<br><span class="text-xs font-normal">(Rp)</span></th>
+                    <th class="py-4 px-4 text-right">Total Tarif<br>T1 & T2<br><span class="text-xs font-normal">(Rp)</span></th>
                 </tr>
             </thead>
             <tbody id="tableBody">
                 <tr>
-                    <td colspan="7" class="text-center py-8 text-gray-400">Siap memuat data...</td>
+                    <td colspan="8" class="text-center py-12 text-gray-400">Tekan tombol "Hitung" untuk memuat data.</td>
                 </tr>
             </tbody>
         </table>
-        <div id="lastUpdateInfo" class="text-center text-xs text-gray-400 mt-2"></div>
     </div>
+    
+    <div id="lastUpdateInfo" class="text-center text-sm text-gray-500 mt-2 bg-gray-100 px-6 py-2 rounded-full hidden"></div>
 
     <script>
         // ==========================================
@@ -141,183 +142,167 @@
         
         const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Global Tarif (UPDATED SESUAI KOREKSI)
-        let TARIF_LWBP = 1035.78; 
-        let TARIF_WBP = 1553.67;
-
         // ==========================================
         // FORMATTER
         // ==========================================
-        const formatNumber = (num) => new Intl.NumberFormat('id-ID').format(num);
-        const formatCurrency = (num) => new Intl.NumberFormat('id-ID', {
-            style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2
-        }).format(num);
+        const formatNumber = (num) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num || 0);
+        const formatCurrency = (num) => new Intl.NumberFormat('id-ID', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num || 0);
 
         // ==========================================
-        // 1. AMBIL SETTING TARIF
+        // NAMA MESIN MAP
         // ==========================================
-        async function fetchSettings() {
-            const infoDiv = document.getElementById('tarifInfo');
-            try {
-                const { data, error } = await client
-                    .from('settings')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-
-                if (data && data.length > 0) {
-                    // Ambil dari DB jika ada
-                    TARIF_LWBP = data[0].tarif_lwbp;
-                    TARIF_WBP = data[0].tarif_wbp;
-                    infoDiv.innerHTML = `Rate (DB): LWBP: Rp ${formatNumber(TARIF_LWBP)} | WBP: Rp ${formatNumber(TARIF_WBP)}`;
-                } else {
-                    // Jika DB kosong, pakai default yang sudah dikoreksi
-                    infoDiv.innerHTML = `Rate (Default): LWBP: Rp ${formatNumber(TARIF_LWBP)} | WBP: Rp ${formatNumber(TARIF_WBP)}`;
-                }
-                infoDiv.classList.remove('hidden');
-            } catch (err) {
-                console.error("Gagal ambil tarif, menggunakan default:", err);
-                infoDiv.innerHTML = `Rate (Fallback): LWBP: Rp ${formatNumber(TARIF_LWBP)} | WBP: Rp ${formatNumber(TARIF_WBP)}`;
-                infoDiv.classList.remove('hidden');
-            }
-        }
+        const machineNames = {
+            1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN", 4: "UNKNOWN",
+            5: "MESIN 41", 6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOWN",
+            9: "HEATER MC 5", 10: "MESIN 5", 11: "UNKNOWN", 12: "MESIN 34",
+            13: "MESIN 35", 14: "UNKNOWN", 15: "UNKNOWN", 16: "MESIN 38",
+            17: "MESIN 36", 18: "MESIN 37"
+        };
 
         // ==========================================
-        // 2. FUNGSI UTAMA FETCH DATA (FIXED 18 ROWS)
+        // TARIF PER KWH
+        // ==========================================
+        const TARIF_LWBP = 1035.78; 
+        const TARIF_WBP = 1553.67;
+
+        // ==========================================
+        // FUNGSI UTAMA (DUA REQUEST TERPISAH)
         // ==========================================
         async function fetchData() {
             const tableBody = document.getElementById('tableBody');
             const infoDiv = document.getElementById('lastUpdateInfo');
-            
-            tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4">Mengambil data terbaru...</td></tr>`;
-            infoDiv.innerText = '';
 
-            await fetchSettings();
+            // Set Loading State
+            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-blue-600 font-semibold animate-pulse flex justify-center items-center gap-2"><svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menghitung Data dari Database...</td></tr>`;
+            infoDiv.classList.add('hidden');
 
-            const startDateStr = document.getElementById('startDate').value;
-            const endDateStr = document.getElementById('endDate').value;
-            const startTimeStr = document.getElementById('startTime').value;
-            const endTimeStr = document.getElementById('endTime').value;
-
-            const startISO = `${startDateStr}T${startTimeStr}:00`;
-            const endISO = `${endDateStr}T${endTimeStr}:59`;
+            const startISO = `${document.getElementById('startDate').value}T${document.getElementById('startTime').value}:00+07:00`;
+            const endISO = `${document.getElementById('endDate').value}T${document.getElementById('endTime').value}:59+07:00`;
 
             try {
-                // 1. Inisialisasi Data Kosong untuk 18 Mesin
-                let machines = {};
+                // ========================================================
+                // REQUEST 1: Ambil Delta T1 & T2 menggunakan RPC (berdasarkan waktu)
+                // ========================================================
+                const { data: rpcData, error: rpcError } = await client.rpc('get_energy_report', {
+                    start_time: startISO,
+                    end_time: endISO
+                });
+
+                if (rpcError) throw rpcError;
+                
+                // ========================================================
+                // REQUEST 2: Ambil Partial Ea Murni (Data Terakhir, Bebas Waktu)
+                // ========================================================
+                // Kita gunakan Promise.all untuk menarik baris terbaru dari setiap mesin secara paralel
+                const partialPromises = [];
                 for (let i = 1; i <= 18; i++) {
-                    machines[i] = {
-                        sid: i,
-                        total_kwh: 0,
-                        t1_kwh: 0,
-                        t2_kwh: 0,
-                        last_update: null
-                    };
+                    partialPromises.push(
+                        client.from('energi_db')
+                            .select('meter_id, partial_ea')
+                            .eq('meter_id', i)
+                            .not('partial_ea', 'is', null) // Pastikan bukan null
+                            .order('waktu_jakarta', { ascending: false }) // Urutkan paling baru
+                            .limit(1) // Ambil 1 baris saja
+                            .single() // Konversi hasil ke single object, bukan array
+                    );
                 }
 
-                // 2. Ambil semua data di rentang waktu
-                const { data, error } = await client
-                    .from('meter_tariff_snapshot')
-                    .select('*')
-                    .gte('created_at', startISO) 
-                    .lte('created_at', endISO)   
-                    .order('created_at', { ascending: false }); // PENTING: Data terbaru diambil duluan
+                // Tunggu semua request selesai
+                const partialResults = await Promise.allSettled(partialPromises);
+                
+                // Susun data partial_ea dalam bentuk objek untuk mempermudah pencarian (Mapping)
+                const latestPartials = {};
+                partialResults.forEach((result, index) => {
+                    const meterId = index + 1;
+                    if (result.status === 'fulfilled' && result.value.data) {
+                        latestPartials[meterId] = result.value.data.partial_ea;
+                    } else {
+                        latestPartials[meterId] = 0; // Jika belum ada data sama sekali di DB
+                    }
+                });
 
-                if (error) throw error;
+                console.log("⬇️ Data Delta T1/T2 dari RPC ⬇️");
+                console.table(rpcData);
+                console.log("⬇️ Data Partial Ea Murni Terakhir ⬇️");
+                console.table(latestPartials);
 
-                // 3. Mapping Data (Ambil yang paling baru per mesin)
-                if (data) {
-                    data.forEach(row => {
-                        const id = row.sid_mesin;
-                        // Hanya proses jika ID valid (1-18) DAN belum ada data lebih baru yang masuk
-                        // Karena kita sort DESC, data pertama yang ketemu pasti yang paling baru
-                        if (id >= 1 && id <= 18 && machines[id].last_update === null) {
-                            machines[id].total_kwh = row.total_kwh || 0;
-                            machines[id].t1_kwh = row.t1_lwbp_kwh || 0;
-                            machines[id].t2_kwh = row.t2_wbp_kwh || 0;
-                            machines[id].last_update = row.created_at;
-                        }
-                    });
-                }
+                // ========================================================
+                // MERGE & RENDER
+                // ========================================================
+                tableBody.innerHTML = '';
 
-                // 4. Render Tabel Statis 1-18
-                tableBody.innerHTML = ''; // Bersihkan loading
-
-                // Daftar Nama Mesin Custom
-                const machineNames = {
-                    1: "UNKNOW",
-                    2: "UNKNOW",
-                    3: "UNKNOW",
-                    4: "UNKNOW",
-                    5: "MESIN 41",
-                    6: "MESIN 40",
-                    7: "MESIN 39",
-                    8: "UNKNOW",
-                    9: "HEATER MC 5",
-                    10: "MESIN 5",
-                    11: "UNKNOW",
-                    12: "MESIN 34",
-                    13: "MESIN 35",
-                    14: "UNKNOW",
-                    15: "UNKNOW",
-                    16: "MESIN 38",
-                    17: "MESIN 36",
-                    18: "MESIN 37"
-                };
-
-                // Loop 1 sampai 18 agar urutan rapi
+                // Loop 1 sampai 18
                 for (let i = 1; i <= 18; i++) {
-                    const m = machines[i];
+                    // Cari data delta dari rpcData
+                    const rpcRow = rpcData ? rpcData.find(d => d.meter_id === i) : null;
                     
-                    // Hitung Penjumlahan
-                    const sumT1T2 = m.t1_kwh + m.t2_kwh;
-
-                    // Hitung Rupiah
-                    const biayaT1 = m.t1_kwh * TARIF_LWBP;
-                    const biayaT2 = m.t2_kwh * TARIF_WBP;
-                    const totalTarif = biayaT1 + biayaT2;
-
-                    // Cek status data (Aktif/Tidak ada data)
-                    // Jika last_update masih null, berarti tidak ada data di rentang waktu itu -> Angka 0
-                    const hasData = m.last_update !== null;
-                    const rowClass = hasData ? "font-bold text-gray-800" : "text-gray-400"; // Abu-abu jika 0
+                    const name = machineNames[i] || `Meter ${i}`;
+                    const isUnknown = name === "UNKNOWN";
                     
-                    // Ambil nama mesin dari map, default "Mesin X" jika tidak ada di map
-                    const namaMesin = machineNames[i] || `Mesin ${i}`;
+                    // 1. PARTIAL EA: Ambil dari hasil Request 2 (latestPartials)
+                    const pEa = latestPartials[i] || 0; 
+                    
+                    // 2. T1 & T2: Ambil dari hasil Request 1 (rpcData)
+                    const t1 = rpcRow ? (rpcRow.delta_t1 || 0) : 0;
+                    const t2 = rpcRow ? (rpcRow.delta_t2 || 0) : 0;
+                    const totalT1T2 = t1 + t2;
+                    
+                    // 3. PERHITUNGAN BIAYA
+                    const costPartial = pEa * TARIF_LWBP;
+                    const costT1T2 = (t1 * TARIF_LWBP) + (t2 * TARIF_WBP);
+                    
+                    // Styling dinamis: Abu-abu jika tidak ada pemakaian atau mesin UNKNOWN
+                    let rowClass = "text-gray-400";
+                    let nameClass = "text-gray-400 font-medium";
+                    
+                    // Highlight baris jika ada pemakaian di Partial Ea atau T1/T2
+                    if (pEa > 0 || totalT1T2 > 0) {
+                        rowClass = "text-gray-700";
+                        nameClass = "text-[#286583] font-bold";
+                    }
+
+                    if(isUnknown) {
+                        nameClass = "text-gray-300 italic";
+                    }
 
                     const tr = document.createElement('tr');
-                    tr.className = "border-b border-gray-100 hover:bg-blue-50 transition"; // Hover effect
-                    
+                    tr.className = "border-b border-gray-100 hover:bg-blue-50 transition duration-150";
                     tr.innerHTML = `
                         <td class="py-4 px-4 row-text text-left">${i}.</td>
-                        <td class="py-4 px-4 row-text text-left">
-                            <span class="${rowClass}">${namaMesin}</span>
-                            ${hasData ? `<div class="text-[10px] text-gray-400 font-normal">Updated: ${new Date(m.last_update).toLocaleTimeString('id-ID')}</div>` : ''}
-                        </td>
-                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(m.total_kwh)}</td>
-                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(m.t1_kwh)}</td>
-                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(m.t2_kwh)}</td>
-                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(sumT1T2)}</td>
-                        <td class="py-4 px-4 text-right ${rowClass} font-bold">${formatCurrency(totalTarif)}</td>
+                        <td class="py-4 px-4 text-left ${nameClass}">${name}</td>
+                        <td class="py-4 px-4 text-center ${rowClass} font-bold text-blue-800">${formatNumber(pEa)}</td>
+                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(t1)}</td>
+                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(t2)}</td>
+                        <td class="py-4 px-4 text-center font-bold ${rowClass}">${formatNumber(totalT1T2)}</td>
+                        <td class="py-4 px-4 text-right font-bold ${costPartial > 0 ? 'text-blue-900' : 'text-gray-400'}">Rp ${formatCurrency(costPartial)}</td>
+                        <td class="py-4 px-4 text-right font-bold ${costT1T2 > 0 ? 'text-green-700' : 'text-gray-400'}">Rp ${formatCurrency(costT1T2)}</td>
                     `;
                     tableBody.appendChild(tr);
                 }
-                
-                infoDiv.innerText = `Data ditampilkan berdasarkan snapshot terakhir antara ${startISO.replace('T', ' ')} s/d ${endISO.replace('T', ' ')}`;
+
+                infoDiv.innerText = `Data T1 & T2 menampilkan selisih dari ${startISO.replace('T', ' ').slice(0, 16)} s/d ${endISO.replace('T', ' ').slice(0, 16)} WIB. Data Partial Ea menampilkan total utuh terbaru alat.`;
+                infoDiv.classList.remove('hidden');
 
             } catch (err) {
-                console.error('Error fetching data:', err);
-                tableBody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-red-500">Error: ${err.message}</td></tr>`;
+                console.error("Supabase Error:", err);
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-red-500 font-medium bg-red-50">
+                    <p class="mb-2">⚠️ Error: Gagal mengambil data.</p>
+                    <p class="text-sm text-red-400">Pesan: ${err.message}</p>
+                    <p class="text-xs text-gray-500 mt-2">Pastikan struktur database dan koneksi internet stabil.</p>
+                </td></tr>`;
             }
         }
 
+        // ==========================================
+        // INISIALISASI
+        // ==========================================
         window.onload = () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('startDate').value = today;
             document.getElementById('endDate').value = today;
-            fetchData();
+            
+            // fetchData(); // Buka komentar jika ingin otomatis refresh saat pertama kali dimuat
         };
-
     </script>
 </body>
 </html>
