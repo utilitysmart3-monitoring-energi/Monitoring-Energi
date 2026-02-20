@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HASIL PENCATATAN METER LISTRIK</title>
+    <title>DATA PENCATATAN ENERGI</title>
     
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Bootstrap CSS (Ditambahkan untuk fungsi Offcanvas menu) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Supabase JS -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -30,12 +33,93 @@
             flex-direction: column;
             align-items: center;
             padding: 20px 0 100px 0;
+            margin: 0;
+        }
+
+        /* --- HEADER & OFFCANVAS MENU --- */
+        .app-header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--primary-blue);
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-menu-toggle {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            margin-right: 15px;
+            transition: transform 0.2s;
+        }
+        
+        .btn-menu-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .app-title {
+            color: var(--primary-blue);
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 1.1rem;
+        }
+
+        .offcanvas {
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+            width: 300px !important;
+        }
+        .offcanvas-header {
+            border-bottom: 1px solid #eee;
+        }
+        .offcanvas-title {
+            color: var(--primary-blue);
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .nav-btn-custom {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            color: var(--primary-blue);
+            border: 2px solid var(--primary-blue);
+            border-radius: 50px;
+            padding: 12px 25px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .nav-btn-custom:hover, .nav-btn-custom.active {
+            background-color: var(--primary-blue);
+            color: white;
+            box-shadow: 0 5px 15px rgba(35, 99, 126, 0.3);
+        }
+
+        .nav-btn-custom i {
+            font-size: 1.8rem;
+            width: 40px;
+            text-align: center;
+            margin-right: 15px;
         }
 
         /* --- CONTROL PANEL (NON-PRINTABLE) --- */
         .no-print-panel {
             background: white;
-            width: var(--paper-width);
+            width: 100%;
+            max-width: var(--paper-width);
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -43,11 +127,12 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            box-sizing: border-box;
         }
         .filter-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 10px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
         }
         .filter-item {
             display: flex;
@@ -56,22 +141,37 @@
             font-weight: bold;
         }
         .filter-item input {
-            padding: 6px;
+            padding: 8px;
             border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-top: 4px;
+            border-radius: 5px;
+            margin-top: 5px;
+            width: 100%;
+            box-sizing: border-box;
         }
-        .btn-tarik {
-            background: var(--primary-blue);
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        .btn-tarik, .btn-print {
+            flex: 1;
             color: white;
             border: none;
-            padding: 10px;
+            padding: 12px;
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             transition: 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .btn-tarik:hover { background: #1a4a5e; }
+        .btn-tarik { background: var(--primary-blue); }
+        .btn-tarik:hover { background: #1a4a5e; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.2); }
+        .btn-print { background: #27ae60; }
+        .btn-print:hover { background: #219150; transform: translateY(-2px); box-shadow: 0 6px 10px rgba(0,0,0,0.2); }
 
         /* --- KERTAS A4 --- */
         .page {
@@ -162,63 +262,91 @@
         .col-stand { width: 10%; text-align: center; }
         .col-total { width: 10%; text-align: center; font-weight: bold; }
 
-        /* --- TOMBOL AKSI --- */
-        .action-bar {
-            position: fixed; bottom: 90px; right: 20px;
-            display: flex; gap: 10px; z-index: 1000;
+        /* --- MEDIA QUERIES (RESPONSIVE KHUSUS LAYAR) --- */
+        @media screen and (max-width: 768px) {
+            .filter-grid {
+                grid-template-columns: repeat(2, 1fr); /* Tablet jadi 2 kolom */
+            }
         }
-        .btn-print {
-            background: #27ae60; color: white; border: none;
-            padding: 12px 20px; border-radius: 50px; font-weight: bold;
-            cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            display: flex; align-items: center; gap: 8px; transition: 0.2s;
-        }
-        .btn-print:hover { background: #219150; transform: translateY(-2px); }
 
-        /* --- BOTTOM NAVIGASI --- */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: white; height: 70px;
-            display: flex; justify-content: space-around; align-items: center;
-            border-top: 1px solid #eee; z-index: 999;
+        @media screen and (max-width: 480px) {
+            .filter-grid {
+                grid-template-columns: 1fr; /* HP jadi 1 kolom berbaris ke bawah */
+            }
+            .button-group {
+                flex-direction: column; /* Tombol numpuk di HP */
+            }
         }
-        .nav-item {
-            color: #333; font-size: 1.4rem; padding: 10px; opacity: 0.6; transition: 0.2s;
-        }
-        .nav-item.active { opacity: 1; color: var(--primary-blue); }
-        .nav-item:hover { opacity: 1; }
 
         /* Hilangkan elemen yang tidak perlu saat di-print */
         @media print {
-            body { background: white; padding: 0; -webkit-print-color-adjust: exact; }
+            body { background: white; padding: 0; margin: 0; -webkit-print-color-adjust: exact; display: block; }
             .page { box-shadow: none; margin: 0; width: 100%; height: auto; padding: 10mm; }
-            .action-bar, .bottom-nav, .no-print-panel { display: none !important; }
+            .app-header, .offcanvas, .no-print-panel { display: none !important; }
             @page { margin: 0; }
         }
     </style>
 </head>
 <body>
 
+    <!-- APP HEADER -->
+    <div class="app-header">
+        <!-- TOMBOL HAMBURGER -->
+        <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h5 class="app-title ms-2">DATA PENCATATAN ENERGI</h5>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">MENU</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column justify-content-center p-4">
+            
+            <a href="index.html" class="nav-btn-custom">
+                <i class="fas fa-home"></i>
+                <span class="nav-btn-text">HOME</span>
+            </a>
+
+            <a href="menu_utama.html" class="nav-btn-custom">
+                <i class="fas fa-th-large"></i>
+                <span class="nav-btn-text">MENU UTAMA</span>
+            </a>
+
+            <!-- Diberi class "active" karena kita sedang berada di halaman ini -->
+            <a href="download_data.html" class="nav-btn-custom active">
+                <i class="fas fa-cloud-download-alt"></i>
+                <span class="nav-btn-text">UNDUH DATA</span>
+            </a>
+
+            <a href="informasi_akun.html" class="nav-btn-custom">
+                <i class="fas fa-user"></i>
+                <span class="nav-btn-text">AKUN</span>
+            </a>
+
+        </div>
+    </div>
+        
     <!-- CONTROL PANEL (TIDAK TERCETAK) -->
     <div class="no-print-panel">
-        <h3 style="color: var(--primary-blue); border-bottom: 2px solid #eee; padding-bottom: 10px;"><i class="fa-solid fa-filter"></i> Filter Tarikan Data Database</h3>
         <div class="filter-grid">
             <div class="filter-item">Tanggal Mulai <input type="date" id="startDate"></div>
             <div class="filter-item">Jam Mulai <input type="time" id="startTime" value="00:00"></div>
             <div class="filter-item">Tanggal Akhir <input type="date" id="endDate"></div>
             <div class="filter-item">Jam Akhir <input type="time" id="endTime" value="23:59"></div>
         </div>
-        <button class="btn-tarik" onclick="fetchData()">TARIK DATA KE KERTAS &nbsp;<i class="fa-solid fa-bolt"></i></button>
+        <div class="button-group">
+            <button class="btn-tarik" onclick="fetchData()">TAMPILKAN</button>
+            <button class="btn-print" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> PRINT / SAVE PDF
+            </button>
+        </div>
     </div>
 
-    <!-- Tombol Aksi -->
-    <div class="action-bar">
-        <button class="btn-print" onclick="window.print()">
-            <i class="fa-solid fa-print"></i> PRINT / SAVE PDF
-        </button>
-    </div>
-
-    <!-- Halaman A4 -->
+    <!-- Halaman A4 (ASLI SESUAI PERMINTAAN) -->
     <div class="page">
         <!-- Header Dokumen -->
         <table class="header-table">
@@ -380,13 +508,8 @@
         </div>
     </div>
 
-    <!-- Navigasi Bawah -->
-    <nav class="bottom-nav">
-        <a href="home.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
-        <a href="menu_utama.html" class="nav-item"><i class="fa-solid fa-bars"></i></a>
-        <a href="download_data.html" class="nav-item active"><i class="fa-solid fa-download"></i></a>
-        <a href="informasi_akun.html" class="nav-item"><i class="fa-solid fa-user"></i></a>
-    </nav>
+    <!-- Bootstrap JS (Diperlukan agar Offcanvas berjalan) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // ==========================================
@@ -444,7 +567,7 @@
             // record pertama (awal) dan record terakhir (akhir) untuk setiap ID.
             const btn = document.querySelector('.btn-tarik');
             const originalText = btn.innerHTML;
-            btn.innerHTML = 'SEDANG MENARIK DATA... <i class="fa-solid fa-spinner fa-spin"></i>';
+            btn.innerHTML = 'MEMPROSES... <i class="fa-solid fa-spinner fa-spin"></i>';
             btn.disabled = true;
 
             try {
