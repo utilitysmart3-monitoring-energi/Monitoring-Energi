@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GRAFIK DATA - Monitoring System</title>
+    
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --bg-body: #f4f7f6; /* Sedikit abu-abu agar card grafik lebih menonjol */
+            --primary-blue: #23637e; 
+            --btn-blue: #2b6c8a;     
+            --btn-gold: #cc9b28;     
+            --text-dark: #333333;
+            --card-bg: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 30px 20px;
+        }
+
+        /* --- HEADER --- */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        .btn-back {
+            text-decoration: none;
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 5px 15px;
+            border-radius: 12px;
+            background: var(--card-bg);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.1s;
+        }
+
+        .btn-back:active { transform: scale(0.95); }
+
+        .header-pill {
+            display: inline-block;
+            border: 2px solid var(--primary-blue);
+            padding: 8px 30px;
+            border-radius: 50px;
+            color: var(--primary-blue);
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: var(--card-bg);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        /* --- FILTER KONTROL --- */
+        .filter-container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 16px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+            justify-content: space-between;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 130px;
+        }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .filter-control {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            outline: none;
+            color: var(--text-dark);
+            background: white;
+            transition: border-color 0.2s;
+        }
+
+        .filter-control:focus {
+            border-color: var(--primary-blue);
+        }
+
+        .btn-filter {
+            background-color: var(--btn-blue);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            width: 100%;
+        }
+
+        .btn-filter:active { transform: scale(0.95); }
+        .btn-filter:disabled { background-color: #999; cursor: not-allowed; transform: none; }
+
+        /* --- NOTIFIKASI PESAN --- */
+        .message-box {
+            width: 100%;
+            max-width: 600px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: none; /* Disembunyikan secara default */
+        }
+        .msg-error { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        .msg-warning { background-color: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
+        .msg-success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+
+        /* --- DASHBOARD KONTEN --- */
+        .dashboard-wrapper {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 40px;
+        }
+
+        .chart-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            width: 100%;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 15px;
+            text-align: center;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <div class="header-container">
+        <a href="menu_utama.html" class="btn-back">&#8592;</a> 
+        <div class="header-pill">GRAFIK DATA</div>
+        <div style="width: 40px;"></div> 
+    </div>
+
+    <!-- Kotak Pesan Notifikasi -->
+    <div id="messageBox" class="message-box"></div>
+
+    <!-- Filter Data Mesin & Tanggal -->
+    <div class="filter-container">
+        <div class="filter-group">
+            <label for="mesinSelect">Pilih Mesin</label>
+            <!-- Tambahkan onchange agar otomatis memuat data saat diubah -->
+            <select id="mesinSelect" class="filter-control" onchange="fetchData()">
+                <!-- Opsi 1 - 18 akan di-generate oleh JavaScript -->
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="tanggalSelect">Pilih Tanggal</label>
+            <!-- Tambahkan onchange agar otomatis memuat data saat diubah -->
+            <input type="date" id="tanggalSelect" class="filter-control" onchange="fetchData()">
+        </div>
+        <div style="width: 100%;">
+            <button id="btnTampilkan" class="btn-filter" onclick="fetchData()">Tampilkan Data / Refresh</button>
+        </div>
+    </div>
+
+    <!-- Konten Dashboard Grafik -->
+    <div class="dashboard-wrapper">
+        
+        <!-- Kartu Grafik 1: Tegangan (Voltage) -->
+        <div class="chart-card">
+            <h3 class="chart-title">Trend Tegangan (Voltage)</h3>
+            <div class="chart-container">
+                <canvas id="voltageChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Kartu Grafik 2: Arus 3-Phase (Current I1, I2, I3) -->
+        <div class="chart-card">
+            <h3 class="chart-title">Arus 3-Phase (Ampere)</h3>
+            <div class="chart-container">
+                <canvas id="currentChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. INISIALISASI SUPABASE ---
+        const SUPABASE_URL = 'https://awyohlizbltikpfanugb.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes';
+        
+        // Mengubah nama variabel dari 'supabase' menjadi 'supabaseClient' agar tidak bentrok dengan object window.supabase dari CDN
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Fungsi untuk menampilkan pesan di UI (menggantikan alert)
+        function showMessage(text, type) {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.textContent = text;
+            msgBox.className = 'message-box msg-' + type;
+            msgBox.style.display = 'block';
+            
+            // Sembunyikan otomatis setelah 5 detik jika sukses/warning
+            if(type !== 'error') {
+                setTimeout(() => { msgBox.style.display = 'none'; }, 5000);
+            }
+        }
+
+        function hideMessage() {
+            document.getElementById('messageBox').style.display = 'none';
+        }
+
+        // --- 2. SETUP UI (Dropdown Mesin & Default Tanggal) ---
+        const daftarMesin = {
+            1: "UNKNOW", 2: "UNKNOW", 3: "UNKNOW", 4: "UNKNOW", 5: "MESIN 41",
+            6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOW", 9: "HEATER MC 5", 10: "MESIN 5",
+            11: "UNKNOW", 12: "MESIN 34", 13: "MESIN 35", 14: "UNKNOW", 15: "UNKNOW",
+            16: "MESIN 38", 17: "MESIN 36", 18: "MESIN 37"
+        };
+
+        const mesinSelect = document.getElementById('mesinSelect');
+        for (let i = 1; i <= 18; i++) {
+            let option = document.createElement('option');
+            option.value = i;
+            option.text = `ID ${i} - ${daftarMesin[i]}`;
+            mesinSelect.appendChild(option);
+        }
+
+        // Set input tanggal default ke hari ini
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        document.getElementById('tanggalSelect').value = `${year}-${month}-${day}`;
+
+        // --- 3. KONFIGURASI AWAL CHART.JS ---
+        Chart.defaults.font.family = "'Poppins', sans-serif";
+        Chart.defaults.color = '#333333';
+
+        // Grafik Tegangan
+        const ctxVoltage = document.getElementById('voltageChart').getContext('2d');
+        let voltageChart = new Chart(ctxVoltage, {
+            type: 'line',
+            data: { labels: [], datasets: [{
+                label: 'Voltage (V)', data: [],
+                borderColor: '#cc9b28', backgroundColor: 'rgba(204, 155, 40, 0.1)',
+                borderWidth: 3, pointRadius: 2, fill: true, tension: 0.4
+            }]},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                scales: { 
+                    y: { suggestedMin: 210, suggestedMax: 230 }, 
+                    x: { grid: { display: false } } 
+                }
+            }
+        });
+
+        // Grafik Arus
+        const ctxCurrent = document.getElementById('currentChart').getContext('2d');
+        let currentChart = new Chart(ctxCurrent, {
+            type: 'line',
+            data: { labels: [], datasets: [
+                { label: 'I1 (A)', data: [], borderColor: '#23637e', borderWidth: 2, tension: 0.3, pointRadius: 2 },
+                { label: 'I2 (A)', data: [], borderColor: '#2b6c8a', borderWidth: 2, tension: 0.3, pointRadius: 2 },
+                { label: 'I3 (A)', data: [], borderColor: '#cc9b28', borderWidth: 2, tension: 0.3, pointRadius: 2 }
+            ]},
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { mode: 'index', intersect: false } },
+                scales: { y: { suggestedMin: 0 }, x: { grid: { display: false } } }
+            }
+        });
+
+        // --- 4. FUNGSI TARIK DATA (FETCH) ---
+        async function fetchData() {
+            hideMessage();
+            const btnTampilkan = document.getElementById('btnTampilkan');
+            const selectedMesin = document.getElementById('mesinSelect').value;
+            const selectedTanggal = document.getElementById('tanggalSelect').value;
+
+            if (!selectedTanggal) {
+                showMessage("Silakan pilih tanggal terlebih dahulu.", "warning");
+                return;
+            }
+
+            btnTampilkan.disabled = true;
+            btnTampilkan.innerText = "Memuat Data...";
+
+            try {
+                // Rentang waktu pencarian (00:00:00 sampai 23:59:59)
+                const startOfDay = `${selectedTanggal}T00:00:00`;
+                const endOfDay = `${selectedTanggal}T23:59:59`;
+
+                // Query Supabase (menggunakan supabaseClient)
+                const { data, error } = await supabaseClient
+                    .from('energi_db')
+                    .select('waktu_jakarta, voltage, current_i1, current_i2, current_i3')
+                    .eq('meter_id', selectedMesin)
+                    .gte('waktu_jakarta', startOfDay)
+                    .lte('waktu_jakarta', endOfDay)
+                    .order('waktu_jakarta', { ascending: true });
+
+                if (error) throw error;
+
+                const labels = [];
+                const dataVoltage = [];
+                const dataI1 = [];
+                const dataI2 = [];
+                const dataI3 = [];
+
+                if (data && data.length > 0) {
+                    data.forEach(row => {
+                        // Ambil jam & menit dari waktu_jakarta (Asumsi format YYYY-MM-DDTHH:MM:SS)
+                        let timeString = '-';
+                        if(row.waktu_jakarta) {
+                            const timePart = row.waktu_jakarta.split('T')[1];
+                            if(timePart) timeString = timePart.substring(0, 5);
+                        }
+                        
+                        labels.push(timeString);
+                        dataVoltage.push(row.voltage || 0);
+                        dataI1.push(row.current_i1 || 0);
+                        dataI2.push(row.current_i2 || 0);
+                        dataI3.push(row.current_i3 || 0);
+                    });
+                    
+                    const namaMesinTerpilih = document.getElementById('mesinSelect').options[document.getElementById('mesinSelect').selectedIndex].text;
+                    showMessage(`Data ${namaMesinTerpilih} berhasil dimuat.`, "success");
+                } else {
+                    const namaMesinTerpilih = document.getElementById('mesinSelect').options[document.getElementById('mesinSelect').selectedIndex].text;
+                    showMessage(`Tidak ada data untuk ${namaMesinTerpilih} pada tanggal ${selectedTanggal}.`, "warning");
+                }
+
+                // Update Grafik Tegangan
+                voltageChart.data.labels = labels;
+                voltageChart.data.datasets[0].data = dataVoltage;
+                voltageChart.update();
+
+                // Update Grafik Arus
+                currentChart.data.labels = labels;
+                currentChart.data.datasets[0].data = dataI1;
+                currentChart.data.datasets[1].data = dataI2;
+                currentChart.data.datasets[2].data = dataI3;
+                currentChart.update();
+
+            } catch (err) {
+                console.error("Supabase Error:", err);
+                // Jika error karena masalah RLS (Row Level Security)
+                if(err.message && err.message.includes('row-level security')) {
+                    showMessage("Akses ditolak oleh Supabase. Harap nonaktifkan RLS (Row Level Security) di tabel energi_db.", "error");
+                } else {
+                    showMessage("Gagal mengambil data: " + err.message, "error");
+                }
+            } finally {
+                btnTampilkan.disabled = false;
+                btnTampilkan.innerText = "Tampilkan Data / Refresh";
+            }
+        }
+
+        // Fetch otomatis saat load pertama kali
+        window.onload = () => {
+            fetchData();
+        };
+    </script>
+</body>
+</html>
