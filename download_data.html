@@ -278,12 +278,30 @@
             }
         }
 
-        /* Hilangkan elemen yang tidak perlu saat di-print */
+        /* --- PRINT MEDIA QUERY (Penyesuaian Mutlak 1 Lembar) --- */
         @media print {
             body { background: white; padding: 0; margin: 0; -webkit-print-color-adjust: exact; display: block; }
-            .page { box-shadow: none; margin: 0; width: 100%; height: auto; padding: 10mm; }
+            @page { size: A4 portrait; margin: 8mm; } /* Meminimalkan margin bawaan PDF/Printer */
+            
+            .page { box-shadow: none; margin: 0; width: 100%; height: auto; padding: 0; }
             .app-header, .offcanvas, .no-print-panel { display: none !important; }
-            @page { margin: 0; }
+            
+            /* Kompresi Header Kertas */
+            .header-table { margin-bottom: 8px; }
+            .title-cell { font-size: 13pt; }
+            .logo-img { max-width: 65px; }
+            .info-cell { font-size: 8pt; }
+            
+            /* Kompresi Baris Input */
+            .input-section { margin-bottom: 8px; font-size: 9pt; }
+            
+            /* Kompresi Mutlak Tabel Data (Agar muat 47+ baris) */
+            .data-table th { height: 22px !important; font-size: 8pt; padding: 2px 4px; }
+            .data-table td { height: 17px !important; font-size: 8pt; padding: 1px 4px; }
+            table { margin-bottom: 5px; }
+
+            /* Tarik Footer Naik ke Atas Sedikit */
+            .footer-signature { margin-top: 10px !important; font-size: 9pt !important; }
         }
     </style>
 </head>
@@ -492,7 +510,7 @@
         </table>
 
         <!-- FOOTER TANDA TANGAN (3 KOLOM) -->
-        <div style="margin-top: 30px; font-size: 10pt; display: flex; justify-content: space-between;">
+        <div class="footer-signature" style="margin-top: 30px; font-size: 10pt; display: flex; justify-content: space-between;">
             <div style="text-align: center; width: 30%;">
                 <p>Dibuat,</p><br><br><br>
                 <p style="border-top: 1px solid black; display: inline-block; width: 80%; padding-top: 2px;">Utility</p>
