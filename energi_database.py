@@ -24,7 +24,9 @@ MQTT_TOPIC_BASE = "monitoring/data/powermeter"
 LATEST_DATA = {}
 data_lock = threading.Lock()
 
-# --- DECODER FUNCTIONS ---
+# ==========================================
+# DECODER & SAFE READ FUNCTIONS
+# ==========================================
 def decode_int64(registers):
     try:
         packed = struct.pack('>HHHH', registers[0], registers[1], registers[2], registers[3])
@@ -51,28 +53,44 @@ def format_dari_detik(raw_seconds):
     hours = (raw_seconds % 86400) // 3600  
     return f"{days}d {hours}h"
 
-# --- FUNGSI BACA DATA (WORKER SCADA) ---
-def get_full_data(client, slave_id):
+# Fungsi Sakti biar kalau 1 parameter gagal, mesin nggak divonis mati
+def safe_read(client, address, count, slave_id, decode_func, default_val):
     try:
-        data = {'meter_id': slave_id}
-        DELAY_RS485 = 0.05  # Micro-delay 50ms untuk nafas Gateway USR
-        
-        # 5. Voltage (3020 -> 3019) PING DENGAN RETRY
-        r = None
-        for attempt in range(2):
+        r = client.read_holding_registers(address=address, count=count, unit=slave_id)
+        if not r.isError():
+            return decode_func(r.registers)
+    except:
+        pass
+    return default_val
+
+# ==========================================
+# FUNGSI BACA DATA (WORKER SCADA)
+# ==========================================
+def get_full_data(client, slave_id):
+    DELAY_RS485 = 0.05  # Micro-delay 50ms untuk nafas Gateway USR
+    data = {'meter_id': slave_id}
+    
+    # 1. PING VOLTAGE (Sebagai Penentu Utama Mesin Hidup/Mati)
+    is_online = False
+    for attempt in range(2):
+        try:
             r = client.read_holding_registers(address=3019, count=2, unit=slave_id)
             if not r.isError():
+                data['voltage'] = decode_float(r.registers)
+                is_online = True
                 break
-            time.sleep(0.3) 
-            
-        if not r.isError():
-            data['voltage'] = decode_float(r.registers)
-        else:
-            return None # Benar-benar mati/offline
+        except:
+            pass
+        time.sleep(0.3) 
+        
+    # Kalau Ping Voltage 2x gagal, baru vonis mati
+    if not is_online:
+        return None 
 
-        time.sleep(DELAY_RS485)
+    time.sleep(DELAY_RS485)
 
-        # 6. Current I1, I2, I3 (3000 -> 2999, Length 6)
+    # 2. Current I1, I2, I3 (Panjang 6, ditangani khusus)
+    try:
         r = client.read_holding_registers(address=2999, count=6, unit=slave_id)
         if not r.isError():
             data['current_i1'] = decode_float(r.registers[0:2])
@@ -80,86 +98,51 @@ def get_full_data(client, slave_id):
             data['current_i3'] = decode_float(r.registers[4:6])
         else:
             data['current_i1'] = data['current_i2'] = data['current_i3'] = 0.0
+    except:
+        data['current_i1'] = data['current_i2'] = data['current_i3'] = 0.0
 
-        time.sleep(DELAY_RS485)
+    time.sleep(DELAY_RS485)
 
-        # 7. Power P / Active (3054 -> 3053)
-        r_p = client.read_holding_registers(address=3053, count=2, unit=slave_id)
-        data['active_p'] = decode_float(r_p.registers) if not r_p.isError() else 0.0
-        
-        time.sleep(DELAY_RS485)
+    # Mulai dari sini, pakai safe_read. Dijamin aman sentosa!
+    data['active_p'] = safe_read(client, 3053, 2, slave_id, decode_float, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['reactive_q'] = safe_read(client, 3059, 2, slave_id, decode_float, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['apparent_s'] = safe_read(client, 3067, 2, slave_id, decode_float, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['pf'] = safe_read(client, 3083, 2, slave_id, decode_float, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['freq'] = safe_read(client, 3109, 2, slave_id, decode_float, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['total_ea'] = safe_read(client, 3203, 4, slave_id, decode_int64, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['partial_ea'] = safe_read(client, 3255, 4, slave_id, decode_int64, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['tarif_t1'] = safe_read(client, 4195, 4, slave_id, decode_int64, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['tarif_t2'] = safe_read(client, 4199, 4, slave_id, decode_int64, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['total_er'] = safe_read(client, 3219, 4, slave_id, decode_int64, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['partial_er'] = safe_read(client, 3271, 4, slave_id, decode_int64, 0.0)
+    time.sleep(DELAY_RS485)
+    
+    data['op_time'] = safe_read(client, 2003, 2, slave_id, decode_int32, 0)
 
-        # 8. Power Q / Reactive (3060 -> 3059)
-        r_q = client.read_holding_registers(address=3059, count=2, unit=slave_id)
-        data['reactive_q'] = decode_float(r_q.registers) if not r_q.isError() else 0.0
+    # Timestamp Watchdog
+    data['last_update'] = time.time()
 
-        time.sleep(DELAY_RS485)
-
-        # 9. Power S / Apparent (3068 -> 3067)
-        r_s = client.read_holding_registers(address=3067, count=2, unit=slave_id)
-        data['apparent_s'] = decode_float(r_s.registers) if not r_s.isError() else 0.0
-
-        time.sleep(DELAY_RS485)
-
-        # 10. PF (3084 -> 3083)
-        r_pf = client.read_holding_registers(address=3083, count=2, unit=slave_id)
-        data['pf'] = decode_float(r_pf.registers) if not r_pf.isError() else 0.0
-
-        time.sleep(DELAY_RS485)
-
-        # 11. Freq (3110 -> 3109)
-        r_fr = client.read_holding_registers(address=3109, count=2, unit=slave_id)
-        data['freq'] = decode_float(r_fr.registers) if not r_fr.isError() else 0.0
-
-        time.sleep(DELAY_RS485)
-
-        # 1. Total EA (3204 -> 3203)
-        r_tot = client.read_holding_registers(address=3203, count=4, unit=slave_id)
-        data['total_ea'] = decode_int64(r_tot.registers) if not r_tot.isError() else 0.0
-        
-        time.sleep(DELAY_RS485)
-
-        # 3. Partial EA (3256 -> 3255)
-        r_par = client.read_holding_registers(address=3255, count=4, unit=slave_id)
-        data['partial_ea'] = decode_int64(r_par.registers) if not r_par.isError() else 0.0
-
-        time.sleep(DELAY_RS485)
-
-        # 13. Tarif T1 (4196 -> 4195)
-        r_t1 = client.read_holding_registers(address=4195, count=4, unit=slave_id)
-        data['tarif_t1'] = decode_int64(r_t1.registers) if not r_t1.isError() else 0.0
-
-        time.sleep(DELAY_RS485)
-
-        # 14. Tarif T2 (4200 -> 4199)
-        r_t2 = client.read_holding_registers(address=4199, count=4, unit=slave_id)
-        data['tarif_t2'] = decode_int64(r_t2.registers) if not r_t2.isError() else 0.0
-        
-        time.sleep(DELAY_RS485)
-
-        # 2. Total ER (3220 -> 3219)
-        r_tot_er = client.read_holding_registers(address=3219, count=4, unit=slave_id)
-        data['total_er'] = decode_int64(r_tot_er.registers) if not r_tot_er.isError() else 0.0
-
-        time.sleep(DELAY_RS485)
-
-        # 4. Partial ER (3272 -> 3271)
-        r_par_er = client.read_holding_registers(address=3271, count=4, unit=slave_id)
-        data['partial_er'] = decode_int64(r_par_er.registers) if not r_par_er.isError() else 0.0
-
-        time.sleep(DELAY_RS485)
-
-        # 12. Op Time (2004 -> 2003)
-        r_op = client.read_holding_registers(address=2003, count=2, unit=slave_id)
-        data['op_time'] = decode_int32(r_op.registers) if not r_op.isError() else 0
-
-        # Timestamp Watchdog
-        data['last_update'] = time.time()
-
-        return data
-
-    except Exception as e:
-        return None
+    return data
 
 # ==========================================
 # WORKER THREAD (BACKGROUND ENGINE)
@@ -202,7 +185,7 @@ def worker_engine():
                     if mid in LATEST_DATA:
                         del LATEST_DATA[mid]
             
-            time.sleep(1)
+            time.sleep(1) # Delay antar mesin
 
 # ==========================================
 # MAIN THREAD (SUPABASE LOGGER)
@@ -236,7 +219,6 @@ def main():
         for group_name, ids in GROUPS.items():
             print(f"\n💾 [SUPABASE] Processing {group_name}...")
             print("-" * 85)
-            # Tampilan Terminal disesuaikan dengan isi Database biar nyambung
             print(f"{'ID':<4} | {'VOLT (V)':<8} | {'PART EA(kWh)':<12} | {'TARIF T1':<10} | {'TARIF T2':<10} | {'STATUS'}")
             print("-" * 85)
 
@@ -244,13 +226,14 @@ def main():
                 d = None
                 with data_lock:
                     if mid in LATEST_DATA:
+                        # Kick data basi (di atas 120 detik)
                         if current_time - LATEST_DATA[mid].get('last_update', current_time) > 120:
                             del LATEST_DATA[mid] 
                         else:
                             d = LATEST_DATA[mid].copy() 
                 
                 if d:
-                    # ⚠️ FILTER PAYLOAD: HANYA MEMASUKKAN KOLOM YANG ADA DI SKEMA DATABASE LU
+                    # ⚠️ FILTER PAYLOAD: HANYA MEMASUKKAN KOLOM YANG ADA DI SKEMA DATABASE!
                     payload = {
                         "meter_id": d['meter_id'],
                         "partial_ea": d['partial_ea'],
