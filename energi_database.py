@@ -20,7 +20,9 @@ MQTT_BROKER = "broker.hivemq.com"
 MQTT_PORT = 1883
 MQTT_TOPIC_BASE = "monitoring/data/powermeter"
 
+# --- GLOBAL MEMORY & LOCKING (ANTI RACE CONDITION) ---
 LATEST_DATA = {}
+data_lock = threading.Lock()
 
 # --- DECODER FUNCTIONS ---
 def decode_int64(registers):
@@ -122,7 +124,7 @@ def get_full_data(client, slave_id):
         r_op = client.read_holding_registers(address=2003, count=2, unit=slave_id)
         data['op_time'] = decode_int32(r_op.registers) if not r_op.isError() else 0
 
-        # [SCADA LEVEL] Tambahkan Timestamp Watchdog
+        # Timestamp Watchdog
         data['last_update'] = time.time()
 
         return data
@@ -148,7 +150,6 @@ def worker_engine():
 
     while True:
         if not modbus_client.connect():
-            # [SCADA LEVEL] Tutup socket yang mati sebelum nanya lagi
             modbus_client.close()
             print("⚠️ [MODBUS] Reconnecting to Gateway USR-IOT...")
             time.sleep(5)
@@ -158,7 +159,10 @@ def worker_engine():
             data = get_full_data(modbus_client, mid)
             
             if data:
-                LATEST_DATA[mid] = data
+                # [LOCKING] Tulis data dengan aman
+                with data_lock:
+                    LATEST_DATA[mid] = data
+                    
                 if mqtt_client:
                     try:
                         topic = f"{MQTT_TOPIC_BASE}/{mid}"
@@ -166,9 +170,10 @@ def worker_engine():
                     except:
                         pass
             else:
-                # [SCADA LEVEL] Auto-Clear Stale Data kalau mesin mati
-                if mid in LATEST_DATA:
-                    del LATEST_DATA[mid]
+                # [LOCKING] Hapus data basi dengan aman
+                with data_lock:
+                    if mid in LATEST_DATA:
+                        del LATEST_DATA[mid]
             
             time.sleep(1)
 
@@ -208,15 +213,17 @@ def main():
             print("-" * 80)
 
             for mid in ids:
-                if mid in LATEST_DATA:
-                    d = LATEST_DATA[mid]
-                    
-                    # [SCADA LEVEL] Watchdog Check: Kalau data lebih tua dari 120 detik, anggap offline
-                    if current_time - d.get('last_update', current_time) > 120:
-                        del LATEST_DATA[mid]
-                        print(f"{mid:<4} | {'-':<8} | {'-':<12} | {'-':<12} | {'-':<10} | ⚠️  STALE DATA (KICKED)")
-                        continue
-                    
+                
+                # [LOCKING] Baca dan verifikasi data dengan aman dari Worker Thread
+                d = None
+                with data_lock:
+                    if mid in LATEST_DATA:
+                        if current_time - LATEST_DATA[mid].get('last_update', current_time) > 120:
+                            del LATEST_DATA[mid] # Tendang kalau basi
+                        else:
+                            d = LATEST_DATA[mid].copy() # Copy agar proses upload tidak mem-blokir Worker
+                
+                if d:
                     payload = {
                         "meter_id": d['meter_id'],
                         "voltage": d['voltage'],
@@ -250,14 +257,13 @@ def main():
                         ea_val = "ERR"
                         er_val = "ERR"
                         op_str = "ERR"
-                else:
-                    status = "⚠️  NO DATA"
-                    volt_val = "-"
-                    ea_val = "-"
-                    er_val = "-"
-                    op_str = "-"
+                        
+                    print(f"{mid:<4} | {volt_val:<8} | {ea_val:<12} | {er_val:<12} | {op_str:<10} | {status}")
                 
-                print(f"{mid:<4} | {volt_val:<8} | {ea_val:<12} | {er_val:<12} | {op_str:<10} | {status}")
+                else:
+                    # Rapi dan sejajar tanpa error f-string literal
+                    kicked_msg = "⚠️ STALE (KICKED)"
+                    print(f"{mid:<4} | {'-':<8} | {'-':<12} | {'-':<12} | {'-':<10} | {kicked_msg}")
 
             print(f"⏳ Selesai {group_name}. Tidur 5 Menit...")
             time.sleep(300) 
