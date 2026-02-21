@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>REALTIME MONITORING</title>
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- MQTT Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-    <!-- Markdown Parser -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
@@ -177,7 +173,6 @@
 </head>
 <body>
 
-    <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title">MENU</h5>
@@ -208,10 +203,8 @@
         </div>
     </div>
 
-    <!-- APP HEADER -->
     <div class="app-header">
         <div class="header-left">
-            <!-- TOMBOL HAMBURGER -->
             <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
                 <i class="fas fa-bars"></i>
             </button>
@@ -224,14 +217,11 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
     <div class="container mb-5" style="padding-bottom: 20px;">
         <div class="machine-grid" id="button-container">
-            <!-- Tombol digenerate via JS -->
-        </div>
+            </div>
     </div>
 
-    <!-- MODAL DETAIL -->
     <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -269,7 +259,6 @@
         </div>
     </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -314,6 +303,14 @@
             return { text: 'RUNNING', colorClass: 'bg-running', modalColor: 'linear-gradient(145deg, #198754, #146c43)' };
         }
         return { text: 'WAITING', colorClass: 'bg-waiting', modalColor: 'linear-gradient(145deg, #6c757d, #495057)' };
+    }
+
+    // --- FUNGSI KONVERSI WAKTU OP TIME ---
+    function formatOpTime(rawSeconds) {
+        if (rawSeconds === undefined || rawSeconds === null) return '-';
+        let days = Math.floor(rawSeconds / 86400);
+        let hours = Math.floor((rawSeconds % 86400) / 3600);
+        return `${days} Hari, ${hours} Jam`;
     }
 
     // --- 3. MODAL & AI ---
@@ -405,7 +402,7 @@
             <div class="param-row"><span class="param-label">13. Tarif T1</span><span class="param-value">${fmt(data.tarif_t1, 1, 'kWh')}</span></div>
             <div class="param-row"><span class="param-label">14. Tarif T2</span><span class="param-value">${fmt(data.tarif_t2, 1, 'kWh')}</span></div>
             <div class="param-row"><span class="param-label">15. Freq</span><span class="param-value">${fmt(data.freq, 2, 'Hz')}</span></div>
-            <div class="param-row" style="border-bottom:none"><span class="param-label">16. Op Time</span><span class="param-value">${data.op_time || '-'}</span></div>
+            <div class="param-row" style="border-bottom:none"><span class="param-label">16. Op Time</span><span class="param-value">${formatOpTime(data.op_time)}</span></div>
         `;
     }
 
