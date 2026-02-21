@@ -4,6 +4,7 @@ import paho.mqtt.client as mqtt
 import struct
 import time
 import json
+import math  # 🔥 WAJIB ADA BUAT FILTER NaN
 
 # --- KONFIGURASI ---
 IP_USR = '192.168.7.8'
@@ -22,8 +23,13 @@ def decode_int64(registers):
 def decode_float(registers):
     try:
         packed = struct.pack('>HH', registers[0], registers[1])
-        return struct.unpack('>f', packed)[0]
-    except: return 0.0
+        val = struct.unpack('>f', packed)[0]
+        # 🔥 FILTER ANTI-NaN & INFINITY (BIAR JSON GAK CRASH) 🔥
+        if math.isnan(val) or math.isinf(val):
+            return 0.0
+        return round(val, 2)
+    except: 
+        return 0.0
 
 def decode_int32(registers):
     try:
@@ -40,7 +46,7 @@ def safe_read(client, address, count, slave_id, decode_func, default_val):
 
 # --- WORKER BACA DATA ---
 def get_full_data(client, slave_id):
-    DELAY_RS485 = 0.2  # 🔥 KITA NAIKKAN JADI 200ms BIAR GATEWAY LEBIH SANTAI
+    DELAY_RS485 = 0.2 # 🔥 200ms Biar Gateway rileks nggak tersedak
     data = {'meter_id': slave_id}
     
     # 1. PING VOLTAGE (Cek Hidup/Mati)
@@ -53,7 +59,7 @@ def get_full_data(client, slave_id):
                 is_online = True
                 break
         except: pass
-        time.sleep(0.5) # 🔥 Jeda kalau gagal PING
+        time.sleep(0.5) 
         
     if not is_online: return None 
 
@@ -128,9 +134,9 @@ def main():
                 mqtt_client.publish(topic, json.dumps(data))
                 print(f"📡 ID {mid} -> MQTT Published")
             elif not data:
-                print(f"❌ ID {mid} -> OFFLINE / TIMEOUT GATEWAY")
+                print(f"❌ ID {mid} -> OFFLINE")
             
-            time.sleep(1.5) # 🔥 Kasih nafas 1.5 detik antar mesin biar Gateway rileks
+            time.sleep(1.5) # 🔥 Jeda 1.5 detik antar mesin biar aliran data super stabil
 
 if __name__ == "__main__":
     main()
