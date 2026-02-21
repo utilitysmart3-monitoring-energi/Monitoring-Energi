@@ -40,7 +40,7 @@ def safe_read(client, address, count, slave_id, decode_func, default_val):
 
 # --- WORKER BACA DATA ---
 def get_full_data(client, slave_id):
-    DELAY_RS485 = 0.05
+    DELAY_RS485 = 0.2  # 🔥 KITA NAIKKAN JADI 200ms BIAR GATEWAY LEBIH SANTAI
     data = {'meter_id': slave_id}
     
     # 1. PING VOLTAGE (Cek Hidup/Mati)
@@ -53,7 +53,7 @@ def get_full_data(client, slave_id):
                 is_online = True
                 break
         except: pass
-        time.sleep(0.3) 
+        time.sleep(0.5) # 🔥 Jeda kalau gagal PING
         
     if not is_online: return None 
 
@@ -128,9 +128,9 @@ def main():
                 mqtt_client.publish(topic, json.dumps(data))
                 print(f"📡 ID {mid} -> MQTT Published")
             elif not data:
-                print(f"❌ ID {mid} -> OFFLINE")
+                print(f"❌ ID {mid} -> OFFLINE / TIMEOUT GATEWAY")
             
-            time.sleep(1) # Delay antar mesin
+            time.sleep(1.5) # 🔥 Kasih nafas 1.5 detik antar mesin biar Gateway rileks
 
 if __name__ == "__main__":
     main()
