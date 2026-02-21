@@ -230,7 +230,7 @@
         `;
     }
 
-    // 🔥 LOGIKA BARU: TAHAN BANTING (WATCHDOG TIMER) 🔥
+    // 🔥 LOGIKA TAHAN BANTING (WATCHDOG TIMER) 🔥
     function markAsOffline(id) {
         const btn = document.getElementById(`btn-machine-${id}`);
         if(btn) {
@@ -277,18 +277,28 @@
         try {
             const topicParts = message.destinationName.split("/");
             const meterId = parseInt(topicParts[topicParts.length - 1]);
-            const data = JSON.parse(message.payloadString);
             
-            // 1. Langsung update UI tanpa mikirin antrian!
+            // 🔥 PROTEKSI JSON TINGKAT DEWA 🔥
+            let data;
+            try {
+                // Jaga-jaga kalau Python masih tembus ngirim NaN atau Infinity
+                let safePayload = message.payloadString.replace(/NaN/g, "0.0").replace(/Infinity/g, "0.0");
+                data = JSON.parse(safePayload);
+            } catch (err) {
+                console.error(`❌ [ERROR] JSON Invalid dari Mesin ID ${meterId}:`, message.payloadString);
+                return; // Berhenti di sini, UI nggak bakal freeze
+            }
+            
+            // 1. Langsung update UI tanpa antrian kaku
             updateMachineUI(meterId, data);
 
-            // 2. Pasang Watchdog (Bom Waktu 90 detik). Kalau 90 detik mesin ini gak ngirim data lagi, berarti mati beneran!
-            clearTimeout(machineTimers[meterId]); // Reset bom waktu
+            // 2. Pasang Watchdog (Bom Waktu 90 detik)
+            clearTimeout(machineTimers[meterId]); 
             machineTimers[meterId] = setTimeout(() => {
-                markAsOffline(meterId); // Kalau bom meledak, jadikan merah
+                markAsOffline(meterId); 
             }, 90000); 
 
-            document.getElementById('last-update').innerText = "Last Received ID: " + meterId + " | Pukul " + new Date().toLocaleTimeString();
+            document.getElementById('last-update').innerText = "Scanning ID: " + meterId + " | Pukul " + new Date().toLocaleTimeString();
 
         } catch (e) { console.error("Err:", e); }
     }
