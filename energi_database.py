@@ -54,22 +54,20 @@ def get_full_data(client, slave_id):
     try:
         data = {'meter_id': slave_id}
         
-        # 1. Voltage (SEBAGAI PING DENGAN SISTEM RETRY 2x)
-        # Menghindari mesin hilang hanya karena "batuk" jaringan sedetik
+        # 1. Voltage (PING DENGAN RETRY)
         r = None
         for attempt in range(2):
             r = client.read_holding_registers(address=3019, count=2, unit=slave_id)
             if not r.isError():
                 break
-            time.sleep(0.3) # Kasih nafas ke gateway sebelum nanya lagi
+            time.sleep(0.3) 
             
         if not r.isError():
             data['voltage'] = decode_float(r.registers)
         else:
-            # Kalau 2x ditanya tetap diam, baru kita vonis offline/mati.
-            return None 
+            return None # Benar-benar mati/offline
 
-        # 2. Current (Register 2999)
+        # 2. Current
         r = client.read_holding_registers(address=2999, count=6, unit=slave_id)
         if not r.isError():
             data['current_i1'] = decode_float(r.registers[0:2])
@@ -78,15 +76,15 @@ def get_full_data(client, slave_id):
         else:
             data['current_i1'] = data['current_i2'] = data['current_i3'] = 0.0
 
-        # 3. Active Power (3053)
+        # 3. Active Power
         r_p = client.read_holding_registers(address=3053, count=2, unit=slave_id)
         data['active_p'] = decode_float(r_p.registers) if not r_p.isError() else 0.0
         
-        # 4. Reactive Power (3059)
+        # 4. Reactive Power
         r_q = client.read_holding_registers(address=3059, count=2, unit=slave_id)
         data['reactive_q'] = decode_float(r_q.registers) if not r_q.isError() else 0.0
 
-        # 5. Apparent Power (3067)
+        # 5. Apparent Power
         r_s = client.read_holding_registers(address=3067, count=2, unit=slave_id)
         data['apparent_s'] = decode_float(r_s.registers) if not r_s.isError() else 0.0
 
@@ -97,32 +95,35 @@ def get_full_data(client, slave_id):
         r_fr = client.read_holding_registers(address=3109, count=2, unit=slave_id)
         data['freq'] = decode_float(r_fr.registers) if not r_fr.isError() else 0.0
 
-        # 7. Energy Total EA (3203)
+        # 7. Total EA
         r_tot = client.read_holding_registers(address=3203, count=4, unit=slave_id)
         data['total_ea'] = decode_int64(r_tot.registers) if not r_tot.isError() else 0.0
         
-        # 8. Partial Energy EA (3255)
+        # 8. Partial EA
         r_par = client.read_holding_registers(address=3255, count=4, unit=slave_id)
         data['partial_ea'] = decode_int64(r_par.registers) if not r_par.isError() else 0.0
 
-        # 9. Tarif (T1: 4195, T2: 4199)
+        # 9. Tarif
         r_t1 = client.read_holding_registers(address=4195, count=4, unit=slave_id)
         data['tarif_t1'] = decode_int64(r_t1.registers) if not r_t1.isError() else 0.0
 
         r_t2 = client.read_holding_registers(address=4199, count=4, unit=slave_id)
         data['tarif_t2'] = decode_int64(r_t2.registers) if not r_t2.isError() else 0.0
         
-        # 10. Total ER (3219)
+        # 10. Total ER
         r_tot_er = client.read_holding_registers(address=3219, count=4, unit=slave_id)
         data['total_er'] = decode_int64(r_tot_er.registers) if not r_tot_er.isError() else 0.0
 
-        # 11. Partial ER (3271)
+        # 11. Partial ER
         r_par_er = client.read_holding_registers(address=3271, count=4, unit=slave_id)
         data['partial_er'] = decode_int64(r_par_er.registers) if not r_par_er.isError() else 0.0
 
-        # 12. Operating Time Running (2003)
+        # 12. Op Time
         r_op = client.read_holding_registers(address=2003, count=2, unit=slave_id)
         data['op_time'] = decode_int32(r_op.registers) if not r_op.isError() else 0
+
+        # [SCADA LEVEL] Tambahkan Timestamp Watchdog
+        data['last_update'] = time.time()
 
         return data
 
@@ -134,23 +135,22 @@ def get_full_data(client, slave_id):
 # ==========================================
 def worker_engine():
     global LATEST_DATA
-    print("🚀 [ENGINE] Worker Thread Started (Modbus RTU Over TCP)...")
+    print("🚀 [ENGINE] SCADA Worker Started (Modbus RTU Over TCP)...")
     
-    # TIMEOUT DITAMBAHKAN JADI 5 DETIK SESUAI ANALISA
     modbus_client = ModbusTcpClient(IP_USR, port=PORT, framer=ModbusRtuFramer, timeout=5)
     
     try:
         mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, f"Raspi_Worker_{time.time()}")
         mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
         mqtt_client.loop_start() 
-        print("✅ [MQTT] Connected to Broker")
-    except Exception as e:
-        print(f"⚠️ [MQTT] Connect Fail: {e}")
+    except:
         mqtt_client = None
 
     while True:
         if not modbus_client.connect():
-            print("⚠️ [MODBUS] Reconnecting to Gateway...")
+            # [SCADA LEVEL] Tutup socket yang mati sebelum nanya lagi
+            modbus_client.close()
+            print("⚠️ [MODBUS] Reconnecting to Gateway USR-IOT...")
             time.sleep(5)
             continue
 
@@ -158,9 +158,7 @@ def worker_engine():
             data = get_full_data(modbus_client, mid)
             
             if data:
-                # print(f"🟢 [OK] Baca Mesin ID {mid}") # Bisa di-uncomment kalau mau nge-spam log
                 LATEST_DATA[mid] = data
-                
                 if mqtt_client:
                     try:
                         topic = f"{MQTT_TOPIC_BASE}/{mid}"
@@ -168,10 +166,10 @@ def worker_engine():
                     except:
                         pass
             else:
-                pass
-                # print(f"🔴 [FAIL/OFFLINE] Mesin ID {mid} tidak merespon") # Bisa di-uncomment untuk debug
+                # [SCADA LEVEL] Auto-Clear Stale Data kalau mesin mati
+                if mid in LATEST_DATA:
+                    del LATEST_DATA[mid]
             
-            # SLEEP DITAMBAHKAN JADI 1 DETIK AGAR GATEWAY TIDAK TERSEDAK
             time.sleep(1)
 
 # ==========================================
@@ -194,13 +192,14 @@ def main():
         "GROUP 3": list(range(13, 19))
     }
 
-    print("⏳ Menunggu Worker mengumpulkan data (10 detik)...")
     time.sleep(10)
 
     while True:
         print(f"\n==========================================================")
-        print(f"   SMART MONITORING SYSTEM - {time.strftime('%H:%M:%S')}")
+        print(f"   SCADA MONITORING SYSTEM - {time.strftime('%H:%M:%S')}")
         print(f"==========================================================")
+        
+        current_time = time.time()
 
         for group_name, ids in GROUPS.items():
             print(f"\n💾 [SUPABASE] Processing {group_name}...")
@@ -211,6 +210,12 @@ def main():
             for mid in ids:
                 if mid in LATEST_DATA:
                     d = LATEST_DATA[mid]
+                    
+                    # [SCADA LEVEL] Watchdog Check: Kalau data lebih tua dari 120 detik, anggap offline
+                    if current_time - d.get('last_update', current_time) > 120:
+                        del LATEST_DATA[mid]
+                        print(f"{mid:<4} | {'-':<8} | {'-':<12} | {'-':<12} | {'-':<10} | ⚠️  STALE DATA (KICKED)")
+                        continue
                     
                     payload = {
                         "meter_id": d['meter_id'],
