@@ -51,12 +51,13 @@ def format_dari_detik(raw_seconds):
     hours = (raw_seconds % 86400) // 3600  
     return f"{days}d {hours}h"
 
-# --- FUNGSI BACA DATA (WORKER) ---
+# --- FUNGSI BACA DATA (WORKER SCADA) ---
 def get_full_data(client, slave_id):
     try:
         data = {'meter_id': slave_id}
+        DELAY_RS485 = 0.05  # Micro-delay 50ms untuk nafas Gateway USR
         
-        # 1. Voltage (PING DENGAN RETRY)
+        # 5. Voltage (3020 -> 3019) PING DENGAN RETRY
         r = None
         for attempt in range(2):
             r = client.read_holding_registers(address=3019, count=2, unit=slave_id)
@@ -69,7 +70,9 @@ def get_full_data(client, slave_id):
         else:
             return None # Benar-benar mati/offline
 
-        # 2. Current
+        time.sleep(DELAY_RS485)
+
+        # 6. Current I1, I2, I3 (3000 -> 2999, Length 6)
         r = client.read_holding_registers(address=2999, count=6, unit=slave_id)
         if not r.isError():
             data['current_i1'] = decode_float(r.registers[0:2])
@@ -78,49 +81,75 @@ def get_full_data(client, slave_id):
         else:
             data['current_i1'] = data['current_i2'] = data['current_i3'] = 0.0
 
-        # 3. Active Power
+        time.sleep(DELAY_RS485)
+
+        # 7. Power P / Active (3054 -> 3053)
         r_p = client.read_holding_registers(address=3053, count=2, unit=slave_id)
         data['active_p'] = decode_float(r_p.registers) if not r_p.isError() else 0.0
         
-        # 4. Reactive Power
+        time.sleep(DELAY_RS485)
+
+        # 8. Power Q / Reactive (3060 -> 3059)
         r_q = client.read_holding_registers(address=3059, count=2, unit=slave_id)
         data['reactive_q'] = decode_float(r_q.registers) if not r_q.isError() else 0.0
 
-        # 5. Apparent Power
+        time.sleep(DELAY_RS485)
+
+        # 9. Power S / Apparent (3068 -> 3067)
         r_s = client.read_holding_registers(address=3067, count=2, unit=slave_id)
         data['apparent_s'] = decode_float(r_s.registers) if not r_s.isError() else 0.0
 
-        # 6. PF & Freq
+        time.sleep(DELAY_RS485)
+
+        # 10. PF (3084 -> 3083)
         r_pf = client.read_holding_registers(address=3083, count=2, unit=slave_id)
         data['pf'] = decode_float(r_pf.registers) if not r_pf.isError() else 0.0
 
+        time.sleep(DELAY_RS485)
+
+        # 11. Freq (3110 -> 3109)
         r_fr = client.read_holding_registers(address=3109, count=2, unit=slave_id)
         data['freq'] = decode_float(r_fr.registers) if not r_fr.isError() else 0.0
 
-        # 7. Total EA
+        time.sleep(DELAY_RS485)
+
+        # 1. Total EA (3204 -> 3203)
         r_tot = client.read_holding_registers(address=3203, count=4, unit=slave_id)
         data['total_ea'] = decode_int64(r_tot.registers) if not r_tot.isError() else 0.0
         
-        # 8. Partial EA
+        time.sleep(DELAY_RS485)
+
+        # 3. Partial EA (3256 -> 3255)
         r_par = client.read_holding_registers(address=3255, count=4, unit=slave_id)
         data['partial_ea'] = decode_int64(r_par.registers) if not r_par.isError() else 0.0
 
-        # 9. Tarif
+        time.sleep(DELAY_RS485)
+
+        # 13. Tarif T1 (4196 -> 4195)
         r_t1 = client.read_holding_registers(address=4195, count=4, unit=slave_id)
         data['tarif_t1'] = decode_int64(r_t1.registers) if not r_t1.isError() else 0.0
 
+        time.sleep(DELAY_RS485)
+
+        # 14. Tarif T2 (4200 -> 4199)
         r_t2 = client.read_holding_registers(address=4199, count=4, unit=slave_id)
         data['tarif_t2'] = decode_int64(r_t2.registers) if not r_t2.isError() else 0.0
         
-        # 10. Total ER
+        time.sleep(DELAY_RS485)
+
+        # 2. Total ER (3220 -> 3219)
         r_tot_er = client.read_holding_registers(address=3219, count=4, unit=slave_id)
         data['total_er'] = decode_int64(r_tot_er.registers) if not r_tot_er.isError() else 0.0
 
-        # 11. Partial ER
+        time.sleep(DELAY_RS485)
+
+        # 4. Partial ER (3272 -> 3271)
         r_par_er = client.read_holding_registers(address=3271, count=4, unit=slave_id)
         data['partial_er'] = decode_int64(r_par_er.registers) if not r_par_er.isError() else 0.0
 
-        # 12. Op Time
+        time.sleep(DELAY_RS485)
+
+        # 12. Op Time (2004 -> 2003)
         r_op = client.read_holding_registers(address=2003, count=2, unit=slave_id)
         data['op_time'] = decode_int32(r_op.registers) if not r_op.isError() else 0
 
@@ -159,18 +188,16 @@ def worker_engine():
             data = get_full_data(modbus_client, mid)
             
             if data:
-                # [LOCKING] Tulis data dengan aman
                 with data_lock:
                     LATEST_DATA[mid] = data
                     
                 if mqtt_client:
                     try:
                         topic = f"{MQTT_TOPIC_BASE}/{mid}"
-                        mqtt_client.publish(topic, json.dumps(data))
+                        mqtt_client.publish(topic, json.dumps(data)) # FULL 14 PARAMETER DIKIRIM KE MQTT!
                     except:
                         pass
             else:
-                # [LOCKING] Hapus data basi dengan aman
                 with data_lock:
                     if mid in LATEST_DATA:
                         del LATEST_DATA[mid]
@@ -208,62 +235,52 @@ def main():
 
         for group_name, ids in GROUPS.items():
             print(f"\n💾 [SUPABASE] Processing {group_name}...")
-            print("-" * 80)
-            print(f"{'ID':<4} | {'VOLT (V)':<8} | {'TOT EA(kWh)':<12} | {'TOT ER(kWh)':<12} | {'OP TIME':<10} | {'STATUS'}")
-            print("-" * 80)
+            print("-" * 85)
+            # Tampilan Terminal disesuaikan dengan isi Database biar nyambung
+            print(f"{'ID':<4} | {'VOLT (V)':<8} | {'PART EA(kWh)':<12} | {'TARIF T1':<10} | {'TARIF T2':<10} | {'STATUS'}")
+            print("-" * 85)
 
             for mid in ids:
-                
-                # [LOCKING] Baca dan verifikasi data dengan aman dari Worker Thread
                 d = None
                 with data_lock:
                     if mid in LATEST_DATA:
                         if current_time - LATEST_DATA[mid].get('last_update', current_time) > 120:
-                            del LATEST_DATA[mid] # Tendang kalau basi
+                            del LATEST_DATA[mid] 
                         else:
-                            d = LATEST_DATA[mid].copy() # Copy agar proses upload tidak mem-blokir Worker
+                            d = LATEST_DATA[mid].copy() 
                 
                 if d:
+                    # ⚠️ FILTER PAYLOAD: HANYA MEMASUKKAN KOLOM YANG ADA DI SKEMA DATABASE LU
                     payload = {
                         "meter_id": d['meter_id'],
-                        "voltage": d['voltage'],
-                        "current_i1": d['current_i1'],
-                        "current_i2": d['current_i2'],
-                        "current_i3": d['current_i3'],
-                        "active_p": d['active_p'],       
-                        "reactive_q": d['reactive_q'],   
-                        "apparent_s": d['apparent_s'],   
-                        "pf": d['pf'],                   
-                        "freq": d['freq'],               
-                        "total_ea": d['total_ea'],       
                         "partial_ea": d['partial_ea'],
                         "tarif_t1": d['tarif_t1'],
                         "tarif_t2": d['tarif_t2'],
-                        "total_er": d['total_er'],       
-                        "partial_er": d['partial_er'],   
-                        "op_time": d['op_time']          
+                        "voltage": d['voltage'],
+                        "current_i1": d['current_i1'],
+                        "current_i2": d['current_i2'],
+                        "current_i3": d['current_i3']
                     }
                     
                     try:
                         supabase.table("energi_db").insert(payload).execute()
-                        status = "✅ SAVED"
+                        status = "✅ SAVED DB"
                         volt_val = f"{d['voltage']:.1f}"
-                        ea_val = f"{d['total_ea']:.1f}"
-                        er_val = f"{d['total_er']:.1f}"
-                        op_str = format_dari_detik(d['op_time'])
+                        pea_val = f"{d['partial_ea']:.1f}"
+                        t1_val = f"{d['tarif_t1']:.1f}"
+                        t2_val = f"{d['tarif_t2']:.1f}"
                     except Exception as e:
                         status = "❌ DB ERR"
                         volt_val = f"{d['voltage']:.1f}"
-                        ea_val = "ERR"
-                        er_val = "ERR"
-                        op_str = "ERR"
+                        pea_val = "ERR"
+                        t1_val = "ERR"
+                        t2_val = "ERR"
                         
-                    print(f"{mid:<4} | {volt_val:<8} | {ea_val:<12} | {er_val:<12} | {op_str:<10} | {status}")
+                    print(f"{mid:<4} | {volt_val:<8} | {pea_val:<12} | {t1_val:<10} | {t2_val:<10} | {status}")
                 
                 else:
-                    # Rapi dan sejajar tanpa error f-string literal
                     kicked_msg = "⚠️ STALE (KICKED)"
-                    print(f"{mid:<4} | {'-':<8} | {'-':<12} | {'-':<12} | {'-':<10} | {kicked_msg}")
+                    print(f"{mid:<4} | {'-':<8} | {'-':<12} | {'-':<10} | {'-':<10} | {kicked_msg}")
 
             print(f"⏳ Selesai {group_name}. Tidur 5 Menit...")
             time.sleep(300) 
