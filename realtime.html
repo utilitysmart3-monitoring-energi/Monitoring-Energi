@@ -125,7 +125,13 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const apiKey = "AIzaSyAPCKC7llXtm9rKb9bX2_jsysMuskSnHbM";
+    // 🔥 PERBAIKAN: AUTO-DETEKSI LOKASI & MODEL 🔥
+    // Jika Anda mencoba di tombol "Preview" di web ini, biarkan apiKey kosong ("")
+    // Jika Anda sudah memasukkan file ini ke Raspberry Pi, isi dengan "AIzaSy..." milik Anda.
+    const apiKey = ""; 
+    
+    // Logika pemilihan model secara otomatis untuk mencegah error 404
+    const modelName = apiKey === "" ? "gemini-2.5-flash-preview-09-2025" : "gemini-1.5-flash";
 
     const machineNames = {
         1: "UNKNOW", 2: "UNKNOW", 3: "UNKNOW", 4: "UNKNOW",
@@ -139,7 +145,7 @@
     let selectedMachineId = null;
     let machineData = {}; 
     let detailModal;
-    let machineTimers = {}; // Ini kunci watchdog kita!
+    let machineTimers = {};
 
     // --- 1. GENERATE TOMBOL MESIN ---
     const btnContainer = document.getElementById('button-container');
@@ -181,23 +187,63 @@
         detailModal.show();
     }
 
+    // 🔥 FUNGSI AI ANALYTICS DENGAN MODEL DINAMIS 🔥
     async function analyzeWithGemini() {
         const data = machineData[selectedMachineId];
         if (!data) { alert("Belum ada data untuk dianalisa!"); return; }
+        
         const aiResultBox = document.getElementById('ai-result');
         const aiLoading = document.getElementById('ai-loading');
         const aiContent = document.getElementById('ai-content');
+        
         aiResultBox.style.display = 'none';
         aiLoading.style.display = 'block';
-        const promptText = `Bertindaklah sebagai ahli Electrical Engineer senior. Analisa data ${machineNames[selectedMachineId]}: Voltage: ${data.voltage}V, Current: ${data.current_i1}A, PF: ${data.pf}, Active Power: ${data.active_p}W, Freq: ${data.freq}Hz, Total Energy: ${data.total_ea}kWh. 1. Status Kesehatan. 2. Efisiensi (PF). 3. Rekomendasi. Format Markdown.`;
+        
+        const promptText = `Bertindaklah sebagai Senior Electrical Engineer. 
+        Analisa data real-time dari mesin "${machineNames[selectedMachineId]}" (ID: ${selectedMachineId}) berikut:
+        - Tegangan (Voltage L-L): ${data.voltage} V
+        - Arus (Current): I1=${data.current_i1}A, I2=${data.current_i2}A, I3=${data.current_i3}A
+        - Power Factor (PF): ${data.pf}
+        - Daya Aktif: ${data.active_p} Watt
+        - Frekuensi: ${data.freq} Hz
+        - Total Energi: ${data.total_ea} kWh
+
+        Berikan analisa teknis singkat meliputi:
+        1. Status Beban dan Kesimbangan Arus (Apakah overload, unbalance, atau normal?)
+        2. Analisa Efisiensi (Berdasarkan nilai PF)
+        3. Rekomendasi teknis jika ditemukan kejanggalan.
+        Jawab dalam format Markdown yang profesional dan berbahasa Indonesia.`;
+
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] }) });
+            // URL otomatis menyesuaikan apakah dijalankan di Preview atau di Localhost
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] }) 
+            });
+            
             const result = await response.json();
-            aiContent.innerHTML = marked.parse(result.candidates[0].content.parts[0].text);
-            aiLoading.style.display = 'none'; aiResultBox.style.display = 'block';
+
+            if (!response.ok) {
+                console.error("Detail Error API:", result);
+                throw new Error(result.error?.message || `Error Server Google: Status ${response.status}`);
+            }
+            
+            if (result.candidates && result.candidates[0].content.parts[0].text) {
+                aiContent.innerHTML = marked.parse(result.candidates[0].content.parts[0].text);
+                aiLoading.style.display = 'none'; 
+                aiResultBox.style.display = 'block';
+            } else if (result.promptFeedback && result.promptFeedback.blockReason) {
+                throw new Error(`Analisa diblokir keamanan Google. Alasan: ${result.promptFeedback.blockReason}`);
+            } else {
+                console.error("Respon aneh dari Google:", result);
+                throw new Error("Data AI kosong. Kemungkinan API Key belum aktif 100%.");
+            }
         } catch (error) {
-            aiLoading.style.display = 'none'; aiResultBox.style.display = 'block';
-            aiContent.innerHTML = "<p class='text-danger'>Gagal menghubungi AI. Coba lagi.</p>";
+            console.error("AI Error:", error);
+            aiLoading.style.display = 'none'; 
+            aiResultBox.style.display = 'block';
+            aiContent.innerHTML = `<p class='text-danger'><b>Gagal menghubungi AI:</b> ${error.message}</p>`;
         }
     }
 
