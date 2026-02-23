@@ -186,7 +186,7 @@
         detailModal.show();
     }
 
-    // 🔥 SISTEM BRUTE-FORCE MODEL AI (Mendobrak Model yang Tersedia) 🔥
+    // 🔥 SISTEM BRUTE-FORCE DIPERLUAS (Mendobrak Model AI yang Tersedia) 🔥
     async function analyzeWithGemini() {
         const data = machineData[selectedMachineId];
         if (!data) { alert("Belum ada data untuk dianalisa!"); return; }
@@ -213,14 +213,17 @@
         3. Rekomendasi teknis jika ditemukan kejanggalan.
         Jawab dalam format Markdown yang profesional dan berbahasa Indonesia.`;
 
-        // Daftar 5 model rahasia yang biasa dipakai Google. Kalau satu gagal, coba yang lain!
+        // Daftar nama model AI yang mencakup versi paling lama sampai versi 2.5 terbaru (2026)
         const modelsToTry = isPreviewEnv 
             ? ["gemini-2.5-flash-preview-09-2025"] 
             : [
+                "gemini-2.5-flash", 
+                "gemini-2.0-flash", 
+                "gemini-1.5-flash-8b", 
                 "gemini-1.5-flash", 
                 "gemini-1.5-flash-latest", 
+                "gemini-1.5-pro", 
                 "gemini-1.0-pro", 
-                "gemini-1.0-pro-latest", 
                 "gemini-pro"
               ];
         
@@ -258,15 +261,23 @@
             }
         }
 
-        // Kalau kebangetan ke-5 modelnya gagal semua, baru kita munculin error di layar
+        // Kalau SEMUA model ditolak Google, tampilkan petunjuk perbaikan
         if (!success) {
             console.error("❌ SEMUA MODEL AI MENOLAK AKSES!");
             aiLoading.style.display = 'none'; 
             aiResultBox.style.display = 'block';
             aiContent.innerHTML = `
-                <p class='text-danger'><b>Gagal menghubungi sistem AI Google.</b></p>
-                <p style='font-size:0.85rem; color:#666;'>Log Error: ${lastError}</p>
-                <p style='font-size:0.85rem; color:#666;'><i>Kemungkinan API Key Anda terkena limit / belum aktif sepenuhnya di region ini.</i></p>
+                <div class="alert alert-danger mb-0" style="font-size:0.9rem;">
+                    <strong><i class="fas fa-exclamation-triangle"></i> Gagal Memanggil AI Server Google</strong><br><br>
+                    Log Error: <code>${lastError}</code><br><br>
+                    <b>Langkah Perbaikan (Karena API Key Anda belum aktif penuh):</b>
+                    <ol class="mb-0 mt-2 ps-3">
+                        <li>Tunggu 10-30 menit jika API Key baru saja dibuat.</li>
+                        <li>Pastikan Anda telah menyetujui "Terms of Service" di halaman Google AI Studio Anda.</li>
+                        <li>Pastikan project Google Cloud Anda memiliki izin <b>"Generative Language API"</b> yang aktif.</li>
+                        <li>Buat API Key baru di <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#842029; text-decoration:underline;">Google AI Studio</a>.</li>
+                    </ol>
+                </div>
             `;
         }
     }
