@@ -15,9 +15,9 @@ GEMINI_API_KEY = "AIzaSyBdh38__ayg6Kz1lUrP5TAz8kHi2UabUWA"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# 🔥 FIX: Menggunakan 'gemini-1.5-flash' (Nama paling standar dan stabil)
-# Jika ini masih 404, coba ganti menjadi 'gemini-pro'
-MODEL_NAME = 'gemini-1.5-flash'
+# 🔥 FIX AKHIR: Menggunakan 'gemini-pro' 
+# Nama ini adalah yang paling stabil untuk menghindari error 404 pada library versi lama
+MODEL_NAME = 'gemini-pro'
 model = genai.GenerativeModel(MODEL_NAME)
 
 app = Flask(__name__)
