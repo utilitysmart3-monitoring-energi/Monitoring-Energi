@@ -202,9 +202,10 @@
         aiLoading.style.display = 'block';
         
         try {
-            console.log("⏳ Mengirim instruksi ke AI Engine (192.168.4.200:5000)...");
+            console.log("⏳ Mengirim instruksi ke AI Engine via Cloudflare Tunnel...");
             
-            const response = await fetch("https://lawsuit-assessments-concentrate-instantly.trycloudflare.com/analyze", {
+            // 🔥 UPDATE: Menggunakan link publik Cloudflare yang BARU
+            const response = await fetch("https://package-chains-carmen-atm.trycloudflare.com/analyze", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -232,14 +233,29 @@
             console.error("❌ KONEKSI AI ENGINE GAGAL:", error);
             aiLoading.style.display = 'none'; 
             aiResultBox.style.display = 'block';
+            
+            // Penanganan khusus untuk error "Failed to fetch" (masalah jaringan/tunnel)
+            let tipsHTML = "";
+            if (error.message.includes("Failed to fetch")) {
+                tipsHTML = `
+                    <li><b>Terowongan Cloudflare Terputus:</b> Link <code>.trycloudflare.com</code> yang Anda gunakan mungkin sudah kadaluarsa atau terminal di Raspberry Pi telah tertutup.</li>
+                    <li><b>Solusi:</b> Buka kembali terminal Raspberry Pi Anda, jalankan <code>cloudflared tunnel --url http://127.0.0.1:5000</code>, dan perbarui link di file HTML dengan link yang baru muncul.</li>
+                    <li><b>Koneksi Internet:</b> Pastikan HP/Laptop Anda terhubung ke internet yang stabil.</li>
+                `;
+            } else {
+                tipsHTML = `
+                    <li>Pastikan Laptop terhubung ke WiFi Raspberry atau internet stabil.</li>
+                    <li>Pastikan service <code>ai-engine.service</code> statusnya <i>active (running)</i> di Raspberry Pi.</li>
+                `;
+            }
+
             aiContent.innerHTML = `
                 <div class="alert alert-danger mb-0" style="font-size:0.9rem;">
                     <strong><i class="fas fa-exclamation-triangle"></i> Gagal Koneksi ke Server AI</strong><br><br>
                     Log: <code>${error.message}</code><br><br>
                     <b style="color:#842029;">Tips Troubleshooting:</b>
                     <ul class="mb-0 mt-1 ps-3">
-                        <li>Pastikan Laptop terhubung ke WiFi Raspberry.</li>
-                        <li>Pastikan service <code>ai-engine.service</code> statusnya <i>active (running)</i> di Raspberry Pi.</li>
+                        ${tipsHTML}
                     </ul>
                 </div>
             `;
