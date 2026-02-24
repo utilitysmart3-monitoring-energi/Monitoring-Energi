@@ -8,10 +8,9 @@ import sys
 warnings.filterwarnings("ignore")
 
 # =========================================================
-# 🔧 KONFIGURASI API GEMINI (PENTING: GANTI DENGAN KEY BARU)
+# 🔧 KONFIGURASI API GEMINI (PENTING: PASTIKAN KEY BENAR)
 # =========================================================
-# Ambil Key Baru di: https://aistudio.google.com/app/apikey
-# JANGAN posting Key baru di GitHub publik agar tidak kena "Leaked" lagi.
+# Pastikan TIDAK ADA SPASI di awal atau akhir string ini.
 GEMINI_API_KEY = "AIzaSyCfhpGRDp5maiJKleH2j6ciOM6Jbd1HZVg"
 
 genai.configure(api_key=GEMINI_API_KEY)
@@ -38,7 +37,11 @@ def refresh_model_list():
         if not available_models:
             print("❌ PERINGATAN: Tidak ada model ditemukan! Pastikan API Key baru sudah benar.")
     except Exception as e:
-        print(f"❌ GAGAL SCAN MODEL: {e}")
+        error_str = str(e)
+        if "API_KEY_INVALID" in error_str:
+            print("❌ ERROR FATAL: API KEY TIDAK VALID / SALAH KETIK!")
+        else:
+            print(f"❌ GAGAL SCAN MODEL: {error_str}")
     print("-" * 50)
 
 # Jalankan scan saat startup
@@ -98,9 +101,15 @@ def analyze_data():
         if response_text:
             return jsonify({"status": "success", "result": response_text})
         else:
+            # 🔥 PESAN ERROR KHUSUS JIKA API KEY INVALID
+            if "API_KEY_INVALID" in last_err:
+                pesan_error = "API Key Google Anda ditolak (INVALID). Silakan pastikan tulisan API Key di file ai_engine.py sudah benar, tidak ada spasi yang terikut, atau buat kunci baru di Google AI Studio."
+            else:
+                pesan_error = f"Semua model gagal. Error terakhir: {last_err}"
+                
             return jsonify({
                 "status": "error", 
-                "result": f"Semua model gagal. Error terakhir: {last_err}"
+                "result": pesan_error
             }), 500
 
     except Exception as e:
