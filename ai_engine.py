@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore")
 # 🔧 KONFIGURASI API GEMINI (PENTING: PASTIKAN KEY BENAR)
 # =========================================================
 # Pastikan TIDAK ADA SPASI di awal atau akhir string ini.
-GEMINI_API_KEY = "AIzaSyCfhpGRDp5maiJKleH2j6ciOM6Jbd1HZVg"
+GEMINI_API_KEY = "AIzaSyBqurCP6dFQNS8uuuh3ZPLRF6UB5MKKLks"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
