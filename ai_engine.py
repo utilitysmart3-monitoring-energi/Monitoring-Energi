@@ -1,7 +1,12 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from google import genai
+import warnings
 import threading
+
+# 🔥 PEREDAM WARNING: Sembunyikan peringatan FutureWarning dari Google
+warnings.filterwarnings("ignore")
+
+import google.generativeai as genai
 
 # =========================================================
 # 🔧 KONFIGURASI API GEMINI (TARUH KUNCI RAHASIA DI SINI)
@@ -9,8 +14,11 @@ import threading
 # Dapatkan di: https://aistudio.google.com/app/apikey
 GEMINI_API_KEY = "AIzaSyBdh38__ayg6Kz1lUrP5TAz8kHi2UabUWA"
 
-# Inisialisasi Client AI (Pakai library terbaru 'google.genai')
-client = genai.Client(api_key=GEMINI_API_KEY)
+# Konfigurasi AI
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Tetap gunakan model Gemini 2.5 Flash yang paling pintar dan cepat
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 # Bikin Server API Lokal (Satpam)
 app = Flask(__name__)
@@ -40,12 +48,9 @@ def analyze_data():
         3. Rekomendasi Teknis: (Satu kalimat aksi yang harus dilakukan teknisi)
         """
 
-        # 3. Tanya ke Gemini (Pakai model paling pintar & cepat saat ini)
+        # 3. Tanya ke Gemini
         print("Minta wangsit ke AI...")
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=prompt
-        )
+        response = model.generate_content(prompt)
         
         # 4. Kirim balasan AI ke HTML
         return jsonify({
