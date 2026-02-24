@@ -8,9 +8,12 @@ import sys
 warnings.filterwarnings("ignore")
 
 # =========================================================
-# 🔧 KONFIGURASI API GEMINI
+# 🔧 KONFIGURASI API GEMINI (PENTING: GANTI DENGAN KEY BARU)
 # =========================================================
-GEMINI_API_KEY = "AIzaSyBdh38__ayg6Kz1lUrP5TAz8kHi2UabUWA"
+# Ambil Key Baru di: https://aistudio.google.com/app/apikey
+# JANGAN posting Key baru di GitHub publik agar tidak kena "Leaked" lagi.
+GEMINI_API_KEY = "AIzaSyCfhpGRDp5maiJKleH2j6ciOM6Jbd1HZVg"
+
 genai.configure(api_key=GEMINI_API_KEY)
 
 # 🔍 SCAN MODEL YANG TERSEDIA SECARA DINAMIS
@@ -33,7 +36,7 @@ def refresh_model_list():
         
         available_models = list(set(discovered)) # Hapus duplikat
         if not available_models:
-            print("❌ PERINGATAN: Tidak ada model yang ditemukan! Cek API Key.")
+            print("❌ PERINGATAN: Tidak ada model ditemukan! Pastikan API Key baru sudah benar.")
     except Exception as e:
         print(f"❌ GAGAL SCAN MODEL: {e}")
     print("-" * 50)
@@ -65,7 +68,7 @@ def analyze_data():
         response_text = None
         last_err = ""
         
-        # Urutan prioritas jika scanning gagal/kosong
+        # Urutan prioritas cadangan
         priority = ['gemini-1.5-flash', 'gemini-pro', 'models/gemini-1.5-flash', 'models/gemini-pro']
         
         # Gabungkan list hasil scan dengan list priority
@@ -89,8 +92,7 @@ def analyze_data():
                     break 
             except Exception as e:
                 last_err = str(e)
-                # Jika error 404, kita skip cepat ke model berikutnya
-                print(f"❌ Gagal ({model_id}): {last_err[:50]}...")
+                print(f"❌ Gagal ({model_id}): {last_err[:60]}...")
                 continue
 
         if response_text:
@@ -98,7 +100,7 @@ def analyze_data():
         else:
             return jsonify({
                 "status": "error", 
-                "result": f"Google menolak semua model. Error terakhir: {last_err}"
+                "result": f"Semua model gagal. Error terakhir: {last_err}"
             }), 500
 
     except Exception as e:
