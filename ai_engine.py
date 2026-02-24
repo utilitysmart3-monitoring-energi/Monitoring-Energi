@@ -10,12 +10,15 @@ warnings.filterwarnings("ignore")
 # =========================================================
 # 🔧 KONFIGURASI API GEMINI
 # =========================================================
+# Gunakan API Key yang sudah Anda buat
 GEMINI_API_KEY = "AIzaSyBdh38__ayg6Kz1lUrP5TAz8kHi2UabUWA"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
-# 🔥 FIX: Menggunakan 'gemini-1.5-flash-latest' agar lebih kompatibel dengan API v1beta
-model = genai.GenerativeModel('gemini-1.5-flash-latest')
+# 🔥 FIX: Menggunakan 'gemini-1.5-flash' (Nama paling standar dan stabil)
+# Jika ini masih 404, coba ganti menjadi 'gemini-pro'
+MODEL_NAME = 'gemini-1.5-flash'
+model = genai.GenerativeModel(MODEL_NAME)
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -34,7 +37,7 @@ def analyze_data():
         Berikan laporan singkat: Status Beban, Analisa Unbalance, dan Rekomendasi Teknis.
         """
 
-        print(f"DEBUG: Menerima request untuk ID {data.get('meter_id', 'Unknown')}. Menghubungi Google AI...")
+        print(f"DEBUG: Menerima request untuk ID {data.get('meter_id', 'Unknown')}. Menghubungi Google AI ({MODEL_NAME})...")
         
         response = model.generate_content(prompt)
         
@@ -48,7 +51,7 @@ def analyze_data():
         print(f"❌ ERROR AI ENGINE: {error_msg}")
         return jsonify({
             "status": "error", 
-            "result": f"Detail Error dari Pi: {error_msg}" 
+            "result": f"Google AI Error: {error_msg}" 
         }), 500
 
 @app.route('/ping', methods=['GET'])
@@ -57,6 +60,6 @@ def ping():
 
 if __name__ == '__main__':
     print("==========================================================")
-    print("🤖 AI ENGINE PRODUCTION READY - PORT 5000 🤖")
+    print(f"🤖 AI ENGINE READY - MODEL: {MODEL_NAME} - PORT 5000 🤖")
     print("==========================================================")
     app.run(host='0.0.0.0', port=5000, debug=False)
