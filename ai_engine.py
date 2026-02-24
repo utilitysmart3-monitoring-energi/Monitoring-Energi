@@ -18,7 +18,7 @@ GEMINI_API_KEY = "AIzaSyBdh38__ayg6Kz1lUrP5TAz8kHi2UabUWA"
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Tetap gunakan model Gemini 2.5 Flash yang paling pintar dan cepat
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Bikin Server API Lokal (Satpam)
 app = Flask(__name__)
