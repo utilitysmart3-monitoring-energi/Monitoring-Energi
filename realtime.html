@@ -40,6 +40,8 @@
         .btn-menu-toggle { 
             position: absolute; 
             left: clamp(15px, 4vw, 25px); 
+            top: 50%;
+            transform: translateY(-50%);
             color: var(--sidebar-theme); 
             font-size: 1.5rem; 
             background: none; 
@@ -48,7 +50,7 @@
             padding: 0; 
             transition: transform 0.2s ease; 
         }
-        .btn-menu-toggle:hover { transform: scale(1.1); }
+        .btn-menu-toggle:hover { transform: translateY(-50%) scale(1.1); }
         .app-title { 
             color: var(--sidebar-theme); 
             font-weight: 800; 
@@ -57,20 +59,28 @@
             text-transform: uppercase; 
             font-size: clamp(1rem, 2.5vw, 1.3rem); 
             text-align: center; 
+            padding: 0 100px; /* Mencegah tabrakan dengan tulisan kiri/kanan di layar kecil */
         }
         .mqtt-status { 
             position: absolute; 
             right: clamp(15px, 4vw, 25px); 
+            top: 50%;
+            transform: translateY(-50%);
             text-align: right; 
             font-size: 0.8rem; 
         }
 
-        /* --- MEDIA QUERY UNTUK LAYAR HP AGAR TIDAK TUMPANG TINDIH --- */
+        /* --- MEDIA QUERY UNTUK LAYAR HP (DIPERBAIKI RAPI & KECIL DI KANAN) --- */
         @media (max-width: 576px) {
-            .app-header { flex-direction: column; padding: 15px 10px; }
-            .btn-menu-toggle { top: 15px; left: 15px; }
-            .app-title { margin-top: 5px; margin-bottom: 5px; font-size: 1.1rem; }
-            .mqtt-status { position: static; text-align: center; margin-top: 8px; }
+            .app-header { padding: 10px; min-height: 60px; }
+            .btn-menu-toggle { left: 10px; font-size: 1.3rem; }
+            .app-title { font-size: 0.85rem; padding: 0 85px; line-height: 1.3; }
+            .mqtt-status { 
+                right: 10px; 
+                font-size: 0.6rem; /* Teks sangat kecil dan profesional di ujung kanan */
+            }
+            #last-update { font-size: 0.55rem !important; margin-top: 3px !important; }
+            .mqtt-status .badge { font-size: 0.55rem !important; padding: 4px 6px !important; }
         }
 
         /* --- GRID TOMBOL --- */
