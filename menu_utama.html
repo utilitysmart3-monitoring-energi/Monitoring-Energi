@@ -190,4 +190,259 @@
         }
 
         .menu-card.gold {
-            background
+            background: linear-gradient(135deg, var(--btn-gold) 0%, #a67c1e 100%);
+            box-shadow: 0 10px 20px rgba(204, 155, 40, 0.2);
+        }
+
+        .menu-card i {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-card span {
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            color: white;
+            filter: brightness(1.1);
+        }
+        
+        .menu-card:hover i {
+            transform: scale(1.1);
+        }
+
+        .menu-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+
+        /* =========================================
+           RESPONSIVE DESIGN (TABLET, LAPTOP, TV)
+           ========================================= */
+
+        /* Tablet (768px ke atas) */
+        @media (min-width: 768px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr); /* Berubah jadi 3 Kolom */
+                gap: 30px;
+            }
+            .menu-card {
+                min-height: 200px;
+                padding: 40px 20px;
+            }
+            .menu-card i {
+                font-size: 2.6rem; 
+                margin-bottom: 15px;
+            }
+            .menu-card span {
+                font-size: 0.95rem; 
+            }
+            .header-pill {
+                font-size: 1.8rem;
+                padding: 12px 60px;
+            }
+            .description {
+                font-size: 1.2rem;
+                margin-bottom: 50px;
+            }
+            .btn-menu-toggle {
+                font-size: 2.2rem;
+            }
+        }
+
+        /* Laptop & Layar Besar (1024px ke atas) */
+        @media (min-width: 1024px) {
+            .main-container {
+                padding: 60px 40px;
+            }
+            .menu-grid {
+                gap: 40px;
+            }
+            .menu-card {
+                min-height: 260px;
+                border-radius: 35px;
+            }
+            .menu-card i {
+                font-size: 3.2rem; 
+                margin-bottom: 20px;
+            }
+            .menu-card span {
+                font-size: 1.1rem; 
+                letter-spacing: 1px;
+            }
+            .header-pill {
+                font-size: 2.2rem;
+                padding: 15px 80px;
+            }
+            .description {
+                font-size: 1.3rem;
+                margin-bottom: 60px;
+            }
+            .btn-menu-toggle {
+                font-size: 2.8rem;
+            }
+        }
+
+        /* TV & Layar Sangat Besar (1440px ke atas) */
+        @media (min-width: 1440px) {
+            .main-container {
+                max-width: 1500px;
+                padding: 80px 50px;
+            }
+            .menu-grid {
+                gap: 50px;
+            }
+            .menu-card {
+                min-height: 320px;
+                border-radius: 40px;
+            }
+            .menu-card i {
+                font-size: 4rem; 
+                margin-bottom: 25px;
+            }
+            .menu-card span {
+                font-size: 1.3rem; 
+            }
+            .header-pill {
+                font-size: 2.8rem;
+                padding: 20px 100px;
+            }
+            .description {
+                font-size: 1.6rem;
+                margin-bottom: 80px;
+            }
+            .btn-menu-toggle {
+                font-size: 3.5rem;
+            }
+        }
+
+        /* HP Sangat Kecil (Lebar di bawah 360px) */
+        @media (max-width: 360px) {
+            .menu-grid {
+                grid-template-columns: 1fr; /* Jadi 1 kolom list */
+            }
+            .menu-card {
+                flex-direction: row;
+                justify-content: flex-start;
+                padding: 20px;
+                min-height: 90px;
+            }
+            .menu-card i {
+                margin-bottom: 0;
+                margin-right: 20px;
+                font-size: 1.8rem; 
+            }
+            .menu-card span {
+                text-align: left;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">DASHBOARD</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column justify-content-center p-4">
+            
+            <a href="index.html" class="nav-btn-custom">
+                <i class="fas fa-house-chimney"></i>
+                <span class="nav-btn-text">HOME</span>
+            </a>
+
+            <a href="menu_utama.html" class="nav-btn-custom">
+                <i class="fas fa-table-cells-large"></i>
+                <span class="nav-btn-text">MENU UTAMA</span>
+            </a>
+
+            <a href="download_data.html" class="nav-btn-custom">
+                <i class="fas fa-file-export"></i>
+                <span class="nav-btn-text">UNDUH DATA</span>
+            </a>
+
+            <a href="informasi_akun.html" class="nav-btn-custom">
+                <i class="fas fa-user-gear"></i>
+                <span class="nav-btn-text">AKUN</span>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-container">
+        
+        <!-- 1. Header Row (Hamburger + Pill) -->
+        <div class="header-row">
+            <!-- Tombol Hamburger (Posisi Absolute Paling Kiri) -->
+            <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Pill Menu Utama -->
+            <div class="header-pill">MENU UTAMA</div>
+        </div>
+        
+        <p class="description">
+            Pilih menu yang tersedia di bawah ini untuk mengakses dashboard monitoring sistem Anda.
+        </p>
+
+        <!-- 2. GRID MENU UTAMA -->
+        <div class="menu-grid">
+            
+            <!-- Power Meter -->
+            <a href="realtime.html" class="menu-card">
+                <i class="fas fa-plug-circle-bolt"></i>
+                <span>Power Meter Monitoring</span>
+            </a>
+
+            <!-- Monitoring Tarif -->
+            <a href="tarif.html" class="menu-card gold">
+                <i class="fas fa-money-bill-trend-up"></i>
+                <span>Monitoring Tarif</span>
+            </a>
+
+            <!-- Status Data -->
+            <a href="status_data.html" class="menu-card">
+                <i class="fas fa-tower-broadcast"></i>
+                <span>Status<br>Data</span>
+            </a>
+
+            <!-- Riwayat -->
+            <a href="riwayat.html" class="menu-card gold">
+                <i class="fas fa-timeline"></i>
+                <span>Riwayat<br>Perekaman</span>
+            </a>
+
+            <!-- Grafik Data -->
+            <a href="grafik_data.html" class="menu-card">
+                <i class="fas fa-wave-square"></i>
+                <span>Grafik<br>Data</span>
+            </a>
+
+            <!-- Download Data -->
+            <a href="download_data.html" class="menu-card gold">
+                <i class="fas fa-hard-drive"></i>
+                <span>Download<br>Data</span>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (Wajib untuk Sidebar) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
