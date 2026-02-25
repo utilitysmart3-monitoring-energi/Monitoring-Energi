@@ -2,417 +2,447 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>REALTIME MONITORING</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MENU UTAMA - Monitoring System</title>
     
-    <!-- ADD GAUGE: Library ECharts -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <!-- Bootstrap 5 CSS (Wajib untuk Sidebar) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --sidebar-theme: #2b6c8a; }
-        body { background-color: #e9ecef; font-family: 'Poppins', sans-serif; }
+        :root {
+            --bg-body: #f4f7f6;
+            --primary-blue: #23637e;
+            --btn-blue: #2b6c8a;
+            --btn-gold: #cc9b28;
+            --text-dark: #2c3e50;
+            --nav-bg: #ffffff;
+            
+            /* TEMA UTAMA */
+            --sidebar-theme: #2b6c8a; 
+            --custom-main: #2b6c8a; 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- SIDEBAR STYLE --- */
+        .offcanvas {
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+            width: 300px !important;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.05);
+        }
+        .offcanvas-header {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 20px 25px;
+        }
+        .offcanvas-title {
+            color: var(--sidebar-theme);
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        /* TOMBOL NAVIGASI SAMPING */
+        .nav-btn-custom {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            color: var(--sidebar-theme);
+            border: 2px solid var(--sidebar-theme);
+            border-radius: 50px;
+            padding: 12px 25px;
+            margin-bottom: 20px;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .nav-btn-custom:hover {
+            background-color: var(--sidebar-theme);
+            color: white;
+            box-shadow: 0 8px 15px rgba(43, 108, 138, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn-custom i {
+            font-size: 1.5rem;
+            width: 40px;
+            text-align: center;
+            margin-right: 15px;
+        }
+
+        /* --- CONTAINER UTAMA --- */
+        .main-container {
+            width: 100%;
+            max-width: 1200px; /* Diperbesar dari 500px ke 1200px agar melebar di Laptop/TV */
+            padding: 40px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* --- HEADER ROW (HAMBURGER + PILL) --- */
+        .header-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            width: 100%;
+            min-height: 60px;
+        }
+
+        /* TOMBOL HAMBURGER */
+        .btn-menu-toggle {
+            position: absolute;
+            left: 0;
+            color: var(--sidebar-theme);
+            font-size: 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
         
-        /* --- SIDEBAR & HEADER --- */
-        .offcanvas { border-top-right-radius: 20px; border-bottom-right-radius: 20px; width: 300px !important; }
-        .offcanvas-header { border-bottom: 1px solid #eee; }
-        .offcanvas-title { color: var(--sidebar-theme); font-weight: 800; letter-spacing: 1px; }
-        .nav-btn-custom { display: flex; align-items: center; background-color: white; color: var(--sidebar-theme); border: 2px solid var(--sidebar-theme); border-radius: 50px; padding: 12px 25px; margin-bottom: 20px; text-decoration: none; font-weight: 700; text-transform: uppercase; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .nav-btn-custom:hover { background-color: var(--sidebar-theme); color: white; box-shadow: 0 5px 15px rgba(43, 108, 138, 0.3); }
-        .nav-btn-custom i { font-size: 1.8rem; width: 40px; text-align: center; margin-right: 15px; }
+        .btn-menu-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- HEADER PILL --- */
+        .header-pill {
+            display: inline-block;
+            border: 3px solid var(--custom-main);
+            padding: 10px 50px;
+            border-radius: 50px;
+            color: var(--custom-main);
+            font-weight: 800;
+            font-size: 1.4rem;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(43, 108, 138, 0.1);
+            letter-spacing: 1.5px;
+            z-index: 1;
+        }
+
+        .description {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            padding: 0 15px;
+            max-width: 800px; /* Mencegah teks terlalu melebar di TV */
+        }
+
+        /* --- MENU GRID --- */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2 Kolom untuk HP */
+            gap: 20px;
+            width: 100%;
+            z-index: 2;
+        }
+
+        /* --- MENU CARD --- */
+        .menu-card {
+            background: linear-gradient(135deg, var(--btn-blue) 0%, #1f5066 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            padding: 30px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(43, 108, 138, 0.2);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            min-height: 150px;
+        }
+
+        /* Aksen dekoratif tipis di dalam kartu */
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .menu-card.gold {
+            background: linear-gradient(135deg, var(--btn-gold) 0%, #a67c1e 100%);
+            box-shadow: 0 10px 20px rgba(204, 155, 40, 0.2);
+        }
+
+        .menu-card i {
+            font-size: 2.2rem; /* Diperkecil dari 2.8rem */
+            margin-bottom: 12px; /* Disesuaikan */
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-card span {
+            font-weight: 700;
+            font-size: 0.85rem; /* Diperkecil dari 0.95rem */
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-7px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            color: white;
+            filter: brightness(1.1);
+        }
         
-        .app-header { background-color: #fff; padding: 15px 20px; border-bottom: 3px solid var(--sidebar-theme); margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .btn-menu-toggle { color: var(--sidebar-theme); font-size: 1.5rem; background: none; border: none; cursor: pointer; padding: 0; margin-right: 15px; }
-        .header-left { display: flex; align-items: center; }
-        .app-title { color: var(--sidebar-theme); font-weight: 800; margin: 0; letter-spacing: 1px; text-transform: uppercase; font-size: 1.1rem; }
-        .mqtt-status { text-align: right; font-size: 0.8rem; }
+        .menu-card:hover i {
+            transform: scale(1.1);
+        }
 
-        /* --- GRID TOMBOL --- */
-        .machine-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
-        .btn-machine { border: none; border-radius: 12px; padding: 15px; font-size: 1rem; color: white !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100px; text-transform: uppercase; letter-spacing: 0.5px; width: 100%; cursor: pointer; }
-        .btn-machine:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); filter: brightness(1.1); }
+        .menu-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
 
-        /* 🔥 EFEK SCANNER (SEDANG DI BACA) 🔥 */
-        .scanning-active { box-shadow: 0 0 20px 5px rgba(255, 193, 7, 0.9) !important; border: 3px solid #ffc107 !important; transform: scale(1.03); z-index: 10; }
+        /* =========================================
+           RESPONSIVE DESIGN (TABLET, LAPTOP, TV)
+           ========================================= */
 
-        /* --- WARNA STATUS --- */
-        .bg-waiting { background: linear-gradient(145deg, #6c757d, #495057); border: 2px solid #adb5bd; }
-        .bg-offline { background: linear-gradient(145deg, #dc3545, #b02a37); border: 2px solid #ff6b6b; }
-        .bg-standby { background: linear-gradient(145deg, #0d6efd, #0a58ca); border: 2px solid #4dabf7; animation: glow-blue 2s infinite; }
-        .bg-running { background: linear-gradient(145deg, #198754, #146c43); border: 2px solid #20c997; animation: glow-green 1.5s infinite; }
+        /* Tablet (768px ke atas) */
+        @media (min-width: 768px) {
+            .menu-grid {
+                grid-template-columns: repeat(3, 1fr); /* Berubah jadi 3 Kolom */
+                gap: 30px;
+            }
+            .menu-card {
+                min-height: 200px;
+                padding: 40px 20px;
+            }
+            .menu-card i {
+                font-size: 2.6rem; /* Diperkecil dari 3.5rem */
+                margin-bottom: 15px;
+            }
+            .menu-card span {
+                font-size: 0.95rem; /* Diperkecil dari 1.1rem */
+            }
+            .header-pill {
+                font-size: 1.8rem;
+                padding: 12px 60px;
+            }
+            .description {
+                font-size: 1.2rem;
+                margin-bottom: 50px;
+            }
+            .btn-menu-toggle {
+                font-size: 2.2rem;
+            }
+        }
 
-        @keyframes glow-blue { 0% { box-shadow: 0 0 5px rgba(13, 110, 253, 0.5); } 50% { box-shadow: 0 0 20px rgba(13, 110, 253, 0.8); border-color: #80c7ff; } 100% { box-shadow: 0 0 5px rgba(13, 110, 253, 0.5); } }
-        @keyframes glow-green { 0% { box-shadow: 0 0 5px rgba(25, 135, 84, 0.5); } 50% { box-shadow: 0 0 20px rgba(25, 135, 84, 0.8); border-color: #75b798; } 100% { box-shadow: 0 0 5px rgba(25, 135, 84, 0.5); } }
-        .machine-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 0; text-align: center; }
+        /* Laptop & Layar Besar (1024px ke atas) */
+        @media (min-width: 1024px) {
+            .main-container {
+                padding: 60px 40px;
+            }
+            .menu-grid {
+                gap: 40px;
+            }
+            .menu-card {
+                min-height: 260px;
+                border-radius: 35px;
+            }
+            .menu-card i {
+                font-size: 3.2rem; /* Diperkecil drastis dari 5rem */
+                margin-bottom: 20px;
+            }
+            .menu-card span {
+                font-size: 1.1rem; /* Diperkecil dari 1.4rem */
+                letter-spacing: 1px;
+            }
+            .header-pill {
+                font-size: 2.2rem;
+                padding: 15px 80px;
+            }
+            .description {
+                font-size: 1.3rem;
+                margin-bottom: 60px;
+            }
+            .btn-menu-toggle {
+                font-size: 2.8rem;
+            }
+        }
 
-        /* --- MODAL --- */
-        .modal-content { border-radius: 20px; overflow: hidden; border: none; }
-        .modal-header { background-color: #f8f9fa; border-bottom: 1px solid #eee; }
-        .modal-title { color: #333; font-weight: 800; letter-spacing: 1px; }
-        .info-card { color: white; border-radius: 15px; padding: 20px; margin: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); transition: background-color 0.3s ease; }
-        .info-title { text-align: center; font-weight: 800; margin-bottom: 5px; font-size: 1.3rem; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .info-subtitle { text-align: center; font-size: 0.75rem; opacity: 0.8; margin-bottom: 15px; font-family: monospace; letter-spacing: 1px; }
-        .status-badge { text-align: center; background: rgba(0,0,0,0.25); padding: 8px 20px; border-radius: 30px; display: inline-block; font-weight: bold; font-size: 1rem; margin-bottom: 15px; width: 100%; border: 1px solid rgba(255,255,255,0.3); }
-        .param-row { display: flex; justify-content: space-between; margin-bottom: 7px; font-size: 0.90rem; border-bottom: 1px dotted rgba(255,255,255,0.4); padding-bottom: 4px; align-items: center; }
-        .param-label { font-weight: 500; }
-        .param-value { font-family: 'Consolas', monospace; font-weight: bold; font-size: 0.95rem; }
-        
-        @media (min-width: 768px) { .machine-grid { grid-template-columns: repeat(3, 1fr); } .modal-dialog { max-width: 450px; } }
+        /* TV & Layar Sangat Besar (1440px ke atas) */
+        @media (min-width: 1440px) {
+            .main-container {
+                max-width: 1500px;
+                padding: 80px 50px;
+            }
+            .menu-grid {
+                gap: 50px;
+            }
+            .menu-card {
+                min-height: 320px;
+                border-radius: 40px;
+            }
+            .menu-card i {
+                font-size: 4rem; /* Diperkecil drastis dari 6.5rem */
+                margin-bottom: 25px;
+            }
+            .menu-card span {
+                font-size: 1.3rem; /* Diperkecil dari 1.8rem */
+            }
+            .header-pill {
+                font-size: 2.8rem;
+                padding: 20px 100px;
+            }
+            .description {
+                font-size: 1.6rem;
+                margin-bottom: 80px;
+            }
+            .btn-menu-toggle {
+                font-size: 3.5rem;
+            }
+        }
+
+        /* HP Sangat Kecil (Lebar di bawah 360px) */
+        @media (max-width: 360px) {
+            .menu-grid {
+                grid-template-columns: 1fr; /* Jadi 1 kolom list */
+            }
+            .menu-card {
+                flex-direction: row;
+                justify-content: flex-start;
+                padding: 20px;
+                min-height: 90px;
+            }
+            .menu-card i {
+                margin-bottom: 0;
+                margin-right: 20px;
+                font-size: 1.8rem; /* Sedikit disesuaikan */
+            }
+            .menu-card span {
+                text-align: left;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body>
 
+    <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title">MENU</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            <h5 class="offcanvas-title">DASHBOARD</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body d-flex flex-column p-4">
-            <a href="index.html" class="nav-btn-custom"><i class="fas fa-home"></i><span class="nav-btn-text">HOME</span></a>
-            <a href="menu_utama.html" class="nav-btn-custom"><i class="fas fa-th-large"></i><span class="nav-btn-text">MENU UTAMA</span></a>
-            <a href="download_data.html" class="nav-btn-custom"><i class="fas fa-cloud-download-alt"></i><span class="nav-btn-text">UNDUH DATA</span></a>
-            <a href="informasi_akun.html" class="nav-btn-custom"><i class="fas fa-user"></i><span class="nav-btn-text">AKUN</span></a>
-        </div>
-    </div>
+        <div class="offcanvas-body d-flex flex-column justify-content-center p-4">
+            
+            <a href="index.html" class="nav-btn-custom">
+                <i class="fas fa-house-chimney"></i>
+                <span class="nav-btn-text">HOME</span>
+            </a>
 
-    <div class="app-header">
-        <div class="header-left">
-            <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu"><i class="fas fa-bars"></i></button>
-            <h5 class="app-title ms-2">POWER METER MONITORING</h5>
-        </div>
-        <div class="mqtt-status">
-            <div>Connection: <span id="mqtt-badge" class="badge bg-secondary">Connecting...</span></div>
-            <div class="text-muted mt-1" id="last-update" style="font-size: 0.75rem; font-weight: 500;">Menunggu Data Masuk...</div>
-        </div>
-    </div>
+            <a href="menu_utama.html" class="nav-btn-custom">
+                <i class="fas fa-table-cells-large"></i>
+                <span class="nav-btn-text">MENU UTAMA</span>
+            </a>
 
-    <div class="container mb-5" style="padding-bottom: 20px;">
-        <div class="machine-grid" id="button-container"></div>
-    </div>
+            <a href="download_data.html" class="nav-btn-custom">
+                <i class="fas fa-file-export"></i>
+                <span class="nav-btn-text">UNDUH DATA</span>
+            </a>
 
-    <!-- MODAL POPUP -->
-    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title w-100 text-center">Realtime Monitoring</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <div class="info-card" id="modal-card-bg" style="background: linear-gradient(145deg, #6c757d, #495057);">
-                        <h6 class="info-title" id="modal-machine-name">MESIN</h6>
-                        <div class="info-subtitle" id="modal-machine-id">ID: #</div>
-                        <div class="text-center"><span id="modal-status-text" class="status-badge">WAITING DATA...</span></div>
-                        
-                        <!-- LIST 16 PARAMETER -->
-                        <div id="modal-params"></div>
-                    </div>
-                </div>
-            </div>
+            <a href="informasi_akun.html" class="nav-btn-custom">
+                <i class="fas fa-user-gear"></i>
+                <span class="nav-btn-text">AKUN</span>
+            </a>
+
         </div>
     </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    const machineNames = {
-        1: "UNKNOW", 2: "UNKNOW", 3: "UNKNOW", 4: "UNKNOW",
-        5: "MESIN 41", 6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOW",
-        9: "HEATER MC 5", 10: "MESIN 5", 11: "UNKNOW", 12: "MESIN 34",
-        13: "MESIN 35", 14: "UNKNOW", 15: "UNKNOW", 16: "MESIN 38",
-        17: "MESIN 36", 18: "MESIN 37"
-    };
-
-    const totalMesin = 18;
-    let selectedMachineId = null;
-    let machineData = {}; 
-    let detailModal;
-    let machineTimers = {};
-    let machineGauges = {}; // ADD: Simpan 18 instance gauge
-
-    // --- 1. GENERATE TOMBOL MESIN DENGAN GAUGE & CT ---
-    const btnContainer = document.getElementById('button-container');
-    for (let i = 1; i <= totalMesin; i++) {
-        let displayName = machineNames[i]; 
-        btnContainer.innerHTML += `
-            <button id="btn-machine-${i}" class="btn-machine bg-waiting" onclick="showDetail(${i})" style="padding: 10px;">
-                <span class="d-block machine-name mb-1" style="font-size: 0.95rem;">${displayName}</span>
-                
-                <!-- GAUGE MINI -->
-                <div id="gauge-${i}" style="width: 100%; height: 110px;"></div>
-                
-                <!-- CT BAR MINI -->
-                <div class="w-100 text-start mt-1">
-                    <div class="d-flex justify-content-between mb-1" style="font-size: 0.65rem; font-weight: bold; font-family: monospace;">
-                        <span>I1</span><span id="text-i1-${i}">0 A</span>
-                    </div>
-                    <div class="progress mb-1" style="height: 6px; background-color: rgba(255,255,255,0.2);">
-                        <div id="bar-i1-${i}" class="progress-bar bg-info" style="width: 0%; transition: width 0.6s ease;"></div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mb-1" style="font-size: 0.65rem; font-weight: bold; font-family: monospace;">
-                        <span>I2</span><span id="text-i2-${i}">0 A</span>
-                    </div>
-                    <div class="progress mb-1" style="height: 6px; background-color: rgba(255,255,255,0.2);">
-                        <div id="bar-i2-${i}" class="progress-bar bg-info" style="width: 0%; transition: width 0.6s ease;"></div>
-                    </div>
-                    
-                    <div class="d-flex justify-content-between mb-1" style="font-size: 0.65rem; font-weight: bold; font-family: monospace;">
-                        <span>I3</span><span id="text-i3-${i}">0 A</span>
-                    </div>
-                    <div class="progress mb-1" style="height: 6px; background-color: rgba(255,255,255,0.2);">
-                        <div id="bar-i3-${i}" class="progress-bar bg-info" style="width: 0%; transition: width 0.6s ease;"></div>
-                    </div>
-                </div>
+    <!-- MAIN CONTENT -->
+    <div class="main-container">
+        
+        <!-- 1. Header Row (Hamburger + Pill) -->
+        <div class="header-row">
+            <!-- Tombol Hamburger (Posisi Absolute Paling Kiri) -->
+            <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+                <i class="fas fa-bars"></i>
             </button>
-        `;
-    }
-
-    // --- 2. LOGIKA STATUS ---
-    function determineStatus(voltage, current) {
-        const v = Number(voltage) || 0;
-        const c = Number(current) || 0;
-        if (v === 0 && c === 0) return { text: 'OFFLINE', colorClass: 'bg-offline', modalColor: 'linear-gradient(145deg, #dc3545, #b02a37)' };
-        if (v > 0 && c === 0) return { text: 'STANDBY', colorClass: 'bg-standby', modalColor: 'linear-gradient(145deg, #0d6efd, #0a58ca)' };
-        if (v > 0 && c > 0) return { text: 'RUNNING', colorClass: 'bg-running', modalColor: 'linear-gradient(145deg, #198754, #146c43)' };
-        return { text: 'WAITING', colorClass: 'bg-waiting', modalColor: 'linear-gradient(145deg, #6c757d, #495057)' };
-    }
-
-    // Format waktu ke "days, hrs" sesuai permintaan
-    function formatOpTime(rawSeconds) {
-        if (rawSeconds === undefined || rawSeconds === null) return '-';
-        let days = Math.floor(rawSeconds / 86400);
-        let hours = Math.floor((rawSeconds % 86400) / 3600);
-        return `${days} days, ${hours} hrs`;
-    }
-
-    // --- 3. MODAL DETAIL ---
-    function showDetail(id) {
-        selectedMachineId = id;
-        document.getElementById('modal-machine-name').innerText = machineNames[id];
-        document.getElementById('modal-machine-id').innerText = `DEVICE ID: ${id}`;
-        updateModalUI(id); 
-        if (!detailModal) detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
-        detailModal.show();
-    }
-
-    // UPDATE FUNCTION: INIT 18 GAUGES
-    function initMachineGauges() {
-        for (let i = 1; i <= totalMesin; i++) {
-            const dom = document.getElementById(`gauge-${i}`);
-            if (dom && dom.clientWidth > 0) {
-                machineGauges[i] = echarts.init(dom);
-                machineGauges[i].setOption({
-                    series: [{
-                        type: 'gauge',
-                        min: 0,
-                        max: 400,
-                        radius: '100%',
-                        axisLine: {
-                            lineStyle: {
-                                width: 8,
-                                color: [
-                                    [0.75, '#28a745'], // 0-300 (hijau)
-                                    [0.90, '#ffc107'], // 300-360 (kuning)
-                                    [1.00, '#dc3545']  // 360-400 (merah)
-                                ]
-                            }
-                        },
-                        pointer: { width: 3, length: '60%', itemStyle: { color: 'auto' } },
-                        axisTick: { distance: -8, length: 5, lineStyle: { color: '#fff', width: 1 } },
-                        splitLine: { distance: -10, length: 8, lineStyle: { color: '#fff', width: 2 } },
-                        axisLabel: { show: false }, // Disembunyikan agar hemat tempat
-                        detail: {
-                            valueAnimation: true,
-                            formatter: '{value}V',
-                            color: 'inherit',
-                            fontSize: 13,
-                            fontWeight: 'bold',
-                            padding: [40, 0, 0, 0]
-                        },
-                        data: [{ value: 0 }]
-                    }]
-                });
-            }
-        }
-    }
-
-    // UPDATE GAUGE SPESIFIK MESIN
-    function updateVoltageGauge(id, value) {
-        const v = Number(value) || 0;
-        if (machineGauges[id]) {
-            machineGauges[id].setOption({
-                series: [{ data: [{ value: v.toFixed(1) }] }]
-            });
-        }
-    }
-
-    // UPDATE CURRENT BAR SPESIFIK MESIN
-    function updateCurrentBar(meterId, phase, value, max) {
-        const val = Number(value) || 0;
-        const bar = document.getElementById(`bar-${phase}-${meterId}`);
-        const text = document.getElementById(`text-${phase}-${meterId}`);
-        
-        if (bar && text) {
-            let percentage = (val / max) * 100;
-            if (percentage > 100) percentage = 100;
             
-            bar.style.width = percentage + '%';
-            text.innerText = val.toFixed(1) + ' A';
-        }
-    }
-
-    // Initialize ALL Gauges on page load
-    document.addEventListener('DOMContentLoaded', () => {
-        // Beri sedikit delay agar grid dan CSS selesai di-render ukurannya
-        setTimeout(() => {
-            initMachineGauges();
-        }, 100);
+            <!-- Pill Menu Utama -->
+            <div class="header-pill">MENU UTAMA</div>
+        </div>
         
-        // Resize all gauges when window is resized for responsiveness
-        window.addEventListener('resize', () => {
-            Object.values(machineGauges).forEach(chart => {
-                if (chart) chart.resize();
-            });
-        });
-    });
+        <p class="description">
+            Pilih menu yang tersedia di bawah ini untuk mengakses dashboard monitoring sistem Anda.
+        </p>
 
-    // 🔥 UPDATE UI 16 PARAMETER BARU (RAPAT DAN RAPI) 🔥
-    function updateModalUI(id) {
-        const data = machineData[id] || {};
-        const params = document.getElementById('modal-params');
-        const cardBg = document.getElementById('modal-card-bg');
-        const statusTextDiv = document.getElementById('modal-status-text');
-
-        let status = data.voltage !== undefined ? determineStatus(data.voltage, data.current_i1) : { text: 'WAITING DATA...', modalColor: 'linear-gradient(145deg, #6c757d, #495057)' };
-        cardBg.style.background = status.modalColor;
-        statusTextDiv.innerText = status.text;
-
-        const fmt = (val, fixed=2, unit='') => val !== undefined ? `${val.toFixed(fixed)} ${unit}` : '-';
-        
-        params.innerHTML = `
-            <div class="param-row"><span class="param-label">1. Total Ea</span><span class="param-value">${fmt(data.total_ea, 2, 'kWh')}</span></div>
-            <div class="param-row"><span class="param-label">2. Total Er</span><span class="param-value">${fmt(data.total_er, 2, 'kVARh')}</span></div>
-            <div class="param-row"><span class="param-label">3. Partial Ea</span><span class="param-value">${fmt(data.partial_ea, 2, 'kWh')}</span></div>
-            <div class="param-row"><span class="param-label">4. Partial Er</span><span class="param-value">${fmt(data.partial_er, 2, 'kVARh')}</span></div>
-            <div class="param-row"><span class="param-label">5. Voltage</span><span class="param-value">${fmt(data.voltage, 1, 'V')}</span></div>
-            <div class="param-row"><span class="param-label">6. Current I1</span><span class="param-value">${fmt(data.current_i1, 1, 'A')}</span></div>
-            <div class="param-row"><span class="param-label">7. Current I2</span><span class="param-value">${fmt(data.current_i2, 1, 'A')}</span></div>
-            <div class="param-row"><span class="param-label">8. Current I3</span><span class="param-value">${fmt(data.current_i3, 1, 'A')}</span></div>
-            <div class="param-row"><span class="param-label">9. Total Active (P)</span><span class="param-value">${fmt(data.active_p, 0, 'Watt')}</span></div>
-            <div class="param-row"><span class="param-label">10. Total Reactive (Q)</span><span class="param-value">${fmt(data.reactive_q, 0, 'VAR')}</span></div>
-            <div class="param-row"><span class="param-label">11. Total Apparent (S)</span><span class="param-value">${fmt(data.apparent_s, 2, 'kVA')}</span></div>
-            <div class="param-row"><span class="param-label">12. PF</span><span class="param-value">${fmt(data.pf, 3)}</span></div>
-            <div class="param-row"><span class="param-label">13. Tarif T1</span><span class="param-value">${fmt(data.tarif_t1, 1, 'kWh')}</span></div>
-            <div class="param-row"><span class="param-label">14. Tarif T2</span><span class="param-value">${fmt(data.tarif_t2, 1, 'kWh')}</span></div>
-            <div class="param-row"><span class="param-label">15. Freq</span><span class="param-value">${fmt(data.freq, 2, 'Hz')}</span></div>
-            <div class="param-row" style="border-bottom:none"><span class="param-label">16. Op Time</span><span class="param-value">${formatOpTime(data.op_time)}</span></div>
-        `;
-    }
-
-    // --- 4. LOGIKA TAHAN BANTING (WATCHDOG TIMER & MQTT) ---
-    function markAsOffline(id) {
-        const btn = document.getElementById(`btn-machine-${id}`);
-        if(btn) {
-            btn.className = `btn-machine bg-offline`; // Force jadi merah kalau beneran mati
-            btn.classList.remove('scanning-active');
-        }
-        delete machineData[id];
-
-        // Reset gauge dan bar jadi 0 jika terputus/offline
-        updateVoltageGauge(id, 0);
-        updateCurrentBar(id, 'i1', 0, 100);
-        updateCurrentBar(id, 'i2', 0, 100);
-        updateCurrentBar(id, 'i3', 0, 100);
-
-        if (selectedMachineId === id && document.getElementById('detailModal').classList.contains('show')) {
-            updateModalUI(id);
-        }
-    }
-
-    function updateMachineUI(meterId, data) {
-        machineData[meterId] = data;
-        const btn = document.getElementById(`btn-machine-${meterId}`);
-        if(btn) {
-            const status = determineStatus(data.voltage, data.current_i1);
-            btn.className = `btn-machine ${status.colorClass}`; 
-
-            // Efek Scanner Pindah-pindah
-            document.querySelectorAll('.btn-machine').forEach(b => b.classList.remove('scanning-active'));
-            btn.classList.add('scanning-active');
-        }
-
-        // UPDATE GAUGE DAN CT DI DALAM CARD MASING-MASING
-        updateVoltageGauge(meterId, data.voltage);
-        updateCurrentBar(meterId, "i1", data.current_i1, 100);
-        updateCurrentBar(meterId, "i2", data.current_i2, 100);
-        updateCurrentBar(meterId, "i3", data.current_i3, 100);
-
-        if (selectedMachineId === meterId && document.getElementById('detailModal').classList.contains('show')) {
-            updateModalUI(meterId);
-        }
-    }
-
-    // MQTT SETTINGS (TIDAK DISENTUH - SESUAI SYSTEM)
-    const mqttBroker = "broker.hivemq.com";
-    const mqttPort = 8884; 
-    const topicBase = "monitoring/data/powermeter"; 
-    const clientID = "WebApp_" + new Date().getTime(); 
-    const client = new Paho.MQTT.Client(mqttBroker, mqttPort, clientID);
-
-    function onConnect() {
-        document.getElementById('mqtt-badge').className = 'badge bg-success';
-        document.getElementById('mqtt-badge').innerText = 'Connected';
-        client.subscribe(topicBase + "/#");
-    }
-
-    function onMessageArrived(message) {
-        try {
-            const topicParts = message.destinationName.split("/");
-            const meterId = parseInt(topicParts[topicParts.length - 1]);
+        <!-- 2. GRID MENU UTAMA -->
+        <div class="menu-grid">
             
-            // PROTEKSI JSON
-            let data;
-            try {
-                let safePayload = message.payloadString.replace(/NaN/g, "0.0").replace(/Infinity/g, "0.0");
-                data = JSON.parse(safePayload);
-            } catch (err) {
-                console.error(`❌ [ERROR] JSON Invalid dari Mesin ID ${meterId}:`, message.payloadString);
-                return;
-            }
-            
-            updateMachineUI(meterId, data);
+            <!-- Power Meter -->
+            <a href="realtime.html" class="menu-card">
+                <i class="fas fa-plug-circle-bolt"></i>
+                <span>Power Meter Monitoring</span>
+            </a>
 
-            // BOM WAKTU 90 DETIK OFFLINE
-            clearTimeout(machineTimers[meterId]); 
-            machineTimers[meterId] = setTimeout(() => {
-                markAsOffline(meterId); 
-            }, 90000); 
+            <!-- Monitoring Tarif -->
+            <a href="tarif.html" class="menu-card gold">
+                <i class="fas fa-money-bill-trend-up"></i>
+                <span>Monitoring Tarif</span>
+            </a>
 
-            // FIX: Format Jam 24-Hour (Contoh: 22:15:30)
-            const timeString = new Date().toLocaleTimeString('id-ID', { hour12: false });
-            document.getElementById('last-update').innerText = "Scanning ID: " + meterId + " | Pukul " + timeString;
+            <!-- Status Data -->
+            <a href="status_data.html" class="menu-card">
+                <i class="fas fa-tower-broadcast"></i>
+                <span>Status<br>Data</span>
+            </a>
 
-        } catch (e) { console.error("Err:", e); }
-    }
+            <!-- Riwayat -->
+            <a href="riwayat.html" class="menu-card gold">
+                <i class="fas fa-timeline"></i>
+                <span>Riwayat<br>Perekaman</span>
+            </a>
 
-    client.onConnectionLost = (r) => { 
-        document.getElementById('mqtt-badge').className = 'badge bg-danger';
-        document.getElementById('mqtt-badge').innerText = 'Lost';
-        setTimeout(connectMQTT, 5000); 
-    };
-    client.onMessageArrived = onMessageArrived;
-    
-    function connectMQTT() { 
-        client.connect({ useSSL: true, onSuccess: onConnect, onFailure: (e)=>{setTimeout(connectMQTT, 5000);} }); 
-    }
-    
-    // Start Connection
-    connectMQTT();
-</script>
+            <!-- Grafik Data -->
+            <a href="grafik_data.html" class="menu-card">
+                <i class="fas fa-wave-square"></i>
+                <span>Grafik<br>Data</span>
+            </a>
+
+            <!-- Download Data -->
+            <a href="download_data.html" class="menu-card gold">
+                <i class="fas fa-hard-drive"></i>
+                <span>Download<br>Data</span>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (Wajib untuk Sidebar) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 </html>
