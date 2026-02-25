@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MENU UTAMA - Monitoring System</title>
     
-    <!-- Bootstrap 5 CSS (Wajib untuk Sidebar) -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Poppins -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,8 +20,6 @@
             --btn-gold: #cc9b28;
             --text-dark: #2c3e50;
             --nav-bg: #ffffff;
-            
-            /* TEMA UTAMA */
             --sidebar-theme: #2b6c8a; 
             --custom-main: #2b6c8a; 
         }
@@ -36,6 +34,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center; /* Memastikan konten ke tengah vertikal jika layar tinggi */
         }
 
         /* --- SIDEBAR STYLE --- */
@@ -55,7 +54,6 @@
             letter-spacing: 1.5px;
         }
 
-        /* TOMBOL NAVIGASI SAMPING */
         .nav-btn-custom {
             display: flex;
             align-items: center;
@@ -64,7 +62,7 @@
             border: 2px solid var(--sidebar-theme);
             border-radius: 50px;
             padding: 12px 25px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-decoration: none;
             font-weight: 700;
             text-transform: uppercase;
@@ -80,8 +78,8 @@
         }
 
         .nav-btn-custom i {
-            font-size: 1.5rem;
-            width: 40px;
+            font-size: 1.4rem;
+            width: 35px;
             text-align: center;
             margin-right: 15px;
         }
@@ -89,31 +87,31 @@
         /* --- CONTAINER UTAMA --- */
         .main-container {
             width: 100%;
-            max-width: 1200px; /* Diperbesar dari 500px ke 1200px agar melebar di Laptop/TV */
-            padding: 40px 30px;
+            /* BATAS MAKSIMAL LEBAR AGAR TIDAK RAKSASA DI PC */
+            max-width: 850px; 
+            padding: 30px 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
         }
 
-        /* --- HEADER ROW (HAMBURGER + PILL) --- */
+        /* --- HEADER ROW --- */
         .header-row {
             position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             width: 100%;
-            min-height: 60px;
+            min-height: 50px;
         }
 
-        /* TOMBOL HAMBURGER */
         .btn-menu-toggle {
             position: absolute;
             left: 0;
             color: var(--sidebar-theme);
-            font-size: 2rem;
+            font-size: 1.8rem;
             background: none;
             border: none;
             cursor: pointer;
@@ -124,40 +122,36 @@
             transition: transform 0.2s ease;
         }
         
-        .btn-menu-toggle:hover {
-            transform: scale(1.1);
-        }
+        .btn-menu-toggle:hover { transform: scale(1.1); }
 
-        /* --- HEADER PILL --- */
         .header-pill {
             display: inline-block;
-            border: 3px solid var(--custom-main);
-            padding: 10px 50px;
+            border: 2px solid var(--custom-main);
+            padding: 8px 40px;
             border-radius: 50px;
             color: var(--custom-main);
             font-weight: 800;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             background: #fff;
             box-shadow: 0 4px 15px rgba(43, 108, 138, 0.1);
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             z-index: 1;
         }
 
         .description {
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: #6c757d;
             font-weight: 500;
-            line-height: 1.6;
-            margin-bottom: 40px;
-            padding: 0 15px;
-            max-width: 800px; /* Mencegah teks terlalu melebar di TV */
+            line-height: 1.5;
+            margin-bottom: 35px;
+            padding: 0 10px;
         }
 
         /* --- MENU GRID --- */
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 Kolom untuk HP */
-            gap: 20px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
             width: 100%;
             z-index: 2;
         }
@@ -167,184 +161,104 @@
             background: linear-gradient(135deg, var(--btn-blue) 0%, #1f5066 100%);
             color: white;
             text-decoration: none;
-            border-radius: 25px;
-            padding: 30px 15px;
+            border-radius: 18px; /* Sudut tidak terlalu melengkung */
+            padding: 20px 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 20px rgba(43, 108, 138, 0.2);
+            box-shadow: 0 8px 15px rgba(43, 108, 138, 0.15);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
-            min-height: 150px;
+            min-height: 100px; /* Disesuaikan untuk desain tanpa ikon */
         }
 
-        /* Aksen dekoratif tipis di dalam kartu */
         .menu-card::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
-            height: 5px;
+            height: 4px;
             background: rgba(255,255,255,0.2);
         }
 
         .menu-card.gold {
             background: linear-gradient(135deg, var(--btn-gold) 0%, #a67c1e 100%);
-            box-shadow: 0 10px 20px rgba(204, 155, 40, 0.2);
-        }
-
-        .menu-card i {
-            font-size: 2.2rem;
-            margin-bottom: 12px;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease;
+            box-shadow: 0 8px 15px rgba(204, 155, 40, 0.15);
         }
 
         .menu-card span {
             font-weight: 700;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
+            font-size: 0.95rem; /* Teks diperbesar sedikit */
+            letter-spacing: 1px;
             text-transform: uppercase;
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
         .menu-card:hover {
-            transform: translateY(-7px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.2);
             color: white;
             filter: brightness(1.1);
         }
         
-        .menu-card:hover i {
-            transform: scale(1.1);
-        }
-
-        .menu-card:active {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-        }
+        .menu-card:active { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
 
         /* =========================================
-           RESPONSIVE DESIGN (TABLET, LAPTOP, TV)
+           RESPONSIVE DESIGN PRO (SMOOTH & ELEGANT)
            ========================================= */
 
         /* Tablet (768px ke atas) */
         @media (min-width: 768px) {
             .menu-grid {
-                grid-template-columns: repeat(3, 1fr); /* Berubah jadi 3 Kolom */
-                gap: 30px;
+                grid-template-columns: repeat(3, 1fr); /* 3 Kolom */
+                gap: 20px;
             }
             .menu-card {
-                min-height: 200px;
-                padding: 40px 20px;
+                min-height: 120px;
+                padding: 25px 15px;
             }
-            .menu-card i {
-                font-size: 2.6rem; 
-                margin-bottom: 15px;
+            .menu-card span { font-size: 1rem; }
+            .header-pill { font-size: 1.5rem; padding: 10px 50px; }
+            .description { font-size: 1.05rem; margin-bottom: 40px; }
+            .btn-menu-toggle { font-size: 2rem; }
+        }
+
+        /* Laptop/Desktop (1024px ke atas) -> BATAS MAKSIMAL */
+        @media (min-width: 1024px) {
+            .main-container {
+                padding: 40px;
+            }
+            .menu-grid {
+                gap: 25px; /* Jarak antar kotak pas */
+            }
+            .menu-card {
+                min-height: 130px; /* Bentuk elegan, text-only */
+                border-radius: 20px;
+                padding: 30px 20px;
             }
             .menu-card span {
-                font-size: 0.95rem; 
+                font-size: 1.15rem; /* Teks dibesarkan agar proporsional */
+                letter-spacing: 1.5px;
             }
             .header-pill {
-                font-size: 1.8rem;
+                font-size: 1.6rem;
                 padding: 12px 60px;
             }
             .description {
-                font-size: 1.2rem;
-                margin-bottom: 50px;
-            }
-            .btn-menu-toggle {
-                font-size: 2.2rem;
-            }
-        }
-
-        /* Laptop & Layar Besar (1024px ke atas) */
-        @media (min-width: 1024px) {
-            .main-container {
-                padding: 60px 40px;
-            }
-            .menu-grid {
-                gap: 40px;
-            }
-            .menu-card {
-                min-height: 260px;
-                border-radius: 35px;
-            }
-            .menu-card i {
-                font-size: 3.2rem; 
-                margin-bottom: 20px;
-            }
-            .menu-card span {
-                font-size: 1.1rem; 
-                letter-spacing: 1px;
-            }
-            .header-pill {
-                font-size: 2.2rem;
-                padding: 15px 80px;
-            }
-            .description {
-                font-size: 1.3rem;
-                margin-bottom: 60px;
-            }
-            .btn-menu-toggle {
-                font-size: 2.8rem;
-            }
-        }
-
-        /* TV & Layar Sangat Besar (1440px ke atas) */
-        @media (min-width: 1440px) {
-            .main-container {
-                max-width: 1500px;
-                padding: 80px 50px;
-            }
-            .menu-grid {
-                gap: 50px;
-            }
-            .menu-card {
-                min-height: 320px;
-                border-radius: 40px;
-            }
-            .menu-card i {
-                font-size: 4rem; 
-                margin-bottom: 25px;
-            }
-            .menu-card span {
-                font-size: 1.3rem; 
-            }
-            .header-pill {
-                font-size: 2.8rem;
-                padding: 20px 100px;
-            }
-            .description {
-                font-size: 1.6rem;
-                margin-bottom: 80px;
-            }
-            .btn-menu-toggle {
-                font-size: 3.5rem;
+                font-size: 1.1rem;
+                margin-bottom: 45px;
             }
         }
 
         /* HP Sangat Kecil (Lebar di bawah 360px) */
         @media (max-width: 360px) {
-            .menu-grid {
-                grid-template-columns: 1fr; /* Jadi 1 kolom list */
-            }
+            .menu-grid { grid-template-columns: 1fr; } /* 1 Kolom list */
             .menu-card {
-                flex-direction: row;
-                justify-content: flex-start;
                 padding: 20px;
-                min-height: 90px;
+                min-height: 70px;
             }
-            .menu-card i {
-                margin-bottom: 0;
-                margin-right: 20px;
-                font-size: 1.8rem; 
-            }
-            .menu-card span {
-                text-align: left;
-                font-size: 0.85rem;
-            }
+            .menu-card span { text-align: center; font-size: 0.9rem; }
         }
     </style>
 </head>
@@ -386,7 +300,7 @@
         
         <!-- 1. Header Row (Hamburger + Pill) -->
         <div class="header-row">
-            <!-- Tombol Hamburger (Posisi Absolute Paling Kiri) -->
+            <!-- Tombol Hamburger -->
             <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
                 <i class="fas fa-bars"></i>
             </button>
@@ -404,37 +318,31 @@
             
             <!-- Power Meter -->
             <a href="realtime.html" class="menu-card">
-                <i class="fas fa-plug-circle-bolt"></i>
                 <span>Power Meter Monitoring</span>
             </a>
 
             <!-- Monitoring Tarif -->
             <a href="tarif.html" class="menu-card gold">
-                <i class="fas fa-money-bill-trend-up"></i>
                 <span>Monitoring Tarif</span>
             </a>
 
             <!-- Status Data -->
             <a href="status_data.html" class="menu-card">
-                <i class="fas fa-tower-broadcast"></i>
                 <span>Status<br>Data</span>
             </a>
 
             <!-- Riwayat -->
             <a href="riwayat.html" class="menu-card gold">
-                <i class="fas fa-timeline"></i>
                 <span>Riwayat<br>Perekaman</span>
             </a>
 
             <!-- Grafik Data -->
             <a href="grafik_data.html" class="menu-card">
-                <i class="fas fa-wave-square"></i>
                 <span>Grafik<br>Data</span>
             </a>
 
             <!-- Download Data -->
             <a href="download_data.html" class="menu-card gold">
-                <i class="fas fa-hard-drive"></i>
                 <span>Download<br>Data</span>
             </a>
 
