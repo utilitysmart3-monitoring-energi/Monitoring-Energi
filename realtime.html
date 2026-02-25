@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- ADD GAUGE: Library ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
 
     <style>
         :root { --sidebar-theme: #2b6c8a; }
@@ -56,11 +59,6 @@
         .param-row { display: flex; justify-content: space-between; margin-bottom: 7px; font-size: 0.90rem; border-bottom: 1px dotted rgba(255,255,255,0.4); padding-bottom: 4px; align-items: center; }
         .param-label { font-weight: 500; }
         .param-value { font-family: 'Consolas', monospace; font-weight: bold; font-size: 0.95rem; }
-        .btn-ai-analyze { width: 100%; background: linear-gradient(135deg, #6610f2 0%, #a4508b 100%); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(102, 16, 242, 0.3); transition: all 0.3s ease; }
-        .btn-ai-analyze:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 16, 242, 0.5); color: white; }
-        .ai-result-box { background-color: #f8f9fa; border-left: 5px solid #6610f2; border-radius: 8px; padding: 15px; margin-top: 20px; margin-bottom: 20px; color: #333; font-size: 0.9rem; display: none; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
-        .ai-result-header { color: #6610f2; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-        .ai-loading { text-align: center; padding: 15px; display: none; color: #6610f2; font-style: italic; font-weight: 600; }
         
         @media (min-width: 768px) { .machine-grid { grid-template-columns: repeat(3, 1fr); } .modal-dialog { max-width: 450px; } }
     </style>
@@ -111,20 +109,6 @@
                         
                         <!-- LIST 16 PARAMETER -->
                         <div id="modal-params"></div>
-                        
-                        <button class="btn-ai-analyze" onclick="analyzeWithGemini()">
-                            <i class="fas fa-magic"></i> Machine AI Analytics
-                        </button>
-                    </div>
-                    
-                    <div class="container pb-3">
-                         <div id="ai-loading" class="ai-loading">
-                            <i class="fas fa-spinner fa-spin"></i> Sedang menghubungkan ke AI Engine Raspberry...
-                         </div>
-                        <div id="ai-result" class="ai-result-box">
-                            <div class="ai-result-header"><i class="fas fa-robot"></i> Laporan AI Technician</div>
-                            <div id="ai-content"></div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -147,14 +131,42 @@
     let machineData = {}; 
     let detailModal;
     let machineTimers = {};
+    let machineGauges = {}; // ADD: Simpan 18 instance gauge
 
-    // --- 1. GENERATE TOMBOL MESIN ---
+    // --- 1. GENERATE TOMBOL MESIN DENGAN GAUGE & CT ---
     const btnContainer = document.getElementById('button-container');
     for (let i = 1; i <= totalMesin; i++) {
         let displayName = machineNames[i]; 
         btnContainer.innerHTML += `
-            <button id="btn-machine-${i}" class="btn-machine bg-waiting" onclick="showDetail(${i})">
-                <span class="d-block machine-name">${displayName}</span>
+            <button id="btn-machine-${i}" class="btn-machine bg-waiting" onclick="showDetail(${i})" style="padding: 10px;">
+                <span class="d-block machine-name mb-1" style="font-size: 0.95rem;">${displayName}</span>
+                
+                <!-- GAUGE MINI -->
+                <div id="gauge-${i}" style="width: 100%; height: 110px;"></div>
+                
+                <!-- CT BAR MINI -->
+                <div class="w-100 text-start mt-1">
+                    <div class="d-flex justify-content-between mb-1" style="font-size: 0.65rem; font-weight: bold; font-family: monospace;">
+                        <span>I1</span><span id="text-i1-${i}">0 A</span>
+                    </div>
+                    <div class="progress mb-1" style="height: 6px; background-color: rgba(255,255,255,0.2);">
+                        <div id="bar-i1-${i}" class="progress-bar bg-info" style="width: 0%; transition: width 0.6s ease;"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-1" style="font-size: 0.65rem; font-weight: bold; font-family: monospace;">
+                        <span>I2</span><span id="text-i2-${i}">0 A</span>
+                    </div>
+                    <div class="progress mb-1" style="height: 6px; background-color: rgba(255,255,255,0.2);">
+                        <div id="bar-i2-${i}" class="progress-bar bg-info" style="width: 0%; transition: width 0.6s ease;"></div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-1" style="font-size: 0.65rem; font-weight: bold; font-family: monospace;">
+                        <span>I3</span><span id="text-i3-${i}">0 A</span>
+                    </div>
+                    <div class="progress mb-1" style="height: 6px; background-color: rgba(255,255,255,0.2);">
+                        <div id="bar-i3-${i}" class="progress-bar bg-info" style="width: 0%; transition: width 0.6s ease;"></div>
+                    </div>
+                </div>
             </button>
         `;
     }
@@ -177,90 +189,96 @@
         return `${days} days, ${hours} hrs`;
     }
 
-    // --- 3. MODAL & AI ENGINE (KHUSUS RASPBERRY PI PORT 5000) ---
+    // --- 3. MODAL DETAIL ---
     function showDetail(id) {
         selectedMachineId = id;
         document.getElementById('modal-machine-name').innerText = machineNames[id];
         document.getElementById('modal-machine-id').innerText = `DEVICE ID: ${id}`;
-        document.getElementById('ai-result').style.display = 'none';
-        document.getElementById('ai-loading').style.display = 'none';
         updateModalUI(id); 
         if (!detailModal) detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
         detailModal.show();
     }
 
-    // 🔥 PANGGIL SATPAM AI DI RASPBERRY PI SECARA AMAN 🔥
-    async function analyzeWithGemini() {
-        const data = machineData[selectedMachineId];
-        if (!data) { alert("Belum ada data dari mesin ini untuk dianalisa!"); return; }
-        
-        const aiResultBox = document.getElementById('ai-result');
-        const aiLoading = document.getElementById('ai-loading');
-        const aiContent = document.getElementById('ai-content');
-        
-        aiResultBox.style.display = 'none';
-        aiLoading.style.display = 'block';
-        
-        try {
-            console.log("⏳ Mengirim instruksi ke AI Engine via Cloudflare Tunnel...");
-            
-            // 🔥 UPDATE: Menggunakan link Cloudflare yang berjalan otomatis di background
-            const response = await fetch("https://differential-testing-cooperative-undo.trycloudflare.com", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    voltage: data.voltage,
-                    i1: data.current_i1,
-                    i2: data.current_i2,
-                    i3: data.current_i3,
-                    pf: data.pf,
-                    p: data.active_p
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.status === "success") {
-                aiContent.innerHTML = marked.parse(result.result);
-                aiLoading.style.display = 'none'; 
-                aiResultBox.style.display = 'block';
-                console.log("✅ BERHASIL MENDAPATKAN ANALISA DARI RASPBERRY PI!");
-            } else {
-                throw new Error(result.result || "AI Engine memberikan respon error.");
+    // UPDATE FUNCTION: INIT 18 GAUGES
+    function initMachineGauges() {
+        for (let i = 1; i <= totalMesin; i++) {
+            const dom = document.getElementById(`gauge-${i}`);
+            if (dom && dom.clientWidth > 0) {
+                machineGauges[i] = echarts.init(dom);
+                machineGauges[i].setOption({
+                    series: [{
+                        type: 'gauge',
+                        min: 0,
+                        max: 400,
+                        radius: '100%',
+                        axisLine: {
+                            lineStyle: {
+                                width: 8,
+                                color: [
+                                    [0.75, '#28a745'], // 0-300 (hijau)
+                                    [0.90, '#ffc107'], // 300-360 (kuning)
+                                    [1.00, '#dc3545']  // 360-400 (merah)
+                                ]
+                            }
+                        },
+                        pointer: { width: 3, length: '60%', itemStyle: { color: 'auto' } },
+                        axisTick: { distance: -8, length: 5, lineStyle: { color: '#fff', width: 1 } },
+                        splitLine: { distance: -10, length: 8, lineStyle: { color: '#fff', width: 2 } },
+                        axisLabel: { show: false }, // Disembunyikan agar hemat tempat
+                        detail: {
+                            valueAnimation: true,
+                            formatter: '{value}V',
+                            color: 'inherit',
+                            fontSize: 13,
+                            fontWeight: 'bold',
+                            padding: [40, 0, 0, 0]
+                        },
+                        data: [{ value: 0 }]
+                    }]
+                });
             }
-
-        } catch (error) {
-            console.error("❌ KONEKSI AI ENGINE GAGAL:", error);
-            aiLoading.style.display = 'none'; 
-            aiResultBox.style.display = 'block';
-            
-            // Penanganan khusus untuk error "Failed to fetch" (masalah jaringan/tunnel)
-            let tipsHTML = "";
-            if (error.message.includes("Failed to fetch")) {
-                tipsHTML = `
-                    <li><b>Terowongan Cloudflare Terputus:</b> Link <code>.trycloudflare.com</code> yang Anda gunakan mungkin sudah kadaluarsa atau terminal di Raspberry Pi telah tertutup.</li>
-                    <li><b>Solusi:</b> Buka kembali terminal Raspberry Pi Anda, jalankan <code>cloudflared tunnel --url http://127.0.0.1:5000</code>, dan perbarui link di file HTML dengan link yang baru muncul.</li>
-                    <li><b>Koneksi Internet:</b> Pastikan HP/Laptop Anda terhubung ke internet yang stabil.</li>
-                `;
-            } else {
-                tipsHTML = `
-                    <li>Pastikan Laptop terhubung ke WiFi Raspberry atau internet stabil.</li>
-                    <li>Pastikan service <code>ai-engine.service</code> statusnya <i>active (running)</i> di Raspberry Pi.</li>
-                `;
-            }
-
-            aiContent.innerHTML = `
-                <div class="alert alert-danger mb-0" style="font-size:0.9rem;">
-                    <strong><i class="fas fa-exclamation-triangle"></i> Gagal Koneksi ke Server AI</strong><br><br>
-                    Log: <code>${error.message}</code><br><br>
-                    <b style="color:#842029;">Tips Troubleshooting:</b>
-                    <ul class="mb-0 mt-1 ps-3">
-                        ${tipsHTML}
-                    </ul>
-                </div>
-            `;
         }
     }
+
+    // UPDATE GAUGE SPESIFIK MESIN
+    function updateVoltageGauge(id, value) {
+        const v = Number(value) || 0;
+        if (machineGauges[id]) {
+            machineGauges[id].setOption({
+                series: [{ data: [{ value: v.toFixed(1) }] }]
+            });
+        }
+    }
+
+    // UPDATE CURRENT BAR SPESIFIK MESIN
+    function updateCurrentBar(meterId, phase, value, max) {
+        const val = Number(value) || 0;
+        const bar = document.getElementById(`bar-${phase}-${meterId}`);
+        const text = document.getElementById(`text-${phase}-${meterId}`);
+        
+        if (bar && text) {
+            let percentage = (val / max) * 100;
+            if (percentage > 100) percentage = 100;
+            
+            bar.style.width = percentage + '%';
+            text.innerText = val.toFixed(1) + ' A';
+        }
+    }
+
+    // Initialize ALL Gauges on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        // Beri sedikit delay agar grid dan CSS selesai di-render ukurannya
+        setTimeout(() => {
+            initMachineGauges();
+        }, 100);
+        
+        // Resize all gauges when window is resized for responsiveness
+        window.addEventListener('resize', () => {
+            Object.values(machineGauges).forEach(chart => {
+                if (chart) chart.resize();
+            });
+        });
+    });
 
     // 🔥 UPDATE UI 16 PARAMETER BARU (RAPAT DAN RAPI) 🔥
     function updateModalUI(id) {
@@ -303,6 +321,13 @@
             btn.classList.remove('scanning-active');
         }
         delete machineData[id];
+
+        // Reset gauge dan bar jadi 0 jika terputus/offline
+        updateVoltageGauge(id, 0);
+        updateCurrentBar(id, 'i1', 0, 100);
+        updateCurrentBar(id, 'i2', 0, 100);
+        updateCurrentBar(id, 'i3', 0, 100);
+
         if (selectedMachineId === id && document.getElementById('detailModal').classList.contains('show')) {
             updateModalUI(id);
         }
@@ -319,6 +344,12 @@
             document.querySelectorAll('.btn-machine').forEach(b => b.classList.remove('scanning-active'));
             btn.classList.add('scanning-active');
         }
+
+        // UPDATE GAUGE DAN CT DI DALAM CARD MASING-MASING
+        updateVoltageGauge(meterId, data.voltage);
+        updateCurrentBar(meterId, "i1", data.current_i1, 100);
+        updateCurrentBar(meterId, "i2", data.current_i2, 100);
+        updateCurrentBar(meterId, "i3", data.current_i3, 100);
 
         if (selectedMachineId === meterId && document.getElementById('detailModal').classList.contains('show')) {
             updateModalUI(meterId);
