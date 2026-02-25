@@ -34,7 +34,8 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center; /* Memastikan konten ke tengah vertikal jika layar tinggi */
+            justify-content: flex-start; /* Diubah: Agar konten rapat ke atas, bukan ke tengah */
+            padding: 0; /* Dihapus agar rapi dari ujung atas */
         }
 
         /* --- SIDEBAR STYLE --- */
@@ -86,10 +87,9 @@
 
         /* --- CONTAINER UTAMA --- */
         .main-container {
-            width: 100%;
-            /* BATAS MAKSIMAL LEBAR AGAR TIDAK RAKSASA DI PC */
-            max-width: 850px; 
-            padding: 30px 20px;
+            width: 90%; /* Fluid width */
+            max-width: 1100px; /* Batas melar maksimal untuk TV/Monitor raksasa */
+            padding: clamp(30px, 4vw, 50px) clamp(15px, 4vw, 50px); /* Atas lebih rapat */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -102,16 +102,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 15px;
+            margin-bottom: clamp(20px, 4vw, 40px);
             width: 100%;
-            min-height: 50px;
         }
 
         .btn-menu-toggle {
             position: absolute;
             left: 0;
+            top: 50%; /* Kunci posisi 50% dari atas container */
+            transform: translateY(-50%); /* Kunci akurat rata tengah vertikal */
             color: var(--sidebar-theme);
-            font-size: 1.8rem;
+            font-size: clamp(1.8rem, 4vw, 2.5rem); /* Auto detect ukuran hamburger */
             background: none;
             border: none;
             cursor: pointer;
@@ -119,39 +120,43 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.2s ease;
+            transition: all 0.2s ease;
         }
         
-        .btn-menu-toggle:hover { transform: scale(1.1); }
+        .btn-menu-toggle:hover { 
+            transform: translateY(-50%) scale(1.1); /* Hover scale rapi tidak mengubah posisi tengah */
+        }
 
         .header-pill {
             display: inline-block;
-            border: 2px solid var(--custom-main);
-            padding: 8px 40px;
+            border: clamp(2px, 0.3vw, 4px) solid var(--custom-main);
+            padding: clamp(8px, 1.5vw, 15px) clamp(30px, 6vw, 80px); /* Auto padding */
             border-radius: 50px;
             color: var(--custom-main);
             font-weight: 800;
-            font-size: 1.3rem;
+            font-size: clamp(1.2rem, 3vw, 2.2rem); /* Auto deteksi ukuran font judul */
             background: #fff;
             box-shadow: 0 4px 15px rgba(43, 108, 138, 0.1);
-            letter-spacing: 1px;
+            letter-spacing: clamp(1px, 0.2vw, 2px);
             z-index: 1;
         }
 
         .description {
-            font-size: 0.95rem;
+            font-size: clamp(0.9rem, 1.5vw, 1.25rem); /* Auto scale deskripsi */
             color: #6c757d;
             font-weight: 500;
-            line-height: 1.5;
-            margin-bottom: 35px;
+            line-height: 1.6;
+            margin-bottom: clamp(25px, 5vw, 50px);
+            max-width: 800px; /* Tetap wajar dibaca di TV */
             padding: 0 10px;
         }
 
         /* --- MENU GRID --- */
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            /* Auto detect susunan: mulai dari 2 kolom, kalau layar besar otomatis 3 kolom */
+            grid-template-columns: repeat(2, 1fr); 
+            gap: clamp(12px, 2vw, 30px); /* Celah antar kartu menyesuaikan layar */
             width: 100%;
             z-index: 2;
         }
@@ -161,8 +166,8 @@
             background: linear-gradient(135deg, var(--btn-blue) 0%, #1f5066 100%);
             color: white;
             text-decoration: none;
-            border-radius: 18px; /* Sudut tidak terlalu melengkung */
-            padding: 20px 15px;
+            border-radius: clamp(15px, 2vw, 25px); /* Radius melengkung menyesuaikan layar */
+            padding: clamp(15px, 3vw, 35px) clamp(10px, 2vw, 25px);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -171,14 +176,15 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
-            min-height: 100px; /* Disesuaikan untuk desain tanpa ikon */
+            /* Auto tinggi: di HP 90px, di Laptop 140px, di TV 180px */
+            min-height: clamp(90px, 15vh, 160px); 
         }
 
         .menu-card::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
-            height: 4px;
+            height: clamp(3px, 0.5vw, 6px);
             background: rgba(255,255,255,0.2);
         }
 
@@ -189,15 +195,16 @@
 
         .menu-card span {
             font-weight: 700;
-            font-size: 0.95rem; /* Teks diperbesar sedikit */
-            letter-spacing: 1px;
+            /* Auto detect ukuran teks di kartu */
+            font-size: clamp(0.85rem, 1.8vw, 1.25rem); 
+            letter-spacing: clamp(0.5px, 0.1vw, 1.5px);
             text-transform: uppercase;
             line-height: 1.4;
         }
 
         .menu-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
             color: white;
             filter: brightness(1.1);
         }
@@ -205,60 +212,24 @@
         .menu-card:active { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
 
         /* =========================================
-           RESPONSIVE DESIGN PRO (SMOOTH & ELEGANT)
+           BREAKPOINT STRUKTURAL UTAMA
            ========================================= */
 
-        /* Tablet (768px ke atas) */
+        /* Beralih ke 3 Kolom saat layar mencapai batas Tablet/Laptop (768px ke atas) */
         @media (min-width: 768px) {
             .menu-grid {
-                grid-template-columns: repeat(3, 1fr); /* 3 Kolom */
-                gap: 20px;
-            }
-            .menu-card {
-                min-height: 120px;
-                padding: 25px 15px;
-            }
-            .menu-card span { font-size: 1rem; }
-            .header-pill { font-size: 1.5rem; padding: 10px 50px; }
-            .description { font-size: 1.05rem; margin-bottom: 40px; }
-            .btn-menu-toggle { font-size: 2rem; }
-        }
-
-        /* Laptop/Desktop (1024px ke atas) -> BATAS MAKSIMAL */
-        @media (min-width: 1024px) {
-            .main-container {
-                padding: 40px;
-            }
-            .menu-grid {
-                gap: 25px; /* Jarak antar kotak pas */
-            }
-            .menu-card {
-                min-height: 130px; /* Bentuk elegan, text-only */
-                border-radius: 20px;
-                padding: 30px 20px;
-            }
-            .menu-card span {
-                font-size: 1.15rem; /* Teks dibesarkan agar proporsional */
-                letter-spacing: 1.5px;
-            }
-            .header-pill {
-                font-size: 1.6rem;
-                padding: 12px 60px;
-            }
-            .description {
-                font-size: 1.1rem;
-                margin-bottom: 45px;
+                grid-template-columns: repeat(3, 1fr);
             }
         }
 
-        /* HP Sangat Kecil (Lebar di bawah 360px) */
-        @media (max-width: 360px) {
-            .menu-grid { grid-template-columns: 1fr; } /* 1 Kolom list */
-            .menu-card {
-                padding: 20px;
-                min-height: 70px;
+        /* Penanganan Ekstrem: Layar HP sangat kecil (seperti iPhone SE / Lebar < 380px) */
+        @media (max-width: 380px) {
+            .menu-grid { 
+                grid-template-columns: 1fr; /* Paksa 1 kolom memanjang ke bawah */
             }
-            .menu-card span { text-align: center; font-size: 0.9rem; }
+            .menu-card {
+                min-height: 75px;
+            }
         }
     </style>
 </head>
