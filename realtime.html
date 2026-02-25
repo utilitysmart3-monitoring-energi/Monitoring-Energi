@@ -24,7 +24,7 @@
         .nav-btn-custom:hover { background-color: var(--sidebar-theme); color: white; box-shadow: 0 5px 15px rgba(43, 108, 138, 0.3); }
         .nav-btn-custom i { font-size: 1.8rem; width: 40px; text-align: center; margin-right: 15px; }
         
-        /* --- HEADER DIUBAH AGAR TITLE DI TENGAH --- */
+        /* --- HEADER DIUBAH AGAR TITLE DI TENGAH (FIX OVERLAP) --- */
         .app-header { 
             background-color: #fff; 
             padding: 15px 20px; 
@@ -49,6 +49,7 @@
             cursor: pointer; 
             padding: 0; 
             transition: transform 0.2s ease; 
+            z-index: 10;
         }
         .btn-menu-toggle:hover { transform: translateY(-50%) scale(1.1); }
         .app-title { 
@@ -59,7 +60,9 @@
             text-transform: uppercase; 
             font-size: clamp(1rem, 2.5vw, 1.3rem); 
             text-align: center; 
-            padding: 0 100px; /* Mencegah tabrakan dengan tulisan kiri/kanan di layar kecil */
+            padding: 0 130px; /* Padding aman untuk PC/Tablet agar tidak nabrak */
+            width: 100%;
+            box-sizing: border-box;
         }
         .mqtt-status { 
             position: absolute; 
@@ -68,19 +71,42 @@
             transform: translateY(-50%);
             text-align: right; 
             font-size: 0.8rem; 
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
         }
 
-        /* --- MEDIA QUERY UNTUK LAYAR HP (DIPERBAIKI RAPI & KECIL DI KANAN) --- */
+        /* --- MEDIA QUERY UNTUK LAYAR HP (DIPERBAIKI SANGAT KECIL DI KANAN) --- */
         @media (max-width: 576px) {
-            .app-header { padding: 10px; min-height: 60px; }
-            .btn-menu-toggle { left: 10px; font-size: 1.3rem; }
-            .app-title { font-size: 0.85rem; padding: 0 85px; line-height: 1.3; }
+            .app-header { padding: 10px; min-height: 65px; }
+            .btn-menu-toggle { left: 10px; font-size: 1.4rem; }
+            
+            /* Penyesuaian Ruang Tengah agar 100% aman dari overlap */
+            .app-title { 
+                font-size: 0.8rem; 
+                padding: 0 110px 0 40px; /* Lebar 110px dilindungi untuk text di pojok kanan */
+                line-height: 1.2; 
+            }
+            
+            /* Status kanan dibuat mungil, profesional, dan dibatasi lebarnya */
             .mqtt-status { 
                 right: 10px; 
-                font-size: 0.6rem; /* Teks sangat kecil dan profesional di ujung kanan */
+                max-width: 105px; /* Batas max agar teks membungkus (wrap) ke bawah, bukan nabrak judul */
+                font-size: 0.6rem; 
             }
-            #last-update { font-size: 0.55rem !important; margin-top: 3px !important; }
-            .mqtt-status .badge { font-size: 0.55rem !important; padding: 4px 6px !important; }
+            
+            #last-update { 
+                font-size: 0.5rem !important; /* Font jam dikecilkan */
+                margin-top: 3px !important; 
+                line-height: 1.2;
+                white-space: normal; /* Memaksa teks yang panjang turun ke baris baru dengan rapi */
+            }
+            
+            .mqtt-status .badge { 
+                font-size: 0.5rem !important; 
+                padding: 3px 5px !important; 
+            }
         }
 
         /* --- GRID TOMBOL --- */
