@@ -82,22 +82,26 @@
             margin-right: 15px;
         }
 
-        /* --- TOP BAR KHUSUS HAMBURGER & TITLE --- */
+        /* --- TOP BAR KHUSUS HAMBURGER & TITLE (DIUBAH SESUAI REALTIME.HTML) --- */
         .topbar {
             width: 100%;
             display: flex;
-            align-items: center; /* Membuat item sejajar secara vertikal */
-            justify-content: center; /* Menengahkan title */
-            padding: 20px;
+            align-items: center; 
+            justify-content: center; 
+            padding: 15px 20px;
+            background-color: #fff;
+            border-bottom: 3px solid var(--sidebar-theme);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             box-sizing: border-box;
-            position: relative; /* Agar posisi hamburger bisa dikunci di kiri */
+            position: relative; 
+            z-index: 10;
         }
 
         .hamburger {
-            position: absolute; /* Tetap menempel di kiri tanpa menggeser title */
+            position: absolute; 
             left: clamp(20px, 4vw, 30px);
             color: var(--sidebar-theme);
-            font-size: clamp(1.8rem, 4vw, 2.5rem); 
+            font-size: clamp(1.5rem, 4vw, 2rem); 
             background: none;
             border: none;
             cursor: pointer;
@@ -106,7 +110,6 @@
             align-items: center;
             justify-content: center;
             transition: transform 0.2s ease;
-            z-index: 10;
         }
         
         .hamburger:hover { 
@@ -120,7 +123,7 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
-            padding-top: 20px; 
+            padding-top: 30px; 
             padding-bottom: 50px;
             width: 90%; 
             max-width: 1100px;
@@ -130,18 +133,12 @@
 
         /* Judul Menu Utama */
         .title {
-            display: inline-block;
-            border: clamp(2px, 0.3vw, 4px) solid var(--custom-main);
-            padding: clamp(8px, 1.5vw, 15px) clamp(30px, 6vw, 80px); 
-            border-radius: 50px;
-            color: var(--custom-main);
+            color: var(--sidebar-theme);
             font-weight: 800;
-            font-size: clamp(1.2rem, 3vw, 2.2rem); 
-            background: #fff;
-            box-shadow: 0 4px 15px rgba(43, 108, 138, 0.1);
-            letter-spacing: clamp(1px, 0.2vw, 2px);
-            margin-bottom: 0; /* Margin bawah dihapus agar sejajar sempurna di tengah topbar */
-            z-index: 1;
+            margin: 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
         }
 
         /* Deskripsi/Subtitle */
@@ -220,9 +217,6 @@
             .menu-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
-            .topbar {
-                padding: 20px 30px; 
-            }
             .main-wrapper {
                 padding-top: 40px; 
             }
@@ -276,8 +270,8 @@
         <button class="hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
             <i class="fas fa-bars"></i>
         </button>
-        <!-- Judul dipindahkan ke sini agar sejajar -->
-        <div class="title">MENU UTAMA</div>
+        <!-- Judul menggunakan gaya yang rapi dan elegan tanpa box kapsul -->
+        <h5 class="title">MENU UTAMA</h5>
     </div>
 
     <!-- 2. WRAPPER UTAMA -->
