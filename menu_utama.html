@@ -26,16 +26,13 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+        /* BODY TIDAK BOLEH CENTER */
         body {
             background-color: var(--bg-body);
             color: var(--text-dark);
             font-family: 'Poppins', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start; /* Diubah: Agar konten rapat ke atas, bukan ke tengah */
-            padding: 0; /* Dihapus agar rapi dari ujung atas */
+            margin: 0;
+            display: block; /* Wajib block agar natural flow dari atas ke bawah */
         }
 
         /* --- SIDEBAR STYLE --- */
@@ -85,34 +82,22 @@
             margin-right: 15px;
         }
 
-        /* --- CONTAINER UTAMA --- */
-        .main-container {
-            width: 90%; /* Fluid width */
-            max-width: 1100px; /* Batas melar maksimal untuk TV/Monitor raksasa */
-            padding: clamp(30px, 4vw, 50px) clamp(15px, 4vw, 50px); /* Atas lebih rapat */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-        }
-
-        /* --- HEADER ROW --- */
-        .header-row {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: clamp(20px, 4vw, 40px);
+        /* --- TOP BAR KHUSUS HAMBURGER & TITLE --- */
+        .topbar {
             width: 100%;
+            display: flex;
+            align-items: center; /* Membuat item sejajar secara vertikal */
+            justify-content: center; /* Menengahkan title */
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative; /* Agar posisi hamburger bisa dikunci di kiri */
         }
 
-        .btn-menu-toggle {
-            position: absolute;
-            left: 0;
-            top: 50%; /* Kunci posisi 50% dari atas container */
-            transform: translateY(-50%); /* Kunci akurat rata tengah vertikal */
+        .hamburger {
+            position: absolute; /* Tetap menempel di kiri tanpa menggeser title */
+            left: clamp(20px, 4vw, 30px);
             color: var(--sidebar-theme);
-            font-size: clamp(1.8rem, 4vw, 2.5rem); /* Auto detect ukuran hamburger */
+            font-size: clamp(1.8rem, 4vw, 2.5rem); 
             background: none;
             border: none;
             cursor: pointer;
@@ -120,43 +105,61 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: transform 0.2s ease;
+            z-index: 10;
         }
         
-        .btn-menu-toggle:hover { 
-            transform: translateY(-50%) scale(1.1); /* Hover scale rapi tidak mengubah posisi tengah */
+        .hamburger:hover { 
+            transform: scale(1.1); 
         }
 
-        .header-pill {
+        /* --- WRAPPER UTAMA (TOP ALIGNED) --- */
+        .main-wrapper {
+            min-height: calc(100vh - 80px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 20px; 
+            padding-bottom: 50px;
+            width: 90%; 
+            max-width: 1100px;
+            margin: 0 auto; 
+            text-align: center;
+        }
+
+        /* Judul Menu Utama */
+        .title {
             display: inline-block;
             border: clamp(2px, 0.3vw, 4px) solid var(--custom-main);
-            padding: clamp(8px, 1.5vw, 15px) clamp(30px, 6vw, 80px); /* Auto padding */
+            padding: clamp(8px, 1.5vw, 15px) clamp(30px, 6vw, 80px); 
             border-radius: 50px;
             color: var(--custom-main);
             font-weight: 800;
-            font-size: clamp(1.2rem, 3vw, 2.2rem); /* Auto deteksi ukuran font judul */
+            font-size: clamp(1.2rem, 3vw, 2.2rem); 
             background: #fff;
             box-shadow: 0 4px 15px rgba(43, 108, 138, 0.1);
             letter-spacing: clamp(1px, 0.2vw, 2px);
+            margin-bottom: 0; /* Margin bawah dihapus agar sejajar sempurna di tengah topbar */
             z-index: 1;
         }
 
-        .description {
-            font-size: clamp(0.9rem, 1.5vw, 1.25rem); /* Auto scale deskripsi */
+        /* Deskripsi/Subtitle */
+        .subtitle {
+            font-size: clamp(0.9rem, 1.5vw, 1.25rem); 
             color: #6c757d;
             font-weight: 500;
             line-height: 1.6;
             margin-bottom: clamp(25px, 5vw, 50px);
-            max-width: 800px; /* Tetap wajar dibaca di TV */
+            max-width: 800px; 
             padding: 0 10px;
         }
 
         /* --- MENU GRID --- */
         .menu-grid {
             display: grid;
-            /* Auto detect susunan: mulai dari 2 kolom, kalau layar besar otomatis 3 kolom */
             grid-template-columns: repeat(2, 1fr); 
-            gap: clamp(12px, 2vw, 30px); /* Celah antar kartu menyesuaikan layar */
+            gap: clamp(12px, 2vw, 30px); 
             width: 100%;
             z-index: 2;
         }
@@ -166,7 +169,7 @@
             background: linear-gradient(135deg, var(--btn-blue) 0%, #1f5066 100%);
             color: white;
             text-decoration: none;
-            border-radius: clamp(15px, 2vw, 25px); /* Radius melengkung menyesuaikan layar */
+            border-radius: clamp(15px, 2vw, 25px); 
             padding: clamp(15px, 3vw, 35px) clamp(10px, 2vw, 25px);
             display: flex;
             flex-direction: column;
@@ -176,7 +179,6 @@
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
-            /* Auto tinggi: di HP 90px, di Laptop 140px, di TV 180px */
             min-height: clamp(90px, 15vh, 160px); 
         }
 
@@ -195,7 +197,6 @@
 
         .menu-card span {
             font-weight: 700;
-            /* Auto detect ukuran teks di kartu */
             font-size: clamp(0.85rem, 1.8vw, 1.25rem); 
             letter-spacing: clamp(0.5px, 0.1vw, 1.5px);
             text-transform: uppercase;
@@ -215,17 +216,21 @@
            BREAKPOINT STRUKTURAL UTAMA
            ========================================= */
 
-        /* Beralih ke 3 Kolom saat layar mencapai batas Tablet/Laptop (768px ke atas) */
         @media (min-width: 768px) {
             .menu-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
+            .topbar {
+                padding: 20px 30px; 
+            }
+            .main-wrapper {
+                padding-top: 40px; 
+            }
         }
 
-        /* Penanganan Ekstrem: Layar HP sangat kecil (seperti iPhone SE / Lebar < 380px) */
         @media (max-width: 380px) {
             .menu-grid { 
-                grid-template-columns: 1fr; /* Paksa 1 kolom memanjang ke bawah */
+                grid-template-columns: 1fr; 
             }
             .menu-card {
                 min-height: 75px;
@@ -266,53 +271,45 @@
         </div>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="main-container">
+    <!-- 1. TOP BAR KHUSUS HAMBURGER & TITLE -->
+    <div class="topbar">
+        <button class="hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <!-- Judul dipindahkan ke sini agar sejajar -->
+        <div class="title">MENU UTAMA</div>
+    </div>
+
+    <!-- 2. WRAPPER UTAMA -->
+    <div class="main-wrapper">
         
-        <!-- 1. Header Row (Hamburger + Pill) -->
-        <div class="header-row">
-            <!-- Tombol Hamburger -->
-            <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-                <i class="fas fa-bars"></i>
-            </button>
-            
-            <!-- Pill Menu Utama -->
-            <div class="header-pill">MENU UTAMA</div>
-        </div>
-        
-        <p class="description">
+        <p class="subtitle">
             Pilih menu yang tersedia di bawah ini untuk mengakses dashboard monitoring sistem Anda.
         </p>
 
-        <!-- 2. GRID MENU UTAMA -->
+        <!-- GRID MENU UTAMA -->
         <div class="menu-grid">
             
-            <!-- Power Meter -->
             <a href="realtime.html" class="menu-card">
                 <span>Power Meter Monitoring</span>
             </a>
 
-            <!-- Monitoring Tarif -->
             <a href="tarif.html" class="menu-card gold">
                 <span>Monitoring Tarif</span>
             </a>
 
-            <!-- Status Data -->
             <a href="status_data.html" class="menu-card">
                 <span>Status<br>Data</span>
             </a>
 
-            <!-- Riwayat -->
             <a href="riwayat.html" class="menu-card gold">
                 <span>Riwayat<br>Perekaman</span>
             </a>
 
-            <!-- Grafik Data -->
             <a href="grafik_data.html" class="menu-card">
                 <span>Grafik<br>Data</span>
             </a>
 
-            <!-- Download Data -->
             <a href="download_data.html" class="menu-card gold">
                 <span>Download<br>Data</span>
             </a>
