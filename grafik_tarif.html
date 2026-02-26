@@ -62,8 +62,8 @@
         .nav-btn-custom {
             display: flex;
             align-items: center;
-            background-color: var(--primary);
-            color: white;
+            background-color: white;
+            color: var(--primary);
             border: 2px solid var(--primary);
             border-radius: 50px;
             padding: 12px 25px;
@@ -74,13 +74,14 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             cursor: pointer;
+            position: relative; /* Ditambahkan agar icon panah bisa diposisikan di kanan */
         }
 
         .nav-btn-custom:hover, .nav-btn-custom.active {
-            background-color: var(--primary-hover);
-            border-color: var(--primary-hover);
+            background-color: var(--primary);
+            border-color: var(--primary);
             color: white;
-            box-shadow: 0 8px 15px rgba(31, 80, 102, 0.25);
+            box-shadow: 0 8px 15px rgba(43, 108, 138, 0.25);
             transform: translateY(-2px);
         }
 
@@ -133,24 +134,23 @@
             font-family: 'Poppins', sans-serif;
         }
         
-        /* --- KONTROL AREA (FORM INPUT SOLID) --- */
-        .custom-input-solid { 
+        /* --- KONTROL AREA (FORM INPUT) --- */
+        .custom-input { 
             background-color: #ffffff;
-            border: 2px solid #1f5066; 
+            border: 1px solid #cbd5e1; 
             color: #1e293b; 
-            font-weight: 600; 
+            font-weight: 500; 
             border-radius: 8px; 
-            padding: 0.6rem 1rem;
+            padding: 0.5rem 0.75rem;
             outline: none; 
             transition: all 0.2s; 
             width: 100%; 
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
         }
         
-        .custom-input-solid:focus { 
-            border-color: #cc9b28; 
-            box-shadow: 0 0 0 3px rgba(204, 155, 40, 0.4); 
+        .custom-input:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px rgba(43, 108, 138, 0.15); 
         }
 
         /* --- CANVAS CHART --- */
@@ -186,11 +186,16 @@
             <a href="realtime.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Power Meter Monitoring</span>
             </a>
+            <a href="tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Monitoring Tarif</span>
+            </a>
             <a href="grafik_phasa.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
             </a>
-            <a href="tarif.html" class="nav-btn-custom">
-                <span class="nav-btn-text">Monitoring Tarif</span>
+            <!-- TANDA ACTIVE DAN ICON PANAH DI HALAMAN SAAT INI -->
+            <a href="grafik_tarif.html" class="nav-btn-custom active">
+                <span class="nav-btn-text">Grafik Tarif kWh</span>
+                <i class="fas fa-chevron-right position-absolute" style="right: 20px;"></i>
             </a>
             <a href="download_kwh_harian.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Download Data kWh Harian</span>
@@ -216,25 +221,25 @@
     <!-- MAIN CONTAINER -->
     <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         
-        <!-- 2. KONTROL PANEL (FILTER BLOK WARNA SOLID) -->
-        <div class="bg-[#2b6c8a] rounded-xl shadow-lg p-6 mb-8 border border-[#1f5066]">
-            <div class="flex flex-col md:flex-row gap-5 items-end">
+        <!-- 2. KONTROL PANEL (FILTER) -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+            <div class="flex flex-col lg:flex-row gap-5 items-end">
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5 flex-grow w-full">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow w-full">
                     <!-- Tgl Mulai -->
                     <div>
-                        <label class="block text-xs font-bold text-white/90 uppercase tracking-wider mb-2"><i class="far fa-calendar-alt mr-1"></i> Tanggal Mulai</label>
-                        <input type="date" id="startDate" class="custom-input-solid">
+                        <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tanggal Mulai</label>
+                        <input type="date" id="startDate" class="custom-input">
                     </div>
                     <!-- Tgl Selesai -->
                     <div>
-                        <label class="block text-xs font-bold text-white/90 uppercase tracking-wider mb-2"><i class="far fa-calendar-check mr-1"></i> Tanggal Selesai</label>
-                        <input type="date" id="endDate" class="custom-input-solid">
+                        <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tanggal Selesai</label>
+                        <input type="date" id="endDate" class="custom-input">
                     </div>
                 </div>
 
                 <!-- Tombol Hitung -->
-                <button id="btnHitung" onclick="fetchData()" class="w-full md:w-auto bg-[#cc9b28] hover:bg-[#b58820] text-white font-bold py-3 px-8 rounded-lg shadow-md transition-all duration-200 flex items-center justify-center gap-2 shrink-0 border border-[#daa520] transform hover:-translate-y-0.5">
+                <button id="btnHitung" onclick="fetchData()" class="w-full lg:w-auto bg-[#2b6c8a] hover:bg-[#1f5066] text-white font-medium py-[9px] px-8 rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center gap-2 shrink-0">
                     <i class="fas fa-chart-bar text-sm"></i> Tampilkan Grafik
                 </button>
             </div>
