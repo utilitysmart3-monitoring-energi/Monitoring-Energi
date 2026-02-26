@@ -19,10 +19,10 @@
         /* --- SIDEBAR & HEADER --- */
         .offcanvas { border-top-right-radius: 20px; border-bottom-right-radius: 20px; width: 300px !important; }
         .offcanvas-header { border-bottom: 1px solid #eee; }
-        .offcanvas-title { color: var(--sidebar-theme); font-weight: 800; letter-spacing: 1px; }
-        .nav-btn-custom { display: flex; align-items: center; background-color: white; color: var(--sidebar-theme); border: 2px solid var(--sidebar-theme); border-radius: 50px; padding: 12px 25px; margin-bottom: 20px; text-decoration: none; font-weight: 700; text-transform: uppercase; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .nav-btn-custom:hover { background-color: var(--sidebar-theme); color: white; box-shadow: 0 5px 15px rgba(43, 108, 138, 0.3); }
-        .nav-btn-custom i { font-size: 1.8rem; width: 40px; text-align: center; margin-right: 15px; }
+        .offcanvas-title { color: var(--sidebar-theme); font-weight: 800; letter-spacing: 1.5px; }
+        .nav-btn-custom { display: flex; align-items: center; background-color: var(--sidebar-theme); color: white; border: 2px solid var(--sidebar-theme); border-radius: 50px; padding: 12px 25px; margin-bottom: 15px; text-decoration: none; font-weight: 700; text-transform: uppercase; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; }
+        .nav-btn-custom:hover { background-color: #1f5066; border-color: #1f5066; color: white; box-shadow: 0 8px 15px rgba(43, 108, 138, 0.25); transform: translateY(-2px); }
+        .nav-btn-text { font-size: 0.85rem; line-height: 1.2; text-align: center; width: 100%; }
         
         /* --- HEADER DI TENGAH --- */
         .app-header { 
@@ -182,7 +182,7 @@
         .param-label { font-weight: 500; }
         .param-value { font-family: 'Consolas', monospace; font-weight: bold; font-size: 0.95rem; }
         
-        /* --- BREAKPOINTS MAKSIMAL 3 KOLOM DESKTOP --- */
+        /* --- BREAKPOINTS MAKSIMAL 4 KOLOM DESKTOP --- */
         @media (min-width: 768px) { 
             .machine-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; } /* Di Tablet 2 Kolom memanjang */
             .modal-dialog { max-width: 450px; } 
@@ -190,8 +190,8 @@
             .status-badge-mini { font-size: 0.75rem; padding: 0; }
         }
         @media (min-width: 1200px) { 
-            .machine-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } /* Di Layar besar 3 Kolom */
-            .container { max-width: 1200px !important; padding-left: 20px; padding-right: 20px; }
+            .machine-grid { grid-template-columns: repeat(4, 1fr); gap: 15px; } /* Di Layar besar 4 Kolom */
+            .container { max-width: 96% !important; padding-left: 15px; padding-right: 15px; } /* Diperlebar agar 4 kolom muat rapi */
         }
     </style>
 </head>
@@ -199,14 +199,28 @@
 
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title">MENU</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            <h5 class="offcanvas-title">DASHBOARD</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body d-flex flex-column p-4">
-            <a href="index.html" class="nav-btn-custom"><i class="fas fa-home"></i><span class="nav-btn-text">HOME</span></a>
-            <a href="menu_utama.html" class="nav-btn-custom"><i class="fas fa-th-large"></i><span class="nav-btn-text">MENU UTAMA</span></a>
-            <a href="download_data.html" class="nav-btn-custom"><i class="fas fa-cloud-download-alt"></i><span class="nav-btn-text">UNDUH DATA</span></a>
-            <a href="informasi_akun.html" class="nav-btn-custom"><i class="fas fa-user"></i><span class="nav-btn-text">AKUN</span></a>
+        <div class="offcanvas-body d-flex flex-column p-4 pt-4 mt-2">
+            <a href="realtime.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Power Meter Monitoring</span>
+            </a>
+            <a href="grafik_phasa.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
+            </a>
+            <a href="tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Monitoring Tarif</span>
+            </a>
+            <a href="download_kwh_harian.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Data kWh Harian</span>
+            </a>
+            <a href="download_tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Tarif</span>
+            </a>
+            <a href="riwayat_alarm.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Riwayat Alarm Tegangan</span>
+            </a>
         </div>
     </div>
 
