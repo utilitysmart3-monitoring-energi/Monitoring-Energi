@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unduh Laporan Tarif</title>
+    
+    <!-- Bootstrap 5 CSS (Untuk Sidebar/Offcanvas) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase JS -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+    <!-- SheetJS (Untuk fitur Download Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --sidebar-theme: #2b6c8a;
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #e2e8f0; /* Latar belakang abu-abu seperti meja */
+        }
+
+        /* --- SIDEBAR STYLE (SAMA SEPERTI MENU UTAMA) --- */
+        .offcanvas {
+            border-top-right-radius: 20px;
+            border-bottom-right-radius: 20px;
+            width: 300px !important;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.05);
+        }
+        .offcanvas-header {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 20px 25px;
+        }
+        .offcanvas-title {
+            color: var(--sidebar-theme);
+            font-weight: 800;
+            letter-spacing: 1.5px;
+        }
+
+        .nav-btn-custom {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            color: var(--sidebar-theme);
+            border: 2px solid var(--sidebar-theme);
+            border-radius: 50px;
+            padding: 12px 25px;
+            margin-bottom: 15px;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .nav-btn-custom:hover {
+            background-color: var(--sidebar-theme);
+            color: white;
+            box-shadow: 0 8px 15px rgba(43, 108, 138, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn-custom i {
+            font-size: 1.4rem;
+            width: 35px;
+            text-align: center;
+            margin-right: 15px;
+        }
+
+        /* --- TOP BAR KHUSUS HAMBURGER & TITLE --- */
+        .topbar {
+            width: 100%;
+            display: flex;
+            align-items: center; 
+            justify-content: center; 
+            padding: 15px 20px;
+            background-color: #fff;
+            border-bottom: 3px solid var(--sidebar-theme);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            position: relative; 
+            z-index: 10;
+        }
+
+        .hamburger {
+            position: absolute; 
+            left: clamp(20px, 4vw, 30px);
+            color: var(--sidebar-theme);
+            font-size: clamp(1.5rem, 4vw, 2rem); 
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s ease;
+        }
+        
+        .hamburger:hover { 
+            transform: scale(1.1); 
+        }
+
+        .topbar-title {
+            color: var(--sidebar-theme);
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+        }
+        
+        /* --- KONTROL AREA --- */
+        .control-panel {
+            background-color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 1000px;
+            width: 95%;
+        }
+
+        .custom-input { 
+            border: 2px solid #cbd5e1; 
+            color: #334155; 
+            font-weight: 600; 
+            border-radius: 8px; 
+            padding: 0.5rem 1rem; 
+            outline: none; 
+            transition: all 0.2s; 
+            width: 100%; 
+        }
+        
+        .custom-input:focus { 
+            border-color: #2b6c8a; 
+            box-shadow: 0 0 0 2px rgba(43, 108, 138, 0.2); 
+        }
+
+        /* --- STYLING PREVIEW KERTAS --- */
+        .paper-wrapper {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: auto; /* Agar bisa digeser di HP */
+            width: 100%;
+        }
+
+        .kertas-a4 {
+            background: white;
+            width: 297mm; /* Lebar A4 Landscape */
+            min-height: 210mm; /* Tinggi A4 Landscape */
+            padding: 15mm 20mm; /* Margin kertas */
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        /* Tampilan Tabel Laporan Formal */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.75rem; /* Ukuran font lebih kecil untuk kertas */
+        }
+        .report-table th, .report-table td {
+            border: 1px solid #334155;
+            padding: 8px 6px;
+        }
+        .report-table th {
+            background-color: #f1f5f9;
+            font-weight: 700;
+            text-align: center;
+            color: #0f172a;
+            text-transform: uppercase;
+        }
+        .report-table td {
+            color: #334155;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center min-h-screen">
+
+    <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
+    <div class="offcanvas offcanvas-start no-print" tabindex="-1" id="sidebarMenu">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">DASHBOARD</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column justify-content-center p-4">
+            
+            <a href="index.html" class="nav-btn-custom">
+                <i class="fas fa-house-chimney"></i>
+                <span class="nav-btn-text">HOME</span>
+            </a>
+
+            <a href="menu_utama.html" class="nav-btn-custom">
+                <i class="fas fa-table-cells-large"></i>
+                <span class="nav-btn-text">MENU UTAMA</span>
+            </a>
+
+            <a href="download_data.html" class="nav-btn-custom">
+                <i class="fas fa-file-export"></i>
+                <span class="nav-btn-text">UNDUH KWH HARIAN</span>
+            </a>
+
+            <a href="informasi_akun.html" class="nav-btn-custom">
+                <i class="fas fa-user-gear"></i>
+                <span class="nav-btn-text">AKUN</span>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- 1. TOP BAR KHUSUS HAMBURGER & TITLE -->
+    <div class="topbar no-print w-full">
+        <button class="hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h5 class="topbar-title">UNDUH DATA TARIF</h5>
+    </div>
+
+    <!-- 2. KONTROL PANEL -->
+    <div class="control-panel no-print">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Mulai</label>
+                <input type="date" id="startDate" class="custom-input text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Waktu Mulai</label>
+                <input type="time" id="startTime" class="custom-input text-sm" value="00:00">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal Selesai</label>
+                <input type="date" id="endDate" class="custom-input text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 mb-1">Waktu Selesai</label>
+                <input type="time" id="endTime" class="custom-input text-sm" value="23:59">
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <button onclick="fetchData()" class="bg-[#2b6c8a] hover:bg-[#1a4457] text-white font-bold py-2 px-8 rounded-lg shadow transition flex items-center justify-center gap-2">
+                <i class="fas fa-sync-alt"></i> Tampilkan Data
+            </button>
+            <button onclick="downloadExcel()" id="btnDownload" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-8 rounded-lg shadow transition flex items-center justify-center gap-2 opacity-50 cursor-not-allowed" disabled>
+                <i class="fas fa-file-excel"></i> Unduh Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. AREA PREVIEW LAPORAN -->
+    <div class="paper-wrapper">
+        <div id="printable-area" class="kertas-a4">
+            
+            <!-- Kop Surat Laporan -->
+            <div class="border-b-2 border-black pb-4 mb-6 relative flex items-center justify-center min-h-[80px]">
+                <!-- Logo -->
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQangcdsPfv_NscPphZdCGOdF9A77Gv73h6xQ&s" alt="Logo Perusahaan" class="absolute left-0 h-16 object-contain">
+                
+                <div class="text-center">
+                    <h1 class="text-2xl font-extrabold uppercase tracking-wider text-black">LAPORAN MONITORING TARIF ENERGI</h1>
+                </div>
+            </div>
+
+            <!-- Info Laporan -->
+            <div class="flex justify-between items-end mb-4 text-xs text-black font-medium">
+                <div>
+                    <table class="text-left">
+                        <tr><td class="pr-3 pb-1">Periode Data</td><td class="pb-1">: <span id="lblPeriode">-</span></td></tr>
+                        <tr><td class="pr-3">Tarif Acuan</td><td>: LWBP (Rp 1.035,78/kWh) | WBP (Rp 1.553,67/kWh)</td></tr>
+                    </table>
+                </div>
+                <div class="text-right">
+                    Tanggal Cetak : <span id="lblTanggalCetak">-</span>
+                </div>
+            </div>
+
+            <!-- Tabel Data -->
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">No</th>
+                        <th style="width: 15%;">Nama Mesin</th>
+                        <th style="width: 12%;">Partial Ea<br><span style="font-weight:normal; font-size:10px;">(kWh)</span></th>
+                        <th style="width: 10%;">T1 LWBP<br><span style="font-weight:normal; font-size:10px;">(kWh)</span></th>
+                        <th style="width: 10%;">T2 WBP<br><span style="font-weight:normal; font-size:10px;">(kWh)</span></th>
+                        <th style="width: 14%;">Total T1 & T2<br><span style="font-weight:normal; font-size:10px;">(kWh)</span></th>
+                        <th style="width: 17%;">Biaya Partial Ea<br><span style="font-weight:normal; font-size:10px;">(Rp)</span></th>
+                        <th style="width: 17%;">Biaya T1 & T2<br><span style="font-weight:normal; font-size:10px;">(Rp)</span></th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="8" class="text-center py-10 text-gray-400 italic">Silakan tekan "Tampilkan Data" untuk memuat laporan.</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div id="loadingStatus" class="text-center py-4 text-sm font-bold text-blue-600 hidden">
+                Sedang memuat data...
+            </div>
+
+            <!-- Tanda Tangan -->
+            <div class="mt-12 flex justify-end">
+                <div class="text-center w-48 text-xs text-black">
+                    <p class="mb-16">Mengetahui,</p>
+                    <p class="font-bold border-b border-black pb-1 mb-1">(.........................................)</p>
+                    <p>Utility</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Bootstrap JS (Wajib untuk sidebar offcanvas) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ==========================================
+        // KONFIGURASI SUPABASE
+        // ==========================================
+        const SUPABASE_URL = 'https://awyohlizbltikpfanugb.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes'; 
+        
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ==========================================
+        // FORMATTER
+        // ==========================================
+        const formatNumber = (num) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num || 0);
+        const formatCurrency = (num) => new Intl.NumberFormat('id-ID', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num || 0);
+
+        const machineNames = {
+            1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN", 4: "UNKNOWN",
+            5: "MESIN 41", 6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOWN",
+            9: "HEATER MC 5", 10: "MESIN 5", 11: "UNKNOWN", 12: "MESIN 34",
+            13: "MESIN 35", 14: "UNKNOWN", 15: "UNKNOWN", 16: "MESIN 38",
+            17: "MESIN 36", 18: "MESIN 37"
+        };
+
+        const TARIF_LWBP = 1035.78; 
+        const TARIF_WBP = 1553.67;
+
+        // ==========================================
+        // FUNGSI TARIK DATA
+        // ==========================================
+        async function fetchData() {
+            const tableBody = document.getElementById('tableBody');
+            const loadingStatus = document.getElementById('loadingStatus');
+            const btnDownload = document.getElementById('btnDownload');
+
+            const startDate = document.getElementById('startDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endDate = document.getElementById('endDate').value;
+            const endTime = document.getElementById('endTime').value;
+
+            // Set Header Laporan
+            document.getElementById('lblPeriode').innerText = `${startDate} ${startTime} WIB s/d ${endDate} ${endTime} WIB`;
+            const now = new Date();
+            document.getElementById('lblTanggalCetak').innerText = `${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')} WIB`;
+
+            // Reset UI
+            tableBody.innerHTML = '';
+            loadingStatus.classList.remove('hidden');
+            btnDownload.disabled = true;
+            btnDownload.classList.add('opacity-50', 'cursor-not-allowed');
+
+            const startISO = `${startDate}T${startTime}:00+07:00`;
+            const endISO = `${endDate}T${endTime}:59+07:00`;
+
+            try {
+                // Request 1: T1 & T2 Delta
+                const { data: rpcData, error: rpcError } = await client.rpc('get_energy_report', {
+                    start_time: startISO,
+                    end_time: endISO
+                });
+
+                if (rpcError) throw rpcError;
+                
+                // Request 2: Partial Ea Latest
+                const partialPromises = [];
+                for (let i = 1; i <= 18; i++) {
+                    partialPromises.push(
+                        client.from('energi_db')
+                            .select('meter_id, partial_ea')
+                            .eq('meter_id', i)
+                            .not('partial_ea', 'is', null)
+                            .order('waktu_jakarta', { ascending: false })
+                            .limit(1)
+                            .single()
+                    );
+                }
+
+                const partialResults = await Promise.allSettled(partialPromises);
+                
+                const latestPartials = {};
+                partialResults.forEach((result, index) => {
+                    const meterId = index + 1;
+                    if (result.status === 'fulfilled' && result.value.data) {
+                        latestPartials[meterId] = result.value.data.partial_ea;
+                    } else {
+                        latestPartials[meterId] = 0;
+                    }
+                });
+
+                // Render Table
+                loadingStatus.classList.add('hidden');
+
+                let sumPartialEa = 0;
+                let sumT1 = 0;
+                let sumT2 = 0;
+                let sumTotalT1T2 = 0;
+                let sumCostPartial = 0;
+                let sumCostT1T2 = 0;
+
+                for (let i = 1; i <= 18; i++) {
+                    const rpcRow = rpcData ? rpcData.find(d => d.meter_id === i) : null;
+                    const name = machineNames[i] || `Meter ${i}`;
+                    const isUnknown = name === "UNKNOWN";
+                    
+                    const pEa = latestPartials[i] || 0; 
+                    const t1 = rpcRow ? (rpcRow.delta_t1 || 0) : 0;
+                    const t2 = rpcRow ? (rpcRow.delta_t2 || 0) : 0;
+                    const totalT1T2 = t1 + t2;
+                    
+                    const costPartial = pEa * TARIF_LWBP;
+                    const costT1T2 = (t1 * TARIF_LWBP) + (t2 * TARIF_WBP);
+                    
+                    sumPartialEa += pEa;
+                    sumT1 += t1;
+                    sumT2 += t2;
+                    sumTotalT1T2 += totalT1T2;
+                    sumCostPartial += costPartial;
+                    sumCostT1T2 += costT1T2;
+                    
+                    // Style font khusus teks laporan
+                    const fontClass = (pEa > 0 || totalT1T2 > 0) ? 'font-semibold text-black' : 'text-gray-400';
+                    const nameFontClass = isUnknown ? 'italic text-gray-400' : 'font-bold text-black';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="text-center">${i}.</td>
+                        <td class="${nameFontClass}">${name}</td>
+                        <td class="text-center ${fontClass}">${formatNumber(pEa)}</td>
+                        <td class="text-center ${fontClass}">${formatNumber(t1)}</td>
+                        <td class="text-center ${fontClass}">${formatNumber(t2)}</td>
+                        <td class="text-center ${fontClass}">${formatNumber(totalT1T2)}</td>
+                        <td class="text-right ${fontClass}">${formatCurrency(costPartial)}</td>
+                        <td class="text-right ${fontClass}">${formatCurrency(costT1T2)}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                }
+
+                // Baris Total
+                const totalTr = document.createElement('tr');
+                totalTr.style.backgroundColor = '#f1f5f9';
+                totalTr.innerHTML = `
+                    <td class="text-center font-extrabold text-black" colspan="2">TOTAL KESELURUHAN</td>
+                    <td class="text-center font-extrabold text-black">${formatNumber(sumPartialEa)}</td>
+                    <td class="text-center font-extrabold text-black">${formatNumber(sumT1)}</td>
+                    <td class="text-center font-extrabold text-black">${formatNumber(sumT2)}</td>
+                    <td class="text-center font-extrabold text-black">${formatNumber(sumTotalT1T2)}</td>
+                    <td class="text-right font-extrabold text-black">Rp ${formatCurrency(sumCostPartial)}</td>
+                    <td class="text-right font-extrabold text-black">Rp ${formatCurrency(sumCostT1T2)}</td>
+                `;
+                tableBody.appendChild(totalTr);
+
+                // Aktifkan Tombol Download Excel
+                btnDownload.disabled = false;
+                btnDownload.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            } catch (err) {
+                console.error("Supabase Error:", err);
+                loadingStatus.classList.add('hidden');
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-red-600 font-bold">Terjadi Kesalahan: ${err.message}</td></tr>`;
+            }
+        }
+
+        // ==========================================
+        // FUNGSI DOWNLOAD EXCEL (MENGGUNAKAN SHEETJS)
+        // ==========================================
+        function downloadExcel() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const fileName = `Laporan_Tarif_${startDate}_sd_${endDate}.xlsx`;
+
+            // Ubah tombol jadi status loading
+            const btn = document.getElementById('btnDownload');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyusun Excel...';
+            document.body.style.cursor = 'wait';
+
+            // Timeout kecil agar UI sempat merender tombol loading
+            setTimeout(() => {
+                try {
+                    // Buat susunan data Array (Header Kop Surat)
+                    const excelData = [
+                        ["LAPORAN MONITORING TARIF ENERGI"],
+                        [""],
+                        ["Periode Data", ": " + document.getElementById('lblPeriode').innerText],
+                        ["Tarif Acuan", ": LWBP (Rp 1.035,78/kWh) | WBP (Rp 1.553,67/kWh)"],
+                        ["Tanggal Cetak", ": " + document.getElementById('lblTanggalCetak').innerText],
+                        [""] // Baris kosong sebelum tabel
+                    ];
+
+                    // Ambil elemen tabel dari HTML
+                    const table = document.querySelector('.report-table');
+                    
+                    // Looping mengekstrak data HTML Tabel ke dalam Array
+                    const rows = table.querySelectorAll('tr');
+                    rows.forEach(row => {
+                        const rowData = [];
+                        const cells = row.querySelectorAll('th, td');
+                        cells.forEach(cell => {
+                            // Bersihkan text (hilangkan enter/newline yang disebabkan elemen <br>)
+                            let text = cell.innerText.replace(/\n/g, ' ').trim();
+                            rowData.push(text);
+                        });
+                        excelData.push(rowData);
+                    });
+
+                    // Konversi Array Data menjadi Worksheet Excel
+                    const ws = XLSX.utils.aoa_to_sheet(excelData);
+                    
+                    // Buat Workbook (File Excel) baru dan tempel Worksheet
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Laporan Tarif");
+                    
+                    // Jalankan unduh file Excel
+                    XLSX.writeFile(wb, fileName);
+
+                } catch (error) {
+                    console.error("Gagal mengunduh Excel:", error);
+                    alert("Gagal menyusun file Excel.");
+                } finally {
+                    // Kembalikan kursor dan teks tombol
+                    document.body.style.cursor = 'default';
+                    btn.innerHTML = originalText;
+                }
+            }, 200);
+        }
+
+        // ==========================================
+        // INISIALISASI TANGGAL HARI INI
+        // ==========================================
+        window.onload = () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+            
+            // Set label tanggal awal
+            document.getElementById('lblPeriode').innerText = `${today} 00:00 WIB s/d ${today} 23:59 WIB`;
+            const now = new Date();
+            document.getElementById('lblTanggalCetak').innerText = `${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')} WIB`;
+        };
+    </script>
+</body>
+</html>
