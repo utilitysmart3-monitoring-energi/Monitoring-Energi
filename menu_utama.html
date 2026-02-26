@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MENU UTAMA - Monitoring System</title>
+    <title>PILIHAN DASHBOARDKU - Monitoring System</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -54,8 +54,8 @@
         .nav-btn-custom {
             display: flex;
             align-items: center;
-            background-color: white;
-            color: var(--sidebar-theme);
+            background-color: var(--sidebar-theme);
+            color: white;
             border: 2px solid var(--sidebar-theme);
             border-radius: 50px;
             padding: 12px 25px;
@@ -69,17 +69,18 @@
         }
 
         .nav-btn-custom:hover {
-            background-color: var(--sidebar-theme);
+            background-color: #1f5066;
+            border-color: #1f5066;
             color: white;
             box-shadow: 0 8px 15px rgba(43, 108, 138, 0.25);
             transform: translateY(-2px);
         }
 
-        .nav-btn-custom i {
-            font-size: 1.4rem;
-            width: 35px;
+        .nav-btn-text {
+            font-size: 0.85rem;
+            line-height: 1.2;
             text-align: center;
-            margin-right: 15px;
+            width: 100%;
         }
 
         /* --- TOP BAR KHUSUS HAMBURGER & TITLE --- */
@@ -178,6 +179,7 @@
             cursor: pointer;
             border: none;
             width: 100%;
+            text-align: center;
         }
 
         .menu-card::before {
@@ -199,6 +201,7 @@
             letter-spacing: clamp(0.5px, 0.1vw, 1.5px);
             text-transform: uppercase;
             line-height: 1.4;
+            display: block;
         }
 
         .menu-card:hover {
@@ -210,66 +213,9 @@
         
         .menu-card:active { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.2); }
 
-        /* --- MODAL DOWNLOAD STYLING (SUPER CLEAN) --- */
-        .custom-modal-content {
-            border-radius: 20px;
-            border: none;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-            overflow: hidden;
-        }
-        .custom-modal-header {
-            padding: 25px 25px 10px;
-            background-color: transparent;
-            position: relative;
-        }
-        
-        /* Judul Modal - Warna Abu-Abu Netral */
-        .custom-modal-title {
-            color: #85929e; /* Abu-abu profesional */
-            font-weight: 800;
-            font-size: 1.15rem;
-            text-transform: uppercase;
-            text-align: center;
-            width: 100%;
-            margin: 0;
-            letter-spacing: 0.5px;
-        }
-
-        /* Tombol Opsi di dalam Modal - Warna Biru (Sama seperti Power Meter) */
-        .download-option-card {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            border-radius: 12px;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-        .download-option-card.theme-blue {
-            border-color: #e2e8f0; /* Default border kalem */
-        }
-        .download-option-card.theme-blue h6 { 
-            margin: 0; 
-            font-weight: 800; 
-            font-size: 1.05rem; 
-            letter-spacing: 0.5px;
-            color: var(--sidebar-theme); /* Teks Biru khas Power Meter */
-        }
-        .download-option-card.theme-blue:hover {
-            border-color: var(--sidebar-theme); /* Saat disentuh border jadi biru */
-            background: #ffffff;
-            box-shadow: 0 8px 20px rgba(43, 108, 138, 0.12);
-            transform: translateY(-3px);
-        }
-
         /* =========================================
            BREAKPOINT STRUKTURAL UTAMA
            ========================================= */
-
         @media (min-width: 768px) {
             .menu-grid {
                 grid-template-columns: repeat(3, 1fr);
@@ -297,27 +243,30 @@
             <h5 class="offcanvas-title">DASHBOARD</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body d-flex flex-column justify-content-center p-4">
+        <div class="offcanvas-body d-flex flex-column p-4 pt-4 mt-2">
             
-            <a href="index.html" class="nav-btn-custom">
-                <i class="fas fa-house-chimney"></i>
-                <span class="nav-btn-text">HOME</span>
+            <a href="realtime.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Power Meter Monitoring</span>
             </a>
 
-            <a href="menu_utama.html" class="nav-btn-custom">
-                <i class="fas fa-table-cells-large"></i>
-                <span class="nav-btn-text">MENU UTAMA</span>
+            <a href="grafik_phasa.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
             </a>
 
-            <!-- Tombol Sidebar Memicu Modal Unduh -->
-            <a href="#" data-bs-toggle="modal" data-bs-target="#downloadModal" class="nav-btn-custom">
-                <i class="fas fa-file-export"></i>
-                <span class="nav-btn-text">UNDUH DATA</span>
+            <a href="tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Monitoring Tarif</span>
             </a>
 
-            <a href="informasi_akun.html" class="nav-btn-custom">
-                <i class="fas fa-user-gear"></i>
-                <span class="nav-btn-text">AKUN</span>
+            <a href="download_kwh_harian.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Data kWh Harian</span>
+            </a>
+
+            <a href="download_tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Tarif</span>
+            </a>
+
+            <a href="riwayat_alarm.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Riwayat Alarm Tegangan</span>
             </a>
 
         </div>
@@ -328,74 +277,19 @@
         <button class="hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
             <i class="fas fa-bars"></i>
         </button>
-        <h5 class="title">MENU UTAMA</h5>
+        <h5 class="title">PILIHAN DASHBOARDKU</h5>
     </div>
 
     <!-- 2. WRAPPER UTAMA -->
     <div class="main-wrapper">
         
-        <p class="subtitle">
-            Pilih menu yang tersedia di bawah ini untuk mengakses dashboard monitoring sistem Anda.
-        </p>
-
         <!-- GRID MENU UTAMA -->
         <div class="menu-grid">
             
-            <a href="realtime.html" class="menu-card">
-                <span>Power Meter Monitoring</span>
-            </a>
-
-            <a href="tarif.html" class="menu-card gold">
-                <span>Monitoring Tarif</span>
-            </a>
-
-            <a href="status_data.html" class="menu-card">
-                <span>Status<br>Data</span>
-            </a>
-
-            <a href="riwayat.html" class="menu-card gold">
-                <span>Riwayat<br>Perekaman</span>
-            </a>
-
-            <a href="grafik_data.html" class="menu-card">
-                <span>Grafik<br>Data</span>
-            </a>
-
-            <!-- Tombol Unduh Data Utama Memicu Modal Pop-Up -->
-            <button data-bs-toggle="modal" data-bs-target="#downloadModal" class="menu-card gold border-0 w-100" style="cursor: pointer;">
-                <span>Unduh<br>Data</span>
-            </button>
-
         </div>
     </div>
 
-    <!-- ==========================================
-         MODAL POP-UP UNDUH DATA (CLEAN & MINIMALIST)
-         ========================================== -->
-    <div class="modal fade" id="downloadModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content custom-modal-content">
-                <div class="custom-modal-header d-flex justify-content-center align-items-center border-0">
-                    <h5 class="custom-modal-title">PILIH OPSI UNDUHAN</h5>
-                    <button type="button" class="btn-close position-absolute" style="right: 20px;" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                
-                <div class="modal-body px-4 pb-5 pt-4">
-                    <!-- Opsi 1: kWh Harian -->
-                    <a href="download_kwh_harian.html" class="download-option-card theme-blue">
-                        <h6>UNDUH LAPORAN KWH HARIAN</h6>
-                    </a>
-
-                    <!-- Opsi 2: Tarif Energi -->
-                    <a href="download_tarif.html" class="download-option-card theme-blue mb-0">
-                        <h6>UNDUH LAPORAN TARIF ENERGI</h6>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bootstrap JS (Wajib untuk Sidebar dan Modal) -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
