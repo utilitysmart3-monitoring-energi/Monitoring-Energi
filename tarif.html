@@ -58,29 +58,34 @@
         .nav-btn-custom {
             display: flex;
             align-items: center;
-            background-color: transparent;
-            color: #64748b;
-            border-radius: 12px;
-            padding: 12px 16px;
-            margin-bottom: 4px;
+            background-color: var(--primary);
+            color: white;
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            padding: 12px 25px;
+            margin-bottom: 15px;
             text-decoration: none;
-            font-weight: 500;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.2s ease;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
         }
 
         .nav-btn-custom:hover, .nav-btn-custom.active {
-            background-color: #f1f5f9;
-            color: var(--primary);
-            font-weight: 600;
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            color: white;
+            box-shadow: 0 8px 15px rgba(31, 80, 102, 0.25);
+            transform: translateY(-2px);
         }
 
-        .nav-btn-custom i {
-            font-size: 1.1rem;
-            width: 30px;
+        .nav-btn-text {
+            font-size: 0.85rem;
+            line-height: 1.2;
             text-align: center;
-            margin-right: 8px;
-            color: inherit;
+            width: 100%;
+            font-family: 'Poppins', sans-serif;
         }
 
         /* --- TOP BAR --- */
@@ -194,26 +199,25 @@
             <h5 class="offcanvas-title font-poppins">DASHBOARD</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body d-flex flex-column p-4">
+        <div class="offcanvas-body d-flex flex-column p-4 pt-4 mt-2">
             
-            <a href="index.html" class="nav-btn-custom">
-                <i class="fas fa-house-chimney"></i>
-                <span class="nav-btn-text">HOME</span>
+            <a href="realtime.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Power Meter Monitoring</span>
             </a>
-
-            <a href="menu_utama.html" class="nav-btn-custom">
-                <i class="fas fa-table-cells-large"></i>
-                <span class="nav-btn-text">MENU UTAMA</span>
+            <a href="grafik_phasa.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
             </a>
-
-            <a href="download_data.html" class="nav-btn-custom">
-                <i class="fas fa-file-export"></i>
-                <span class="nav-btn-text">UNDUH DATA</span>
+            <a href="tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Monitoring Tarif</span>
             </a>
-
-            <a href="informasi_akun.html" class="nav-btn-custom">
-                <i class="fas fa-user-gear"></i>
-                <span class="nav-btn-text">AKUN</span>
+            <a href="download_kwh_harian.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Data kWh Harian</span>
+            </a>
+            <a href="download_tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Tarif</span>
+            </a>
+            <a href="riwayat_alarm.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Riwayat Alarm Tegangan</span>
             </a>
 
         </div>
