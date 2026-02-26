@@ -5,133 +5,327 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoring Tarif</title>
     
+    <!-- Bootstrap 5 CSS (Untuk Sidebar/Offcanvas) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Supabase JS -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --primary: #2b6c8a;
+            --primary-hover: #1f5066;
+            --bg-color: #f8fafc;
+        }
+
         body { 
-            font-family: 'Poppins', sans-serif; 
-            background-color: #ffffff; 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color); 
+            color: #334155;
+        }
+
+        h1, h2, h3, h4, h5, .font-poppins {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* --- SIDEBAR STYLE --- */
+        .offcanvas {
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
+            width: 280px !important;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.04);
+            border: none;
+        }
+        .offcanvas-header {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 20px 24px;
+        }
+        .offcanvas-title {
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-btn-custom {
+            display: flex;
+            align-items: center;
+            background-color: transparent;
+            color: #64748b;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn-custom:hover, .nav-btn-custom.active {
+            background-color: #f1f5f9;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-btn-custom i {
+            font-size: 1.1rem;
+            width: 30px;
+            text-align: center;
+            margin-right: 8px;
+            color: inherit;
+        }
+
+        /* --- TOP BAR --- */
+        .topbar {
+            width: 100%;
+            display: flex;
+            align-items: center; 
+            justify-content: center; 
+            padding: 16px 24px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky; 
+            top: 0;
+            z-index: 40;
+        }
+
+        .hamburger {
+            position: absolute; 
+            left: clamp(16px, 4vw, 24px);
+            color: var(--primary);
+            font-size: 1.25rem; 
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
         }
         
+        .hamburger:hover { background-color: #f1f5f9; }
+
+        .topbar-title {
+            color: var(--primary);
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: 0.5px;
+            font-size: 1.1rem;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        /* --- KONTROL AREA (FORM INPUT) --- */
         .custom-input { 
-            border: 2px solid #6B8E9E; 
-            color: #2C5F78; 
-            font-weight: 600; 
-            border-radius: 9999px; 
-            padding: 0.5rem 1.5rem; 
-            text-align: center; 
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1; 
+            color: #1e293b; 
+            font-weight: 500; 
+            border-radius: 8px; 
+            padding: 0.5rem 0.75rem;
             outline: none; 
             transition: all 0.2s; 
-            cursor: pointer; 
             width: 100%; 
-            max-width: 250px; 
+            font-size: 0.875rem;
         }
         
         .custom-input:focus { 
-            border-color: #206A8C; 
-            box-shadow: 0 0 0 2px rgba(32, 106, 140, 0.2); 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 3px rgba(43, 108, 138, 0.15); 
         }
-        
-        .title-pill { 
-            border: 2px solid #2C6E91; 
-            color: #2C6E91; 
-            border-radius: 9999px; 
-            padding: 0.5rem 3rem; 
-            display: inline-block; 
-            font-weight: 800; 
-            font-size: 1.25rem; 
-            text-transform: uppercase; 
-            margin-bottom: 2rem; 
+
+        /* --- STYLING TABEL DASHBOARD SAAS --- */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            text-align: left;
         }
-        
-        .table-header { 
-            background-color: #286583; 
-            color: white; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+
+        .report-table th {
+            background-color: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 12px 16px;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e2e8f0;
+            border-top: 1px solid #e2e8f0;
         }
-        
-        .table-header th:first-child { 
-            border-top-left-radius: 10px; 
-            border-bottom-left-radius: 10px; 
+
+        .report-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: middle;
         }
-        
-        .table-header th:last-child { 
-            border-top-right-radius: 10px; 
-            border-bottom-right-radius: 10px; 
+
+        .report-table tbody tr {
+            transition: background-color 0.15s ease;
         }
-        
-        .row-text { 
-            color: #286583; 
-            font-weight: 700; 
-        }
-        
-        tbody tr:nth-child(even) { 
+
+        .report-table tbody tr:hover { 
             background-color: #f8fafc; 
         }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
     </style>
 </head>
-<body class="flex flex-col items-center py-10 min-h-screen">
+<body class="flex flex-col items-center min-h-screen">
 
-    <!-- 1. JUDUL -->
-    <div class="title-pill shadow-sm">
-        MONITORING TARIF
+    <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title font-poppins flex items-center">
+                <i class="fas fa-bolt text-yellow-500 mr-2 text-xl"></i> DASHBOARD
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column p-4">
+            
+            <a href="index.html" class="nav-btn-custom">
+                <i class="fas fa-layer-group"></i>
+                <span>Menu Utama</span>
+            </a>
+
+            <a href="tarif.html" class="nav-btn-custom active">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Monitoring Tarif</span>
+            </a>
+
+            <a href="download_data.html" class="nav-btn-custom">
+                <i class="fas fa-file-export"></i>
+                <span>Unduh kWh Harian</span>
+            </a>
+
+            <a href="informasi_akun.html" class="nav-btn-custom">
+                <i class="fas fa-user-gear"></i>
+                <span>Akun</span>
+            </a>
+
+        </div>
     </div>
 
-    <!-- 2. FILTER INPUTS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 w-full max-w-2xl px-4 justify-items-center">
-        <div class="relative w-full flex justify-center">
-            <input type="date" id="startDate" class="custom-input uppercase text-sm shadow-sm">
+    <!-- 1. TOP BAR -->
+    <div class="topbar w-full">
+        <button class="hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h5 class="topbar-title">MONITORING TARIF</h5>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+        
+        <!-- 2. KONTROL PANEL (FILTER) -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
+            <div class="flex flex-col lg:flex-row gap-5 items-end">
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 flex-grow w-full">
+                    <!-- Tgl Mulai -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tanggal Mulai</label>
+                        <input type="date" id="startDate" class="custom-input">
+                    </div>
+                    <!-- Waktu Mulai -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Waktu Mulai</label>
+                        <input type="time" id="startTime" class="custom-input" value="00:00">
+                    </div>
+                    <!-- Tgl Selesai -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tanggal Selesai</label>
+                        <input type="date" id="endDate" class="custom-input">
+                    </div>
+                    <!-- Waktu Selesai -->
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Waktu Selesai</label>
+                        <input type="time" id="endTime" class="custom-input" value="23:59">
+                    </div>
+                </div>
+
+                <!-- Tombol Hitung -->
+                <button onclick="fetchData()" class="w-full lg:w-auto bg-[#2b6c8a] hover:bg-[#1f5066] text-white font-medium py-[9px] px-6 rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center gap-2 shrink-0">
+                    <i class="fas fa-calculator text-sm"></i> Hitung Biaya
+                </button>
+            </div>
         </div>
-        <div class="relative w-full flex justify-center">
-            <input type="date" id="endDate" class="custom-input uppercase text-sm shadow-sm">
+
+        <!-- 3. AREA TABEL DATA -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            
+            <!-- Table Toolbar / Header Info -->
+            <div class="px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white">
+                <h2 class="text-base font-semibold text-slate-800">Rincian Data Mesin</h2>
+                
+                <!-- Info Acuan Tarif Terintegrasi Rapi -->
+                <div class="flex items-center gap-3 text-xs font-medium bg-slate-50 px-3 py-1.5 rounded-md border border-slate-100">
+                    <span class="text-slate-500 mr-1"><i class="fas fa-tags mr-1"></i> Tarif:</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                        <span class="text-slate-700">LWBP: Rp 1.035,78</span>
+                    </div>
+                    <span class="text-slate-300">|</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                        <span class="text-slate-700">WBP: Rp 1.553,67</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto w-full">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center w-12">No</th>
+                            <th class="text-left w-48">Nama Mesin</th>
+                            <th class="text-right">Partial Ea<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
+                            <th class="text-right">LWBP<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
+                            <th class="text-right">WBP<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
+                            <th class="text-right bg-slate-50/50">Total<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
+                            <th class="text-right">Biaya Partial<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(Rp)</span></th>
+                            <th class="text-right bg-slate-50/50">Total Biaya<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(Rp)</span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="8" class="text-center py-16 text-slate-400">
+                                <div class="flex flex-col items-center justify-center">
+                                    <i class="fas fa-table text-3xl mb-3 text-slate-200"></i>
+                                    <p class="font-medium text-sm">Data belum dimuat.</p>
+                                    <p class="text-xs text-slate-400 mt-1">Tekan "Hitung Biaya" untuk memproses data dari database.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Footer Info -->
+            <div id="lastUpdateInfo" class="bg-slate-50 border-t border-slate-200 px-6 py-3 text-[11px] text-slate-500 flex items-center justify-between hidden">
+                <span id="infoText"></span>
+            </div>
+
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 w-full max-w-2xl px-4 justify-items-center">
-        <div class="relative w-full flex justify-center">
-            <input type="time" id="startTime" class="custom-input uppercase text-sm shadow-sm" value="00:00">
-        </div>
-        <div class="relative w-full flex justify-center">
-            <input type="time" id="endTime" class="custom-input uppercase text-sm shadow-sm" value="23:59">
-        </div>
-    </div>
-
-    <button onclick="fetchData()" class="mb-8 bg-[#286583] hover:bg-[#1e4d63] text-white font-bold py-3 px-10 rounded-full shadow-md transition transform hover:scale-105 active:scale-95">
-        Hitung / Refresh Data
-    </button>
-
-    <!-- 3. TABEL DATA -->
-    <div class="w-full max-w-7xl px-4 overflow-x-auto mb-10 shadow-lg rounded-xl pb-2">
-        <table class="w-full border-collapse bg-white rounded-xl">
-            <thead class="table-header text-sm md:text-sm">
-                <tr>
-                    <th class="py-4 px-4 text-left">No</th>
-                    <th class="py-4 px-4 text-left">Nama Mesin</th>
-                    <th class="py-4 px-4 text-center">Partial Ea<br><span class="text-xs font-normal">(Kwh)</span></th>
-                    <th class="py-4 px-4 text-center">T 1<br><span class="text-xs font-normal">(Kwh)</span></th>
-                    <th class="py-4 px-4 text-center">T 2<br><span class="text-xs font-normal">(Kwh)</span></th>
-                    <th class="py-4 px-4 text-center leading-tight">Total T1 & T2<br><span class="text-xs font-normal">(Kwh)</span></th>
-                    <th class="py-4 px-4 text-right">Total Tarif<br>Partial Ea<br><span class="text-xs font-normal">(Rp)</span></th>
-                    <th class="py-4 px-4 text-right">Total Tarif<br>T1 & T2<br><span class="text-xs font-normal">(Rp)</span></th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <tr>
-                    <td colspan="8" class="text-center py-12 text-gray-400">Tekan tombol "Hitung" untuk memuat data.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    
-    <div id="lastUpdateInfo" class="text-center text-sm text-gray-500 mt-2 bg-gray-100 px-6 py-2 rounded-full hidden"></div>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // ==========================================
@@ -148,9 +342,6 @@
         const formatNumber = (num) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num || 0);
         const formatCurrency = (num) => new Intl.NumberFormat('id-ID', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num || 0);
 
-        // ==========================================
-        // NAMA MESIN MAP
-        // ==========================================
         const machineNames = {
             1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN", 4: "UNKNOWN",
             5: "MESIN 41", 6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOWN",
@@ -159,30 +350,35 @@
             17: "MESIN 36", 18: "MESIN 37"
         };
 
-        // ==========================================
-        // TARIF PER KWH
-        // ==========================================
         const TARIF_LWBP = 1035.78; 
         const TARIF_WBP = 1553.67;
 
         // ==========================================
-        // FUNGSI UTAMA (DUA REQUEST TERPISAH)
+        // FUNGSI TARIK DATA
         // ==========================================
         async function fetchData() {
             const tableBody = document.getElementById('tableBody');
             const infoDiv = document.getElementById('lastUpdateInfo');
+            const infoText = document.getElementById('infoText');
 
-            // Set Loading State
-            tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-12 text-blue-600 font-semibold animate-pulse flex justify-center items-center gap-2"><svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menghitung Data dari Database...</td></tr>`;
+            // Set Loading State minimalist
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="text-center py-16">
+                        <div class="flex justify-center items-center gap-3 text-slate-500">
+                            <i class="fas fa-circle-notch fa-spin text-lg text-[#2b6c8a]"></i>
+                            <span class="font-medium text-sm">Memproses data...</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
             infoDiv.classList.add('hidden');
 
             const startISO = `${document.getElementById('startDate').value}T${document.getElementById('startTime').value}:00+07:00`;
             const endISO = `${document.getElementById('endDate').value}T${document.getElementById('endTime').value}:59+07:00`;
 
             try {
-                // ========================================================
-                // REQUEST 1: Ambil Delta T1 & T2 menggunakan RPC (berdasarkan waktu)
-                // ========================================================
+                // Request 1: T1 & T2 Delta (LWBP & WBP)
                 const { data: rpcData, error: rpcError } = await client.rpc('get_energy_report', {
                     start_time: startISO,
                     end_time: endISO
@@ -190,145 +386,114 @@
 
                 if (rpcError) throw rpcError;
                 
-                // ========================================================
-                // REQUEST 2: Ambil Partial Ea Murni (Data Terakhir, Bebas Waktu)
-                // ========================================================
-                // Kita gunakan Promise.all untuk menarik baris terbaru dari setiap mesin secara paralel
+                // Request 2: Partial Ea Latest
                 const partialPromises = [];
                 for (let i = 1; i <= 18; i++) {
                     partialPromises.push(
                         client.from('energi_db')
                             .select('meter_id, partial_ea')
                             .eq('meter_id', i)
-                            .not('partial_ea', 'is', null) // Pastikan bukan null
-                            .order('waktu_jakarta', { ascending: false }) // Urutkan paling baru
-                            .limit(1) // Ambil 1 baris saja
-                            .single() // Konversi hasil ke single object, bukan array
+                            .not('partial_ea', 'is', null)
+                            .order('waktu_jakarta', { ascending: false })
+                            .limit(1)
+                            .single()
                     );
                 }
 
-                // Tunggu semua request selesai
                 const partialResults = await Promise.allSettled(partialPromises);
                 
-                // Susun data partial_ea dalam bentuk objek untuk mempermudah pencarian (Mapping)
                 const latestPartials = {};
                 partialResults.forEach((result, index) => {
                     const meterId = index + 1;
                     if (result.status === 'fulfilled' && result.value.data) {
                         latestPartials[meterId] = result.value.data.partial_ea;
                     } else {
-                        latestPartials[meterId] = 0; // Jika belum ada data sama sekali di DB
+                        latestPartials[meterId] = 0;
                     }
                 });
 
-                // ========================================================
-                // MERGE & RENDER
-                // ========================================================
+                // Render Table
                 tableBody.innerHTML = '';
 
-                // Variabel untuk menjumlahkan total semua 18 mesin
                 let sumPartialEa = 0;
-                let sumT1 = 0;
-                let sumT2 = 0;
-                let sumTotalT1T2 = 0;
+                let sumLWBP = 0;
+                let sumWBP = 0;
+                let sumTotalLWBP_WBP = 0;
                 let sumCostPartial = 0;
-                let sumCostT1T2 = 0;
+                let sumCostLWBP_WBP = 0;
 
-                // Loop 1 sampai 18
                 for (let i = 1; i <= 18; i++) {
-                    // Cari data delta dari rpcData
                     const rpcRow = rpcData ? rpcData.find(d => d.meter_id === i) : null;
-                    
                     const name = machineNames[i] || `Meter ${i}`;
                     const isUnknown = name === "UNKNOWN";
                     
-                    // 1. PARTIAL EA: Ambil dari hasil Request 2 (latestPartials)
                     const pEa = latestPartials[i] || 0; 
+                    const lwbp_val = rpcRow ? (rpcRow.delta_t1 || 0) : 0; // T1 -> LWBP
+                    const wbp_val = rpcRow ? (rpcRow.delta_t2 || 0) : 0;  // T2 -> WBP
+                    const total_lwbp_wbp = lwbp_val + wbp_val;
                     
-                    // 2. T1 & T2: Ambil dari hasil Request 1 (rpcData)
-                    const t1 = rpcRow ? (rpcRow.delta_t1 || 0) : 0;
-                    const t2 = rpcRow ? (rpcRow.delta_t2 || 0) : 0;
-                    const totalT1T2 = t1 + t2;
-                    
-                    // 3. PERHITUNGAN BIAYA
                     const costPartial = pEa * TARIF_LWBP;
-                    const costT1T2 = (t1 * TARIF_LWBP) + (t2 * TARIF_WBP);
+                    const costLWBP_WBP = (lwbp_val * TARIF_LWBP) + (wbp_val * TARIF_WBP);
                     
-                    // Tambahkan ke akumulator Total Keseluruhan
                     sumPartialEa += pEa;
-                    sumT1 += t1;
-                    sumT2 += t2;
-                    sumTotalT1T2 += totalT1T2;
+                    sumLWBP += lwbp_val;
+                    sumWBP += wbp_val;
+                    sumTotalLWBP_WBP += total_lwbp_wbp;
                     sumCostPartial += costPartial;
-                    sumCostT1T2 += costT1T2;
+                    sumCostLWBP_WBP += costLWBP_WBP;
                     
-                    // Styling dinamis: Abu-abu jika tidak ada pemakaian atau mesin UNKNOWN
-                    let rowClass = "text-gray-400";
-                    let nameClass = "text-gray-400 font-medium";
-                    
-                    // Highlight baris jika ada pemakaian di Partial Ea atau T1/T2
-                    if (pEa > 0 || totalT1T2 > 0) {
-                        rowClass = "text-gray-700";
-                        nameClass = "text-[#286583] font-bold";
-                    }
-
-                    if(isUnknown) {
-                        nameClass = "text-gray-300 italic";
-                    }
+                    // Style dinamis (Lebih bersih, text alignment rapi ke kanan untuk angka)
+                    const hasData = (pEa > 0 || total_lwbp_wbp > 0);
+                    const rowClass = isUnknown ? 'opacity-50' : '';
+                    const textClass = hasData ? 'text-slate-800 font-medium' : 'text-slate-400';
+                    const numClass = hasData ? 'text-slate-700' : 'text-slate-300';
+                    const totalClass = hasData ? 'text-[#2b6c8a] font-semibold' : 'text-slate-400';
 
                     const tr = document.createElement('tr');
-                    tr.className = "border-b border-gray-100 hover:bg-blue-50 transition duration-150";
+                    tr.className = rowClass;
                     tr.innerHTML = `
-                        <td class="py-4 px-4 row-text text-left">${i}.</td>
-                        <td class="py-4 px-4 text-left ${nameClass}">${name}</td>
-                        <td class="py-4 px-4 text-center ${rowClass} font-bold text-blue-800">${formatNumber(pEa)}</td>
-                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(t1)}</td>
-                        <td class="py-4 px-4 text-center ${rowClass}">${formatNumber(t2)}</td>
-                        <td class="py-4 px-4 text-center font-bold ${rowClass}">${formatNumber(totalT1T2)}</td>
-                        <td class="py-4 px-4 text-right font-bold ${costPartial > 0 ? 'text-blue-900' : 'text-gray-400'}">Rp ${formatCurrency(costPartial)}</td>
-                        <td class="py-4 px-4 text-right font-bold ${costT1T2 > 0 ? 'text-green-700' : 'text-gray-400'}">Rp ${formatCurrency(costT1T2)}</td>
+                        <td class="text-center text-slate-400 text-xs">${i}.</td>
+                        <td class="text-left ${textClass}">${name}</td>
+                        <td class="text-right ${numClass} font-mono text-[13px]">${formatNumber(pEa)}</td>
+                        <td class="text-right ${numClass} font-mono text-[13px]">${formatNumber(lwbp_val)}</td>
+                        <td class="text-right ${numClass} font-mono text-[13px]">${formatNumber(wbp_val)}</td>
+                        <td class="text-right ${totalClass} font-mono text-[13px] bg-slate-50/50">${formatNumber(total_lwbp_wbp)}</td>
+                        <td class="text-right ${numClass} font-mono text-[13px]">Rp ${formatCurrency(costPartial)}</td>
+                        <td class="text-right ${totalClass} font-mono text-[13px] bg-slate-50/50">Rp ${formatCurrency(costLWBP_WBP)}</td>
                     `;
                     tableBody.appendChild(tr);
                 }
 
-                // ========================================================
-                // RENDER ROW TOTAL KESELURUHAN DI BAWAH LOOP
-                // ========================================================
+                // Baris Total (Solid & Clean)
                 const totalTr = document.createElement('tr');
-                totalTr.className = "bg-[#f1f5f9] border-t-2 border-[#286583] text-[#286583] uppercase tracking-wide";
+                totalTr.className = 'bg-slate-50 border-t border-slate-300';
                 totalTr.innerHTML = `
-                    <td class="py-4 px-4 text-center font-extrabold" colspan="2">TOTAL KESELURUHAN</td>
-                    <td class="py-4 px-4 text-center font-extrabold text-blue-900">${formatNumber(sumPartialEa)}</td>
-                    <td class="py-4 px-4 text-center font-extrabold">${formatNumber(sumT1)}</td>
-                    <td class="py-4 px-4 text-center font-extrabold">${formatNumber(sumT2)}</td>
-                    <td class="py-4 px-4 text-center font-extrabold">${formatNumber(sumTotalT1T2)}</td>
-                    <td class="py-4 px-4 text-right font-extrabold text-blue-900">Rp ${formatCurrency(sumCostPartial)}</td>
-                    <td class="py-4 px-4 text-right font-extrabold text-green-700">Rp ${formatCurrency(sumCostT1T2)}</td>
+                    <td class="text-center font-semibold text-slate-800 uppercase text-xs tracking-wider" colspan="2">Total Keseluruhan</td>
+                    <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">${formatNumber(sumPartialEa)}</td>
+                    <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">${formatNumber(sumLWBP)}</td>
+                    <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">${formatNumber(sumWBP)}</td>
+                    <td class="text-right font-bold text-[#2b6c8a] font-mono text-[13px]">${formatNumber(sumTotalLWBP_WBP)}</td>
+                    <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">Rp ${formatCurrency(sumCostPartial)}</td>
+                    <td class="text-right font-bold text-[#2b6c8a] font-mono text-[13px]">Rp ${formatCurrency(sumCostLWBP_WBP)}</td>
                 `;
                 tableBody.appendChild(totalTr);
 
-                infoDiv.innerText = `Data T1 & T2 menampilkan selisih dari ${startISO.replace('T', ' ').slice(0, 16)} s/d ${endISO.replace('T', ' ').slice(0, 16)} WIB. Data Partial Ea menampilkan total utuh terbaru alat.`;
+                infoText.innerHTML = `Data <b>LWBP & WBP</b> adalah selisih dari waktu yang dipilih. Data <b>Partial Ea</b> adalah akumulasi utuh terbaru.`;
                 infoDiv.classList.remove('hidden');
 
             } catch (err) {
                 console.error("Supabase Error:", err);
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-8 text-red-500 font-medium bg-red-50">
-                    <p class="mb-2">⚠️ Error: Gagal mengambil data.</p>
-                    <p class="text-sm text-red-400">Pesan: ${err.message}</p>
-                    <p class="text-xs text-gray-500 mt-2">Pastikan struktur database dan koneksi internet stabil.</p>
-                </td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-red-500 font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Gagal memuat data: ${err.message}</td></tr>`;
             }
         }
 
         // ==========================================
-        // INISIALISASI
+        // INISIALISASI TANGGAL HARI INI
         // ==========================================
         window.onload = () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('startDate').value = today;
             document.getElementById('endDate').value = today;
-            
-            // fetchData(); // Buka komentar jika ingin otomatis refresh saat pertama kali dimuat
         };
     </script>
 </body>
