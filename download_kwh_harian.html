@@ -83,36 +83,39 @@
         .offcanvas-title {
             color: var(--primary-blue);
             font-weight: 800;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
 
         .nav-btn-custom {
             display: flex;
             align-items: center;
-            background-color: white;
-            color: var(--primary-blue);
+            background-color: var(--primary-blue);
+            color: white;
             border: 2px solid var(--primary-blue);
             border-radius: 50px;
             padding: 12px 25px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-decoration: none;
             font-weight: 700;
             text-transform: uppercase;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
         }
 
         .nav-btn-custom:hover, .nav-btn-custom.active {
-            background-color: var(--primary-blue);
+            background-color: #1f5066;
+            border-color: #1f5066;
             color: white;
-            box-shadow: 0 5px 15px rgba(35, 99, 126, 0.3);
+            box-shadow: 0 8px 15px rgba(35, 99, 126, 0.25);
+            transform: translateY(-2px);
         }
 
-        .nav-btn-custom i {
-            font-size: 1.8rem;
-            width: 40px;
+        .nav-btn-text {
+            font-size: 0.85rem;
+            line-height: 1.2;
             text-align: center;
-            margin-right: 15px;
+            width: 100%;
         }
 
         /* --- CONTROL PANEL (NON-PRINTABLE) --- */
@@ -319,30 +322,28 @@
     <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title">MENU</h5>
+            <h5 class="offcanvas-title">DASHBOARD</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body d-flex flex-column justify-content-center p-4">
+        <div class="offcanvas-body d-flex flex-column p-4 pt-4 mt-2">
             
-            <a href="index.html" class="nav-btn-custom">
-                <i class="fas fa-home"></i>
-                <span class="nav-btn-text">HOME</span>
+            <a href="realtime.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Power Meter Monitoring</span>
             </a>
-
-            <a href="menu_utama.html" class="nav-btn-custom">
-                <i class="fas fa-th-large"></i>
-                <span class="nav-btn-text">MENU UTAMA</span>
+            <a href="grafik_phasa.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
             </a>
-
-            <!-- Diberi class "active" karena kita sedang berada di halaman ini -->
-            <a href="download_data.html" class="nav-btn-custom active">
-                <i class="fas fa-cloud-download-alt"></i>
-                <span class="nav-btn-text">UNDUH DATA</span>
+            <a href="tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Monitoring Tarif</span>
             </a>
-
-            <a href="informasi_akun.html" class="nav-btn-custom">
-                <i class="fas fa-user"></i>
-                <span class="nav-btn-text">AKUN</span>
+            <a href="download_kwh_harian.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Data kWh Harian</span>
+            </a>
+            <a href="download_tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Tarif</span>
+            </a>
+            <a href="riwayat_alarm.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Riwayat Alarm Tegangan</span>
             </a>
 
         </div>
