@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Monitoring Tarif - Grafik</title>
     
-    <!-- Bootstrap 5 CSS (Untuk Sidebar/Offcanvas) -->
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Tailwind CSS -->
@@ -21,27 +24,64 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --primary: #2b6c8a;
             --primary-hover: #1f5066;
-            --bg-color: #f8fafc;
+            --bg-body: #f4f7f6;
+            --card-bg: #ffffff;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-color); 
-            color: #334155;
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--bg-body); 
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        h1, h2, h3, h4, h5, .font-poppins {
-            font-family: 'Poppins', sans-serif;
+        /* --- HEADER (JUDUL DI TENGAH) --- */
+        .app-header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--primary);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            position: relative; 
+            min-height: 75px;
+            z-index: 100;
         }
 
-        /* --- SIDEBAR STYLE --- */
+        .btn-menu-toggle {
+            color: var(--primary);
+            font-size: 1.6rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 110;
+        }
+        
+        .topbar-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--primary);
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            white-space: nowrap;
+            z-index: 105;
+        }
+
+        /* --- SIDEBAR STYLE (PREMIUM OUTLINED) --- */
         .offcanvas {
             border-top-right-radius: 16px;
             border-bottom-right-radius: 16px;
@@ -55,7 +95,7 @@
         }
         .offcanvas-title {
             color: var(--primary);
-            font-weight: 700;
+            font-weight: 800;
             letter-spacing: 0.5px;
         }
 
@@ -74,7 +114,7 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             cursor: pointer;
-            position: relative; /* Ditambahkan agar icon panah bisa diposisikan di kanan */
+            position: relative;
         }
 
         .nav-btn-custom:hover, .nav-btn-custom.active {
@@ -90,70 +130,92 @@
             line-height: 1.2;
             text-align: center;
             width: 100%;
-            font-family: 'Poppins', sans-serif;
         }
 
-        /* --- TOP BAR --- */
-        .topbar {
+        /* --- FILTER KONTROL (BLOK WARNA SOLID) --- */
+        .filter-container {
             width: 100%;
+            max-width: 1200px;
+            background: var(--primary);
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            margin: 25px 0;
             display: flex;
-            align-items: center; 
-            justify-content: center; 
-            padding: 16px 24px;
-            background-color: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            position: sticky; 
-            top: 0;
-            z-index: 40;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: flex-end;
+            border: 1px solid var(--primary-hover);
         }
 
-        .hamburger {
-            position: absolute; 
-            left: clamp(16px, 4vw, 24px);
-            color: var(--primary);
-            font-size: 1.25rem; 
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .filter-control {
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            outline: none;
+            color: #333;
+            background: white;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .filter-control:focus {
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-filter {
+            background-color: #ffffff;
+            color: var(--primary);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s ease;
-        }
-        
-        .hamburger:hover { background-color: #f1f5f9; }
-
-        .topbar-title {
-            color: var(--primary);
-            font-weight: 600;
-            margin: 0;
-            letter-spacing: 0.5px;
-            font-size: 1.1rem;
-            font-family: 'Poppins', sans-serif;
-        }
-        
-        /* --- KONTROL AREA (FORM INPUT) --- */
-        .custom-input { 
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1; 
-            color: #1e293b; 
-            font-weight: 500; 
-            border-radius: 8px; 
-            padding: 0.5rem 0.75rem;
-            outline: none; 
-            transition: all 0.2s; 
-            width: 100%; 
-            font-size: 0.875rem;
-        }
-        
-        .custom-input:focus { 
-            border-color: var(--primary); 
-            box-shadow: 0 0 0 3px rgba(43, 108, 138, 0.15); 
+            gap: 8px;
         }
 
-        /* --- CANVAS CHART --- */
+        .btn-filter:hover { transform: translateY(-2px); background-color: #f8f9fa; }
+        .btn-filter:active { transform: scale(0.95); }
+
+        /* --- DASHBOARD KONTEN --- */
+        .chart-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 1200px;
+            border: 1px solid #eee;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
         .chart-container {
             position: relative;
             height: 350px;
@@ -170,12 +232,19 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
     </style>
 </head>
-<body class="flex flex-col items-center min-h-screen">
+<body>
 
-    <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
+    <!-- APP HEADER -->
+    <div class="app-header">
+        <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h5 class="topbar-title">GRAFIK TARIF KWH</h5>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header">
             <h5 class="offcanvas-title font-poppins">DASHBOARD</h5>
@@ -192,7 +261,7 @@
             <a href="grafik_phasa.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
             </a>
-            <!-- TANDA ACTIVE DAN ICON PANAH DI HALAMAN SAAT INI -->
+            <!-- TANDA ACTIVE DAN ICON PANAH -->
             <a href="grafik_tarif.html" class="nav-btn-custom active">
                 <span class="nav-btn-text">Grafik Tarif kWh</span>
                 <i class="fas fa-chevron-right position-absolute" style="right: 20px;"></i>
@@ -210,48 +279,33 @@
         </div>
     </div>
 
-    <!-- 1. TOP BAR -->
-    <div class="topbar w-full">
-        <button class="hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h5 class="topbar-title">GRAFIK TARIF KWH</h5>
-    </div>
-
-    <!-- MAIN CONTAINER -->
-    <div class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+    <!-- MAIN CONTENT WRAPPER -->
+    <div style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: 0 20px;">
         
-        <!-- 2. KONTROL PANEL (FILTER) -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 mb-6">
-            <div class="flex flex-col lg:flex-row gap-5 items-end">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow w-full">
-                    <!-- Tgl Mulai -->
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tanggal Mulai</label>
-                        <input type="date" id="startDate" class="custom-input">
-                    </div>
-                    <!-- Tgl Selesai -->
-                    <div>
-                        <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Tanggal Selesai</label>
-                        <input type="date" id="endDate" class="custom-input">
-                    </div>
-                </div>
-
-                <!-- Tombol Hitung -->
-                <button id="btnHitung" onclick="fetchData()" class="w-full lg:w-auto bg-[#2b6c8a] hover:bg-[#1f5066] text-white font-medium py-[9px] px-8 rounded-lg shadow-sm transition-colors duration-200 flex items-center justify-center gap-2 shrink-0">
-                    <i class="fas fa-chart-bar text-sm"></i> Tampilkan Grafik
+        <!-- Filter Data Tanggal (BLOK SOLID) -->
+        <div class="filter-container">
+            <div class="filter-group">
+                <label>Tanggal Mulai</label>
+                <input type="date" id="startDate" class="filter-control">
+            </div>
+            <div class="filter-group">
+                <label>Tanggal Selesai</label>
+                <input type="date" id="endDate" class="filter-control">
+            </div>
+            <div class="filter-group">
+                <button id="btnHitung" class="btn-filter" onclick="fetchData()">
+                    <i class="fas fa-chart-bar"></i> TAMPILKAN GRAFIK
                 </button>
             </div>
         </div>
 
         <!-- 3. AREA GRAFIK -->
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 relative">
+        <div class="chart-card">
             
             <h2 id="chartTitleText" class="text-xl font-bold text-center text-[#2b6c8a] mb-6 uppercase tracking-wide">Perbandingan Data Semua Mesin</h2>
 
             <!-- Loading / Error Message -->
-            <div id="chartMessage" class="text-center py-10 text-slate-500 text-sm hidden absolute inset-0 bg-white/90 z-10 flex flex-col justify-center items-center">
+            <div id="chartMessage" class="text-center py-10 text-slate-500 text-sm hidden absolute inset-0 bg-white/90 z-10 flex flex-col justify-center items-center rounded-[16px]">
                 <i class="fas fa-circle-notch fa-spin text-[#2b6c8a] text-3xl mb-3 block"></i>
                 <span class="font-semibold text-base">Memproses data dari database...</span>
             </div>
@@ -323,7 +377,7 @@
         // INISIALISASI KEDUA CHART AWAL
         // ==========================================
         function initCharts() {
-            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.font.family = "'Poppins', sans-serif";
 
             // 1. Chart KWH
             const ctxKwh = document.getElementById('kwhChart').getContext('2d');
@@ -341,7 +395,7 @@
                     responsive: true, maintainAspectRatio: false,
                     layout: { padding: { top: 25 } },
                     plugins: {
-                        legend: { display: false }, // Disembunyikan karena sudah ada di Note bawah
+                        legend: { display: false }, 
                         datalabels: {
                             anchor: 'end', align: 'top', color: '#334155',
                             font: { size: 9, weight: 'bold' },
@@ -372,7 +426,7 @@
                     responsive: true, maintainAspectRatio: false,
                     layout: { padding: { top: 25 } },
                     plugins: {
-                        legend: { display: false }, // Disembunyikan karena sudah ada di Note bawah
+                        legend: { display: false }, 
                         datalabels: {
                             anchor: 'end', align: 'top', color: '#334155',
                             font: { size: 9, weight: 'bold' },
@@ -404,18 +458,16 @@
         }
 
         // ==========================================
-        // FUNGSI TARIK DATA (PLEK KETIPLEK LOGIKA LAMA)
+        // FUNGSI TARIK DATA
         // ==========================================
         async function fetchData() {
             const btnHitung = document.getElementById('btnHitung');
             const msgBox = document.getElementById('chartMessage');
 
-            // Set Loading State
-            btnHitung.innerHTML = `<i class="fas fa-spinner fa-spin text-sm"></i> Memproses...`;
+            btnHitung.innerHTML = `<i class="fas fa-spinner fa-spin"></i> MEMPROSES...`;
             btnHitung.disabled = true;
             msgBox.classList.remove('hidden');
             
-            // Kosongkan chart sementara
             if(kwhChartInstance && rpChartInstance) {
                 kwhChartInstance.data.labels = [];
                 kwhChartInstance.data.datasets[0].data = [];
@@ -433,19 +485,16 @@
 
             if(!startDate || !endDate) return;
 
-            // KUNCI WAKTU MULAI & SELESAI DI JAM 08:00:00 (Sesuai Permintaan)
             const fixedStartTime = "08:00:00";
             const fixedEndTime = "08:00:00";
 
             const startISO = `${startDate}T${fixedStartTime}+07:00`;
             const endISO = `${endDate}T${fixedEndTime}+07:00`;
 
-            // Update Label Note di Bawah
             document.getElementById('lblAwal').innerText = `${startDate} Jam 08:00`;
             document.getElementById('lblAkhir').innerText = `${endDate} Jam 08:00`;
 
             try {
-                // Request 1: T1 & T2 Delta (LWBP & WBP) LURUS LURUS SAMA PERSIS
                 const { data: rpcData, error: rpcError } = await client.rpc('get_energy_report', {
                     start_time: startISO,
                     end_time: endISO
@@ -463,36 +512,30 @@
                     const rpcRow = rpcData ? rpcData.find(d => d.meter_id === i) : null;
                     const name = machineNames[i] || `Meter ${i}`;
                     
-                    const lwbp_val = rpcRow ? (rpcRow.delta_t1 || 0) : 0; // T1 -> LWBP (kWh)
-                    const wbp_val = rpcRow ? (rpcRow.delta_t2 || 0) : 0;  // T2 -> WBP (kWh)
+                    const lwbp_val = rpcRow ? (rpcRow.delta_t1 || 0) : 0; 
+                    const wbp_val = rpcRow ? (rpcRow.delta_t2 || 0) : 0;  
                     
-                    const costLWBP = lwbp_val * TARIF_LWBP; // Biaya LWBP (Rp)
-                    const costWBP = wbp_val * TARIF_WBP;   // Biaya WBP (Rp)
+                    const costLWBP = lwbp_val * TARIF_LWBP; 
+                    const costWBP = wbp_val * TARIF_WBP;   
 
-                    // Masukkan ke Array Chart (Skip mesin UNKNOWN agar rapi)
                     if (name !== "UNKNOWN") {
                         chartLabels.push(name);
                         
-                        // Data KWH
                         chartDataT1_Kwh.push(lwbp_val);
                         chartDataT2_Kwh.push(wbp_val);
 
-                        // Data Rupiah
                         chartDataT1_Rp.push(costLWBP);
                         chartDataT2_Rp.push(costWBP);
                     }
                 }
 
-                // Sembunyikan loading
                 msgBox.classList.add('hidden');
 
-                // Update Grafik 1 (KWH)
                 kwhChartInstance.data.labels = chartLabels;
                 kwhChartInstance.data.datasets[0].data = chartDataT1_Kwh;
                 kwhChartInstance.data.datasets[1].data = chartDataT2_Kwh;
                 kwhChartInstance.update();
 
-                // Update Grafik 2 (RUPIAH)
                 rpChartInstance.data.labels = chartLabels;
                 rpChartInstance.data.datasets[0].data = chartDataT1_Rp;
                 rpChartInstance.data.datasets[1].data = chartDataT2_Rp;
@@ -502,15 +545,11 @@
                 console.error("Supabase Error:", err);
                 msgBox.innerHTML = `<span class="text-red-600 font-bold"><i class="fas fa-exclamation-triangle mr-2"></i> Gagal memuat data: ${err.message}</span>`;
             } finally {
-                // Kembalikan Tombol Hitung
-                btnHitung.innerHTML = `<i class="fas fa-chart-bar text-sm"></i> Tampilkan Grafik`;
+                btnHitung.innerHTML = `<i class="fas fa-chart-bar"></i> TAMPILKAN GRAFIK`;
                 btnHitung.disabled = false;
             }
         }
 
-        // ==========================================
-        // INISIALISASI AWAL
-        // ==========================================
         window.onload = () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('startDate').value = today;
