@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Alarm Tegangan - Monitoring System</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icon FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase JS -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+    <!-- Paho MQTT JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #2b6c8a;
+            --primary-hover: #1f5066;
+            --bg-body: #f4f7f6;
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: var(--bg-body); 
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- HEADER PROFESIONAL --- */
+        .app-header {
+            width: 100%;
+            background-color: #fff;
+            padding: 10px 24px;
+            border-bottom: 3px solid var(--primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky; 
+            top: 0;
+            z-index: 100;
+            min-height: 75px;
+        }
+
+        .header-left { display: flex; align-items: center; z-index: 10; }
+        
+        .btn-menu-toggle {
+            color: var(--primary);
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.2s ease;
+        }
+        .btn-menu-toggle:hover { transform: scale(1.1); }
+        
+        .app-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--primary);
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-size: clamp(0.75rem, 1.5vw, 1.1rem);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .header-right { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end;
+            gap: 15px; 
+        }
+
+        .header-divider-vertical {
+            width: 2px;
+            height: 35px;
+            background-color: #e2e8f0;
+            border-radius: 2px;
+        }
+
+        .topbar-logo {
+            height: clamp(20px, 4vw, 30px);
+            object-fit: contain;
+        }
+
+        /* --- SIDEBAR STYLE (PREMIUM OUTLINED) --- */
+        .offcanvas {
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
+            width: 280px !important;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.04);
+            border: none;
+        }
+        .offcanvas-header {
+            border-bottom: 1px solid #f1f5f9;
+            padding: 20px 24px;
+        }
+        .offcanvas-title {
+            color: var(--primary);
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-btn-custom {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 50px;
+            padding: 12px 25px;
+            margin-bottom: 15px;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .nav-btn-custom:hover, .nav-btn-custom.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 8px 15px rgba(43, 108, 138, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .nav-btn-text {
+            font-size: 0.85rem;
+            line-height: 1.2;
+            text-align: center;
+            width: 100%;
+        }
+
+        /* --- CONTROL PANEL (BLOK WARNA SOLID) --- */
+        .control-panel {
+            background-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px auto;
+            max-width: 1200px;
+            width: 95%;
+            border: 1px solid var(--primary-hover);
+        }
+
+        .filter-label {
+            display: block;
+            text-transform: uppercase;
+            font-size: 8.5pt;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .custom-input { 
+            border: 1px solid rgba(255, 255, 255, 0.3); 
+            color: #1e293b; 
+            font-weight: 600; 
+            border-radius: 8px; 
+            padding: 0.7rem 1rem; 
+            outline: none; 
+            transition: all 0.2s; 
+            width: 100%; 
+            background-color: #ffffff;
+        }
+
+        .btn-action {
+            width: 100%;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+            background-color: #ffffff;
+            color: var(--primary);
+            margin-top: 5px;
+        }
+        .btn-action:hover { background-color: #f8f9fa; transform: translateY(-2px); }
+
+        /* --- STYLING TABEL --- */
+        .table-container {
+            background-color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 0 auto 40px auto;
+            max-width: 1200px;
+            width: 95%;
+            overflow: hidden;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .table-header th {
+            background-color: #f8fafc; 
+            color: #475569;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 12px 16px;
+            border-bottom: 2px solid #e2e8f0;
+            text-align: left;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        .report-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        .report-table tbody tr { transition: background-color 0.15s ease; }
+        .report-table tbody tr:hover { background-color: #f8fafc; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        @media (max-width: 768px) {
+            .app-header { min-height: 60px; padding: 10px 15px; }
+            .app-title { font-size: 0.7rem; max-width: 160px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+            .header-divider-vertical { display: none; } 
+        }
+        @media (max-width: 576px) {
+            .app-title { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- APP HEADER -->
+    <div class="app-header">
+        <div class="header-left">
+            <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <h5 class="app-title">RIWAYAT ALARM TEGANGAN</h5>
+
+        <div class="header-right">
+            <div class="header-divider-vertical"></div>
+            <img src="https://amarilyskg.co.id/bootstrap/img/logo.png" alt="Logo" class="topbar-logo">
+        </div>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">DASHBOARD</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body d-flex flex-column p-4 pt-4 mt-2">
+            <a href="index.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Home</span>
+            </a>
+            <a href="realtime.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Power Meter Monitoring</span>
+            </a>
+            <a href="tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Monitoring Tarif</span>
+            </a>
+            <a href="grafik_phasa.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
+            </a>
+            <a href="grafik_tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Grafik Tarif kWh</span>
+            </a>
+            <a href="download_kwh_harian.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Data kWh Harian</span>
+            </a>
+            <a href="download_tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Download Tarif</span>
+            </a>
+            <!-- TANDA ACTIVE -->
+            <a href="riwayat_alarm.html" class="nav-btn-custom active">
+                <span class="nav-btn-text">Riwayat Alarm Tegangan</span>
+                <i class="fas fa-chevron-right position-absolute" style="right: 20px;"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- CONTROL PANEL FILTER -->
+    <div class="control-panel">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div>
+                <label class="filter-label">Tanggal Mulai</label>
+                <input type="date" id="startDate" class="custom-input text-sm">
+            </div>
+            <div>
+                <label class="filter-label">Tanggal Selesai</label>
+                <input type="date" id="endDate" class="custom-input text-sm">
+            </div>
+            <div>
+                <label class="filter-label">Batas Over Voltage (V)</label>
+                <input type="number" id="overVoltage" class="custom-input text-sm" value="418" step="1">
+            </div>
+            <div>
+                <label class="filter-label">Batas Under Voltage (V)</label>
+                <input type="number" id="underVoltage" class="custom-input text-sm" value="340" step="1">
+            </div>
+        </div>
+
+        <div class="flex justify-center md:justify-end">
+            <button onclick="fetchData()" id="btnFetch" class="btn-action md:w-auto md:px-12">
+                <i class="fas fa-search"></i> TAMPILKAN RIWAYAT ALARM
+            </button>
+        </div>
+    </div>
+
+    <!-- TABEL DATA ALARM -->
+    <div class="table-container">
+        
+        <div class="flex flex-col md:flex-row justify-between items-center pb-4 mb-4 gap-4 border-b border-slate-100">
+            <div>
+                <h2 class="text-lg font-bold text-slate-800"><i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Log Anomali Tegangan</h2>
+                <p id="descText" class="text-xs text-slate-500 mt-1">Menampilkan data tegangan &gt; 418V (Over) atau &lt; 340V (Under).</p>
+            </div>
+            <div class="text-sm font-semibold bg-slate-50 px-4 py-2 rounded-lg border border-slate-200">
+                Total Alarm Ditemukan: <span id="lblTotal" class="text-[#2b6c8a] font-bold">0</span>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto w-full">
+            <table class="report-table">
+                <thead class="table-header">
+                    <tr>
+                        <th class="w-16 text-center">No</th>
+                        <th class="w-48">Waktu Kejadian (WIB)</th>
+                        <th>Nama Mesin</th>
+                        <th class="text-center">Status Alarm</th>
+                        <th class="text-right">Tegangan (V)</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="5" class="text-center py-16 text-slate-500">
+                            <i class="fas fa-history text-3xl mb-3 text-slate-300 block"></i>
+                            Silakan tekan "Tampilkan Riwayat Alarm" untuk memuat data.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // ==========================================
+        // KONFIGURASI SUPABASE
+        // ==========================================
+        const SUPABASE_URL = 'https://awyohlizbltikpfanugb.supabase.co'; 
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes'; 
+        
+        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ==========================================
+        // KONFIGURASI MQTT HIVEMQ PENGIRIM ALARM
+        // ==========================================
+        const mqttBroker = "broker.hivemq.com";
+        const mqttPort = 8884; // Menggunakan 8884 untuk WSS (Secure WebSocket) agar aman di browser
+        const mqttTopic = "over/voltage/amarilys";
+        const mqttClientID = "AlarmWeb_" + Math.random().toString(16).substr(2, 8);
+        const mqttClient = new Paho.MQTT.Client(mqttBroker, mqttPort, mqttClientID);
+        
+        let isMqttConnected = false;
+
+        mqttClient.onConnectionLost = (responseObject) => {
+            if (responseObject.errorCode !== 0) {
+                console.warn("MQTT Terputus: " + responseObject.errorMessage);
+                isMqttConnected = false;
+                setTimeout(connectMQTT, 5000); // Reconnect otomatis
+            }
+        };
+
+        function connectMQTT() {
+            mqttClient.connect({
+                useSSL: true,
+                onSuccess: () => {
+                    console.log("Berhasil terhubung ke Broker HiveMQ!");
+                    isMqttConnected = true;
+                },
+                onFailure: (err) => {
+                    console.error("Gagal terhubung ke MQTT:", err);
+                    setTimeout(connectMQTT, 5000);
+                }
+            });
+        }
+
+        // Fungsi untuk menembak/publish data alarm ke MQTT
+        function publishMQTTAlarm(mesin, tegangan, status, waktu) {
+            if (!isMqttConnected) return;
+            
+            const payload = JSON.stringify({
+                mesin: mesin,
+                tegangan: tegangan,
+                status: status,
+                waktu_kejadian: waktu,
+                dikirim_pada: new Date().toISOString()
+            });
+
+            const message = new Paho.MQTT.Message(payload);
+            message.destinationName = mqttTopic;
+            mqttClient.send(message);
+        }
+
+        const machineNames = {
+            1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN", 4: "UNKNOWN",
+            5: "MESIN 41", 6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOWN",
+            9: "HEATER MC 5", 10: "MESIN 5", 11: "UNKNOWN", 12: "MESIN 34",
+            13: "MESIN 35", 14: "UNKNOWN", 15: "UNKNOWN", 16: "MESIN 38",
+            17: "MESIN 36", 18: "MESIN 37"
+        };
+
+        function formatDateTime(isoString) {
+            if (!isoString) return '-';
+            const date = new Date(isoString);
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            const ss = String(date.getSeconds()).padStart(2, '0');
+            return `${dd}/${mm}/${yyyy} ${hh}:${min}:${ss}`;
+        }
+
+        async function fetchData() {
+            const tableBody = document.getElementById('tableBody');
+            const btnFetch = document.getElementById('btnFetch');
+            const lblTotal = document.getElementById('lblTotal');
+            const descText = document.getElementById('descText');
+
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            // Ambil nilai input batasan tegangan (default 418 dan 340 jika kosong)
+            const overVolt = document.getElementById('overVoltage').value || 418;
+            const underVolt = document.getElementById('underVoltage').value || 340;
+
+            if(!startDate || !endDate) return alert("Pilih rentang tanggal terlebih dahulu!");
+
+            btnFetch.innerHTML = `<i class="fas fa-spinner fa-spin"></i> MEMPROSES...`;
+            btnFetch.disabled = true;
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="text-center py-12 text-slate-500 font-medium">
+                        <i class="fas fa-circle-notch fa-spin text-[#2b6c8a] text-2xl mb-2 block"></i>
+                        Sedang mengambil riwayat dari database...
+                    </td>
+                </tr>
+            `;
+            lblTotal.innerText = '0';
+            
+            // Perbarui deskripsi teks secara dinamis berdasarkan input pengguna
+            descText.innerHTML = `Menampilkan data tegangan &gt; ${overVolt}V (Over) atau &lt; ${underVolt}V (Under).`;
+
+            // Otomatis mencari data satu hari penuh
+            const startISO = `${startDate}T00:00:00+07:00`;
+            const endISO = `${endDate}T23:59:59+07:00`;
+
+            try {
+                // Menggunakan fungsi OR Supabase dengan variabel batas dinamis
+                const { data, error } = await client
+                    .from('energi_db')
+                    .select('waktu_jakarta, meter_id, voltage')
+                    .gte('waktu_jakarta', startISO)
+                    .lte('waktu_jakarta', endISO)
+                    .or(`voltage.gt.${overVolt},voltage.lt.${underVolt}`)
+                    .order('waktu_jakarta', { ascending: false }) // Urutkan dari yang terbaru
+                    .limit(1000); // Maksimal 1000 baris agar tidak lag jika terlalu banyak
+
+                if (error) throw error;
+
+                tableBody.innerHTML = '';
+                lblTotal.innerText = data.length;
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="text-center py-12 text-green-600 font-medium bg-green-50">
+                                <i class="fas fa-check-circle text-3xl mb-2 block"></i>
+                                Tidak ada anomali tegangan pada periode ini. Semua aman!
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    data.forEach((row, index) => {
+                        const v = Number(row.voltage) || 0;
+                        const name = machineNames[row.meter_id] || `Meter ID: ${row.meter_id}`;
+                        const formattedTime = formatDateTime(row.waktu_jakarta);
+                        
+                        let badgeHtml = '';
+                        let textClass = '';
+                        let statusAlarm = '';
+                        
+                        // Logika pengecekan menggunakan variabel dinamis
+                        if (v > overVolt) {
+                            badgeHtml = `<span class="bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3 py-1 rounded-full"><i class="fas fa-arrow-up mr-1"></i>OVER VOLTAGE</span>`;
+                            textClass = 'text-red-600 font-bold';
+                            statusAlarm = 'OVER VOLTAGE';
+                        } else if (v < underVolt) {
+                            badgeHtml = `<span class="bg-yellow-100 text-yellow-800 border border-yellow-300 text-xs font-bold px-3 py-1 rounded-full"><i class="fas fa-arrow-down mr-1"></i>UNDER VOLTAGE</span>`;
+                            textClass = 'text-yellow-700 font-bold';
+                            statusAlarm = 'UNDER VOLTAGE';
+                        }
+
+                        // JIKA ADA ANOMALI, KIRIM DATA KE MQTT BROKER
+                        if (statusAlarm !== '') {
+                            publishMQTTAlarm(name, v.toFixed(1), statusAlarm, formattedTime);
+                        }
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="text-center font-medium text-slate-500">${index + 1}</td>
+                            <td class="font-mono text-[13px] text-slate-700">${formattedTime}</td>
+                            <td class="font-semibold text-[#2b6c8a]">${name}</td>
+                            <td class="text-center">${badgeHtml}</td>
+                            <td class="text-right ${textClass} font-mono text-sm">${v.toFixed(1)}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+                }
+
+            } catch (err) {
+                console.error("Error fetching alarm data:", err);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-10 text-red-500 font-bold">
+                            <i class="fas fa-exclamation-triangle mr-2"></i> Gagal memuat data: ${err.message}
+                        </td>
+                    </tr>
+                `;
+            } finally {
+                btnFetch.innerHTML = `<i class="fas fa-search"></i> TAMPILKAN RIWAYAT ALARM`;
+                btnFetch.disabled = false;
+            }
+        }
+
+        // Setup default date to today when page loads
+        window.onload = () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('startDate').value = today;
+            document.getElementById('endDate').value = today;
+
+            // Inisialisasi koneksi MQTT saat halaman pertama kali dimuat
+            connectMQTT();
+        };
+    </script>
+</body>
+</html>
