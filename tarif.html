@@ -121,6 +121,33 @@
         
         .hamburger:hover { background-color: #f1f5f9; }
 
+        /* --- BUTTON BOOK DI KANAN ATAS --- */
+        .btn-book {
+            position: absolute;
+            right: clamp(16px, 4vw, 24px);
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+            padding: 8px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+        }
+        
+        .btn-book:hover {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
         .topbar-title {
             color: var(--primary);
             font-weight: 800;
@@ -168,6 +195,7 @@
             letter-spacing: 0.05em;
             border-bottom: 1px solid #e2e8f0;
             border-top: 1px solid #e2e8f0;
+            vertical-align: middle;
         }
 
         .report-table td {
@@ -236,6 +264,11 @@
             <i class="fas fa-bars"></i>
         </button>
         <h5 class="topbar-title">MONITORING TARIF</h5>
+        
+        <!-- TOMBOL BUKU POWER METER -->
+        <button class="btn-book" data-bs-toggle="modal" data-bs-target="#powerMeterModal">
+            <i class="fas fa-book"></i> <span class="hidden sm:inline">POWER METER</span>
+        </button>
     </div>
 
     <!-- MAIN CONTAINER -->
@@ -303,17 +336,15 @@
                         <tr>
                             <th class="text-center w-12">No</th>
                             <th class="text-left w-48">Nama Mesin</th>
-                            <th class="text-right">Partial Ea<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
-                            <th class="text-right">LWBP<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
-                            <th class="text-right">WBP<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
-                            <th class="text-right bg-slate-50/50">Total<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
-                            <th class="text-right">Biaya Partial<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(Rp)</span></th>
-                            <th class="text-right bg-slate-50/50">Total Biaya<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(Rp)</span></th>
+                            <th class="text-right">LWBP HARIAN<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
+                            <th class="text-right">WBP HARIAN<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
+                            <th class="text-right bg-slate-50/50">TOTAL ENERGI<br>HARIAN<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
+                            <th class="text-right bg-slate-50/50 w-44">BIAYA ENERGI<br>HARIAN<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(Rp)</span></th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
                         <tr>
-                            <td colspan="8" class="text-center py-16 text-slate-400">
+                            <td colspan="6" class="text-center py-16 text-slate-400">
                                 <div class="flex flex-col items-center justify-center">
                                     <i class="fas fa-table text-3xl mb-3 text-slate-200"></i>
                                     <p class="font-medium text-sm">Data belum dimuat.</p>
@@ -330,6 +361,48 @@
                 <span id="infoText"></span>
             </div>
 
+        </div>
+    </div>
+
+    <!-- MODAL POPUP POWER METER -->
+    <div class="modal fade" id="powerMeterModal" tabindex="-1" aria-labelledby="powerMeterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-[#2b6c8a] text-white" style="border-top-left-radius: 16px; border-top-right-radius: 16px;">
+                    <h5 class="modal-title font-poppins font-bold text-lg" id="powerMeterModalLabel">
+                        <i class="fas fa-book mr-2"></i> DATA AWAL POWER METER
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="overflow-x-auto w-full">
+                        <table class="report-table m-0">
+                            <thead class="sticky top-0 z-10">
+                                <tr>
+                                    <th class="text-center w-12 bg-[#f8fafc]">No</th>
+                                    <th class="text-left bg-[#f8fafc]">Nama Mesin</th>
+                                    <th class="text-right bg-[#f8fafc]">AWAL PEMASANGAN<br>POWER METER<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(kWh)</span></th>
+                                    <th class="text-right bg-[#f8fafc] w-56">BIAYA SEJAK AWAL<br>PEMASANGAN POWER METER<br><span class="font-normal text-[9px] text-slate-400 lowercase block mt-0.5">(Rp)</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center py-16 text-slate-400">
+                                        <div class="flex flex-col items-center justify-center">
+                                            <i class="fas fa-inbox text-3xl mb-3 text-slate-200"></i>
+                                            <p class="font-medium text-sm">Data belum dimuat.</p>
+                                            <p class="text-xs text-slate-400 mt-1">Tekan "Hitung Biaya" di halaman utama terlebih dahulu.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-slate-50 border-t border-slate-200 rounded-b-[16px]">
+                    <button type="button" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-6 rounded-lg transition-colors" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -363,17 +436,28 @@
         const TARIF_WBP = 1553.67;
 
         // ==========================================
-        // FUNGSI TARIK DATA
+        // FUNGSI TARIK DATA (LOGIKA SAMA PERSIS)
         // ==========================================
         async function fetchData() {
             const tableBody = document.getElementById('tableBody');
+            const modalTableBody = document.getElementById('modalTableBody');
             const infoDiv = document.getElementById('lastUpdateInfo');
             const infoText = document.getElementById('infoText');
 
             // Set Loading State minimalist
             tableBody.innerHTML = `
                 <tr>
-                    <td colspan="8" class="text-center py-16">
+                    <td colspan="6" class="text-center py-16">
+                        <div class="flex justify-center items-center gap-3 text-slate-500">
+                            <i class="fas fa-circle-notch fa-spin text-lg text-[#2b6c8a]"></i>
+                            <span class="font-medium text-sm">Memproses data...</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            modalTableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-16">
                         <div class="flex justify-center items-center gap-3 text-slate-500">
                             <i class="fas fa-circle-notch fa-spin text-lg text-[#2b6c8a]"></i>
                             <span class="font-medium text-sm">Memproses data...</span>
@@ -423,6 +507,7 @@
 
                 // Render Table
                 tableBody.innerHTML = '';
+                modalTableBody.innerHTML = '';
 
                 let sumPartialEa = 0;
                 let sumLWBP = 0;
@@ -451,7 +536,7 @@
                     sumCostPartial += costPartial;
                     sumCostLWBP_WBP += costLWBP_WBP;
                     
-                    // Style dinamis (Lebih bersih, text alignment rapi ke kanan untuk angka)
+                    // Style dinamis
                     const hasData = (pEa > 0 || total_lwbp_wbp > 0);
                     const rowClass = isUnknown ? 'opacity-50' : '';
                     const textClass = hasData ? 'text-slate-800 font-medium' : 'text-slate-400';
@@ -463,14 +548,27 @@
                     tr.innerHTML = `
                         <td class="text-center text-slate-400 text-xs">${i}.</td>
                         <td class="text-left ${textClass}">${name}</td>
-                        <td class="text-right ${numClass} font-mono text-[13px]">${formatNumber(pEa)}</td>
                         <td class="text-right ${numClass} font-mono text-[13px]">${formatNumber(lwbp_val)}</td>
                         <td class="text-right ${numClass} font-mono text-[13px]">${formatNumber(wbp_val)}</td>
                         <td class="text-right ${totalClass} font-mono text-[13px] bg-slate-50/50">${formatNumber(total_lwbp_wbp)}</td>
-                        <td class="text-right ${numClass} font-mono text-[13px]">Rp ${formatCurrency(costPartial)}</td>
-                        <td class="text-right ${totalClass} font-mono text-[13px] bg-slate-50/50">Rp ${formatCurrency(costLWBP_WBP)}</td>
+                        <td class="text-right ${totalClass} font-mono text-[13px] bg-slate-50/50">
+                            <div class="flex justify-between w-full"><span>Rp</span><span>${formatCurrency(costLWBP_WBP)}</span></div>
+                        </td>
                     `;
                     tableBody.appendChild(tr);
+
+                    // --- GENERATE ROW UNTUK MODAL POWER METER ---
+                    const trModal = document.createElement('tr');
+                    trModal.className = rowClass;
+                    trModal.innerHTML = `
+                        <td class="text-center text-slate-400 text-xs">${i}.</td>
+                        <td class="text-left ${textClass}">${name}</td>
+                        <td class="text-right ${numClass} font-mono text-[13px]">${formatNumber(pEa)}</td>
+                        <td class="text-right ${numClass} font-mono text-[13px]">
+                            <div class="flex justify-between w-full"><span>Rp</span><span>${formatCurrency(costPartial)}</span></div>
+                        </td>
+                    `;
+                    modalTableBody.appendChild(trModal);
                 }
 
                 // Baris Total (Solid & Clean)
@@ -478,21 +576,34 @@
                 totalTr.className = 'bg-slate-50 border-t border-slate-300';
                 totalTr.innerHTML = `
                     <td class="text-center font-semibold text-slate-800 uppercase text-xs tracking-wider" colspan="2">Total Keseluruhan</td>
-                    <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">${formatNumber(sumPartialEa)}</td>
                     <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">${formatNumber(sumLWBP)}</td>
                     <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">${formatNumber(sumWBP)}</td>
                     <td class="text-right font-bold text-[#2b6c8a] font-mono text-[13px]">${formatNumber(sumTotalLWBP_WBP)}</td>
-                    <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">Rp ${formatCurrency(sumCostPartial)}</td>
-                    <td class="text-right font-bold text-[#2b6c8a] font-mono text-[13px]">Rp ${formatCurrency(sumCostLWBP_WBP)}</td>
+                    <td class="text-right font-bold text-[#2b6c8a] font-mono text-[13px]">
+                        <div class="flex justify-between w-full"><span>Rp</span><span>${formatCurrency(sumCostLWBP_WBP)}</span></div>
+                    </td>
                 `;
                 tableBody.appendChild(totalTr);
 
-                infoText.innerHTML = `Data <b>LWBP & WBP</b> adalah selisih dari waktu yang dipilih. Data <b>Partial Ea</b> adalah akumulasi utuh terbaru.`;
+                // --- GENERATE BARIS TOTAL UNTUK MODAL POWER METER ---
+                const totalTrModal = document.createElement('tr');
+                totalTrModal.className = 'bg-slate-50 border-t border-slate-300';
+                totalTrModal.innerHTML = `
+                    <td class="text-center font-semibold text-slate-800 uppercase text-xs tracking-wider" colspan="2">Total Keseluruhan</td>
+                    <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">${formatNumber(sumPartialEa)}</td>
+                    <td class="text-right font-semibold text-slate-800 font-mono text-[13px]">
+                        <div class="flex justify-between w-full"><span>Rp</span><span>${formatCurrency(sumCostPartial)}</span></div>
+                    </td>
+                `;
+                modalTableBody.appendChild(totalTrModal);
+
+                infoText.innerHTML = `Data <b>LWBP HARIAN & WBP HARIAN</b> adalah selisih dari waktu yang dipilih. Data awal pemasangan dapat dilihat di menu <b>POWER METER</b>.`;
                 infoDiv.classList.remove('hidden');
 
             } catch (err) {
                 console.error("Supabase Error:", err);
-                tableBody.innerHTML = `<tr><td colspan="8" class="text-center py-10 text-red-500 font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Gagal memuat data: ${err.message}</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-10 text-red-500 font-medium"><i class="fas fa-exclamation-triangle mr-2"></i> Gagal memuat data: ${err.message}</td></tr>`;
+                modalTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-10 text-red-500 font-medium">Gagal memuat data.</td></tr>`;
             }
         }
 
