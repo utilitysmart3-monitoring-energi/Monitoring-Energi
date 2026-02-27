@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PILIHAN DASHBOARDKU - Monitoring System</title>
+    <title>DASHBOARD MONITORING ENERGI - Monitoring System</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -34,28 +34,29 @@
             display: block; 
         }
 
-        /* --- SIDEBAR STYLE --- */
+        /* --- SIDEBAR STYLE (PREMIUM OUTLINED) --- */
         .offcanvas {
-            border-top-right-radius: 20px;
-            border-bottom-right-radius: 20px;
-            width: 300px !important;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.05);
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
+            width: 280px !important;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.04);
+            border: none;
         }
         .offcanvas-header {
-            border-bottom: 1px solid #f0f0f0;
-            padding: 20px 25px;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 20px 24px;
         }
         .offcanvas-title {
             color: var(--sidebar-theme);
             font-weight: 800;
-            letter-spacing: 1.5px;
+            letter-spacing: 0.5px;
         }
 
         .nav-btn-custom {
             display: flex;
             align-items: center;
-            background-color: var(--sidebar-theme);
-            color: white;
+            background-color: white;
+            color: var(--sidebar-theme);
             border: 2px solid var(--sidebar-theme);
             border-radius: 50px;
             padding: 12px 25px;
@@ -66,11 +67,12 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             cursor: pointer;
+            position: relative;
         }
 
-        .nav-btn-custom:hover {
-            background-color: #1f5066;
-            border-color: #1f5066;
+        .nav-btn-custom:hover, .nav-btn-custom.active {
+            background-color: var(--sidebar-theme);
+            border-color: var(--sidebar-theme);
             color: white;
             box-shadow: 0 8px 15px rgba(43, 108, 138, 0.25);
             transform: translateY(-2px);
@@ -117,6 +119,14 @@
             transform: scale(1.1); 
         }
 
+        /* --- LOGO KANAN ATAS --- */
+        .topbar-logo {
+            position: absolute;
+            right: clamp(20px, 4vw, 30px);
+            height: clamp(25px, 5vw, 40px);
+            object-fit: contain;
+        }
+
         /* --- WRAPPER UTAMA (TOP ALIGNED) --- */
         .main-wrapper {
             min-height: calc(100vh - 80px);
@@ -138,7 +148,9 @@
             margin: 0;
             letter-spacing: 1px;
             text-transform: uppercase;
-            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            padding: 0 75px; /* Memberi jarak agar teks tidak menabrak tombol kiri dan logo kanan */
+            line-height: 1.3;
         }
 
         .subtitle {
@@ -245,6 +257,10 @@
         </div>
         <div class="offcanvas-body d-flex flex-column p-4 pt-4 mt-2">
             
+            <a href="index.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Home</span>
+            </a>
+
             <a href="realtime.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Power Meter Monitoring</span>
             </a>
@@ -253,8 +269,8 @@
                 <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
             </a>
 
-            <a href="tarif.html" class="nav-btn-custom">
-                <span class="nav-btn-text">Monitoring Tarif</span>
+            <a href="grafik_tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Grafik Tarif kWh</span>
             </a>
 
             <a href="download_kwh_harian.html" class="nav-btn-custom">
@@ -277,12 +293,21 @@
         <button class="hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
             <i class="fas fa-bars"></i>
         </button>
-        <h5 class="title">PILIHAN DASHBOARDKU</h5>
+        <h5 class="title">DASHBOARD MONITORING ENERGI</h5>
+        <img src="https://amarilyskg.co.id/bootstrap/img/logo.png" alt="Logo Perusahaan" class="topbar-logo">
     </div>
 
     <!-- 2. WRAPPER UTAMA -->
     <div class="main-wrapper">
         
+        <!-- LOGO & TEKS DESKRIPSI -->
+        <div class="text-center mb-5 mt-4">
+            <img src="Utility%20logo.png" alt="Logo Utility" class="img-fluid mb-3" style="max-width: 280px; filter: drop-shadow(0px 6px 10px rgba(0,0,0,0.15));">
+            <p class="subtitle mx-auto mt-2" style="font-size: 0.95rem; max-width: 600px;">
+                Solusi digital monitoring energi listrik untuk analisa konsumsi listrik dan performa mesin secara realtime.
+            </p>
+        </div>
+
         <!-- GRID MENU UTAMA -->
         <div class="menu-grid">
             
