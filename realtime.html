@@ -14,7 +14,7 @@
 
     <style>
         :root { --sidebar-theme: #2b6c8a; }
-        body { background-color: #f4f7f6; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f4f7f6; font-family: 'Poppins', sans-serif; margin-bottom: 50px; }
         
         /* --- SIDEBAR & HEADER (PREMIUM OUTLINED) --- */
         .offcanvas { 
@@ -55,24 +55,27 @@
         
         .nav-btn-text { font-size: 0.85rem; line-height: 1.2; text-align: center; width: 100%; }
         
-        /* --- HEADER DI TENGAH --- */
+        /* --- HEADER PROFESIONAL (FLEXBOX) --- */
         .app-header { 
             background-color: #ffffff; 
-            padding: 15px 20px; 
+            padding: 12px 24px; 
             border-bottom: 3px solid var(--sidebar-theme); 
-            margin-bottom: 15px; 
+            margin-bottom: 20px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
             display: flex; 
-            justify-content: center; 
+            justify-content: space-between; 
             align-items: center; 
-            position: relative; 
-            min-height: 75px;
+            position: sticky; 
+            top: 0;
+            z-index: 100;
+            min-height: 70px;
         }
+
+        .header-left, .header-right { display: flex; align-items: center; }
+        .header-left { gap: 15px; }
+        .header-right { gap: 15px; }
+
         .btn-menu-toggle { 
-            position: absolute; 
-            left: clamp(15px, 4vw, 25px); 
-            top: 50%;
-            transform: translateY(-50%);
             color: var(--sidebar-theme); 
             font-size: 1.5rem; 
             background: none; 
@@ -80,60 +83,101 @@
             cursor: pointer; 
             padding: 0; 
             transition: transform 0.2s ease; 
-            z-index: 10;
         }
-        .btn-menu-toggle:hover { transform: translateY(-50%) scale(1.1); }
+        .btn-menu-toggle:hover { transform: scale(1.1); }
+        
         .app-title { 
             color: var(--sidebar-theme); 
             font-weight: 800; 
             margin: 0; 
-            letter-spacing: 1.5px; 
+            letter-spacing: 1px; 
             text-transform: uppercase; 
-            font-size: clamp(1rem, 2.5vw, 1.3rem); 
-            text-align: center; 
-            padding: 0 130px; 
-            width: 100%;
-            box-sizing: border-box;
+            font-size: clamp(0.9rem, 2vw, 1.3rem); 
         }
-        .mqtt-status { 
-            position: absolute; 
-            right: clamp(15px, 4vw, 25px); 
-            top: 50%;
-            transform: translateY(-50%);
-            text-align: right; 
-            font-size: 0.8rem; 
-            z-index: 10;
+
+        .topbar-clock {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--sidebar-theme);
+            font-family: 'Consolas', monospace;
+            background: #f8fafc;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            letter-spacing: 0.5px;
+        }
+
+        .header-divider {
+            width: 2px;
+            height: 30px;
+            background-color: #e2e8f0;
+        }
+
+        .topbar-logo {
+            height: 35px;
+            object-fit: contain;
+        }
+
+        /* --- STATUS BAR MENYAMBUNG DI BAWAH --- */
+        .bottom-status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 24px;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #334155;
+            letter-spacing: 0.5px;
+        }
+
+        .mqtt-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .mqtt-dot.connecting { background-color: #94a3b8; box-shadow: 0 0 6px #94a3b8; }
+        .mqtt-dot.connected { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
+        .mqtt-dot.lost { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+        .status-right {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            font-family: 'Consolas', monospace; 
         }
 
         /* --- MOBILE MODE --- */
+        @media (max-width: 768px) {
+            .app-title { font-size: 0.85rem; max-width: 150px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+            .topbar-clock { font-size: 0.8rem; padding: 4px 8px; }
+            .header-divider { display: none; }
+            .bottom-status-bar { padding: 8px 15px; }
+        }
+        
         @media (max-width: 576px) {
-            .app-header { padding: 10px; min-height: 65px; border-bottom-width: 2px; }
-            .btn-menu-toggle { left: 10px; font-size: 1.3rem; }
-            .app-title { 
-                font-size: 0.85rem; 
-                padding: 0 80px; 
-                line-height: 1.2;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 45px;
-            }
-            .mqtt-status { 
-                right: 10px; 
-                font-size: 0.6rem;
-                max-width: 75px; 
-            }
-            #last-update { font-size: 0.5rem !important; margin-top: 3px !important; color: #888 !important; }
-            .mqtt-status .badge { font-size: 0.55rem !important; padding: 4px 6px !important; }
+            .app-title { display: none; }
         }
 
-        /* --- GRID TOMBOL (DIUBAH JADI PERSEGI PANJANG) --- */
+        /* --- GRID TOMBOL --- */
         .machine-grid { 
             display: grid; 
-            grid-template-columns: 1fr; /* Di HP jadi 1 kolom full (Persegi Panjang) */
+            grid-template-columns: 1fr;
             gap: 12px; 
             padding: 10px; 
         }
@@ -159,7 +203,7 @@
         .btn-machine:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); filter: brightness(1.05); }
         .scanning-active { box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.8), 0 8px 16px rgba(255, 193, 7, 0.3) !important; transform: scale(1.02); z-index: 10; border: none !important;}
 
-        /* --- WARNA STATUS PREMIUM (LEBIH KALEM / MATTE) --- */
+        /* --- WARNA STATUS --- */
         .bg-waiting { background: linear-gradient(145deg, #7f8fa6, #718093); border: 1px solid #718093; }
         .bg-offline { background: linear-gradient(145deg, #c0392b, #a93226); border: 1px solid #a93226; }
         .bg-standby { background: linear-gradient(145deg, #2980b9, #2471a3); border: 1px solid #2471a3; animation: glow-blue 3s infinite; }
@@ -168,38 +212,9 @@
         @keyframes glow-blue { 0% { box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3); } 50% { box-shadow: 0 4px 20px rgba(41, 128, 185, 0.6); } 100% { box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3); } }
         @keyframes glow-green { 0% { box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); } 50% { box-shadow: 0 4px 20px rgba(39, 174, 96, 0.6); } 100% { box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); } }
         
-        /* HEADER KARTU (NAMA MESIN & BADGE) */
-        .card-top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 5px;
-            padding: 0 5px;
-        }
-        .machine-name { 
-            font-weight: 800; 
-            font-size: 0.85rem; 
-            margin-bottom: 0; 
-            text-align: left; 
-            letter-spacing: 0.5px;
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            flex: 1;
-            color: #ffffff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-        }
-        .status-badge-mini { 
-            font-size: 0.65rem; 
-            font-weight: 800; 
-            letter-spacing: 1.5px; 
-            padding: 0; /* Background dan padding dihapus agar clean */
-            background: transparent;
-            color: #ffffff;
-            border: none;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-        }
+        .card-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; padding: 0 5px; }
+        .machine-name { font-weight: 800; font-size: 0.85rem; margin-bottom: 0; text-align: left; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .status-badge-mini { font-size: 0.65rem; font-weight: 800; letter-spacing: 1.5px; padding: 0; background: transparent; color: #ffffff; border: none; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
         /* --- MODAL --- */
         .modal-content { border-radius: 20px; overflow: hidden; border: none; }
@@ -213,17 +228,8 @@
         .param-label { font-weight: 500; }
         .param-value { font-family: 'Consolas', monospace; font-weight: bold; font-size: 0.95rem; }
         
-        /* --- BREAKPOINTS MAKSIMAL 4 KOLOM DESKTOP --- */
-        @media (min-width: 768px) { 
-            .machine-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; } /* Di Tablet 2 Kolom memanjang */
-            .modal-dialog { max-width: 450px; } 
-            .machine-name { font-size: 0.95rem; }
-            .status-badge-mini { font-size: 0.75rem; padding: 0; }
-        }
-        @media (min-width: 1200px) { 
-            .machine-grid { grid-template-columns: repeat(4, 1fr); gap: 15px; } /* Di Layar besar 4 Kolom */
-            .container { max-width: 96% !important; padding-left: 15px; padding-right: 15px; } /* Diperlebar agar 4 kolom muat rapi */
-        }
+        @media (min-width: 768px) { .machine-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; } .modal-dialog { max-width: 450px; } .machine-name { font-size: 0.95rem; } .status-badge-mini { font-size: 0.75rem; padding: 0; } }
+        @media (min-width: 1200px) { .machine-grid { grid-template-columns: repeat(4, 1fr); gap: 15px; } .container { max-width: 96% !important; padding-left: 15px; padding-right: 15px; } }
     </style>
 </head>
 <body>
@@ -234,8 +240,10 @@
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column p-4 pt-4 mt-2">
-            
-            <!-- TANDA ACTIVE DAN ICON PANAH DI HALAMAN SAAT INI -->
+            <!-- TOMBOL HOME -->
+            <a href="index.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Home</span>
+            </a>
             <a href="realtime.html" class="nav-btn-custom active">
                 <span class="nav-btn-text">Power Meter Monitoring</span>
                 <i class="fas fa-chevron-right position-absolute" style="right: 20px;"></i>
@@ -258,24 +266,37 @@
             <a href="riwayat_alarm.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Riwayat Alarm Tegangan</span>
             </a>
-
         </div>
     </div>
 
-    <!-- HEADER TETAP UTUH AGAR MQTT BADGE TIDAK RUSAK -->
+    <!-- APP HEADER PROFESIONAL -->
     <div class="app-header">
-        <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h5 class="app-title">POWER METER MONITORING</h5>
-        <div class="mqtt-status">
-            <div>Connection: <span id="mqtt-badge" class="badge bg-secondary">Connecting...</span></div>
-            <div class="text-muted mt-1" id="last-update" style="font-size: 0.75rem; font-weight: 500;">Menunggu Data Masuk...</div>
+        <div class="header-left">
+            <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h5 class="app-title">POWER METER MONITORING</h5>
+        </div>
+        <div class="header-right">
+            <div id="topbar-clock" class="topbar-clock">00:00:00 WIB</div>
+            <div class="header-divider"></div>
+            <img src="https://amarilyskg.co.id/bootstrap/img/logo.png" alt="Logo" class="topbar-logo">
         </div>
     </div>
 
-    <div class="container mb-5" style="padding-bottom: 20px;">
+    <div class="container mb-5">
         <div class="machine-grid" id="button-container"></div>
+    </div>
+
+    <!-- STATUS BAR BAWAH MENYAMBUNG -->
+    <div class="bottom-status-bar">
+        <div class="status-left">
+            <span id="mqtt-dot" class="mqtt-dot connecting"></span>
+            <span>MQTT</span>
+        </div>
+        <div class="status-right" id="scanning-id">
+            Menunggu Data...
+        </div>
     </div>
 
     <!-- MODAL POPUP -->
@@ -291,8 +312,6 @@
                         <h6 class="info-title" id="modal-machine-name">MESIN</h6>
                         <div class="info-subtitle" id="modal-machine-id">ID: #</div>
                         <div class="text-center"><span id="modal-status-text" class="status-badge">WAITING DATA...</span></div>
-                        
-                        <!-- LIST 16 PARAMETER -->
                         <div id="modal-params"></div>
                     </div>
                 </div>
@@ -316,43 +335,30 @@
     let machineData = {}; 
     let detailModal;
     let machineTimers = {};
-    let machineGauges = {}; // Menyimpan { v, i1, i2, i3 }
+    let machineGauges = {}; 
 
-    // --- 1. GENERATE TOMBOL MESIN (DESAIN HORIZONTAL ALA PANEL MESIN) ---
     const btnContainer = document.getElementById('button-container');
     for (let i = 1; i <= totalMesin; i++) {
         let displayName = machineNames[i]; 
         btnContainer.innerHTML += `
             <button id="btn-machine-${i}" class="btn-machine bg-waiting" onclick="showDetail(${i})">
-                
-                <!-- HEADER KARTU: NAMA & STATUS -->
                 <div class="card-top-row border-bottom border-secondary pb-1 mb-2">
                     <span class="machine-name text-start">${displayName}</span>
                     <span id="grid-status-${i}" class="status-badge-mini">WAITING</span>
                 </div>
-                
-                <!-- BODY KARTU: LAYOUT KIRI-KANAN (PERSEGI PANJANG) -->
                 <div class="d-flex w-100 align-items-center justify-content-between">
-                    
-                    <!-- KIRI: GAUGE VOLTAGE (Utama) -->
                     <div id="gauge-v-${i}" style="width: 42%; height: 90px;"></div>
-                    
-                    <!-- PEMBATAS (Garis Vertikal ala Mesin) -->
                     <div style="width: 1px; height: 60px; background: rgba(255,255,255,0.2); margin: 0 5px;"></div>
-                    
-                    <!-- KANAN: GAUGE CURRENT (I1, I2, I3) -->
                     <div class="d-flex justify-content-between align-items-center" style="width: 55%;">
                         <div id="gauge-i1-${i}" style="width: 32%; height: 75px;"></div>
                         <div id="gauge-i2-${i}" style="width: 32%; height: 75px;"></div>
                         <div id="gauge-i3-${i}" style="width: 32%; height: 75px;"></div>
                     </div>
-                    
                 </div>
             </button>
         `;
     }
 
-    // --- 2. LOGIKA STATUS ---
     function determineStatus(voltage, current) {
         const v = Number(voltage) || 0;
         const c = Number(current) || 0;
@@ -378,61 +384,32 @@
         detailModal.show();
     }
 
-    // 🔥 OPSI GAUGE MINI DENGAN GAYA "MODERN RING/APPLE WATCH" 🔥
     function getMiniGaugeOption(maxVal, titleText) {
         return {
             series: [{
                 type: 'gauge',
                 startAngle: 210,
                 endAngle: -30,
-                center: ['50%', '55%'], // Disesuaikan untuk tinggi panel
+                center: ['50%', '55%'], 
                 radius: '100%', 
                 min: 0,
                 max: maxVal,
-                progress: {
-                    show: true,
-                    width: 3.5,
-                    itemStyle: { color: '#f1f2f6' } 
-                },
+                progress: { show: true, width: 3.5, itemStyle: { color: '#f1f2f6' } },
                 pointer: { show: false }, 
-                axisLine: {
-                    lineStyle: {
-                        width: 3.5,
-                        color: [[1, 'rgba(255,255,255,0.2)']] 
-                    }
-                },
+                axisLine: { lineStyle: { width: 3.5, color: [[1, 'rgba(255,255,255,0.2)']] } },
                 axisTick: { show: false }, 
                 splitLine: { show: false }, 
                 axisLabel: { show: false }, 
-                title: {
-                    show: true,
-                    offsetCenter: [0, '35%'], 
-                    color: 'rgba(255,255,255,0.8)', 
-                    fontSize: 8,
-                    fontWeight: 'bold',
-                    letterSpacing: 1
-                },
-                detail: {
-                    valueAnimation: true,
-                    formatter: '{value}A', 
-                    color: '#f1f2f6', 
-                    fontSize: 9.5, 
-                    fontWeight: '800',
-                    offsetCenter: [0, '-15%'],
-                    textShadowBlur: 2,
-                    textShadowColor: 'rgba(0,0,0,0.1)'
-                },
+                title: { show: true, offsetCenter: [0, '35%'], color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 'bold', letterSpacing: 1 },
+                detail: { valueAnimation: true, formatter: '{value}A', color: '#f1f2f6', fontSize: 9.5, fontWeight: '800', offsetCenter: [0, '-15%'], textShadowBlur: 2, textShadowColor: 'rgba(0,0,0,0.1)' },
                 data: [{ value: 0, name: titleText }]
             }]
         };
     }
 
-    // --- SETUP SEMUA GAUGE (PREMIUM BRIGHT) ---
     function initMachineGauges() {
         for (let i = 1; i <= totalMesin; i++) {
             machineGauges[i] = {}; 
-            
-            // 1. Gauge Voltage (Lebih Presisi untuk Kiri)
             const domV = document.getElementById(`gauge-v-${i}`);
             if (domV && domV.clientWidth > 0) {
                 machineGauges[i].v = echarts.init(domV);
@@ -444,54 +421,22 @@
                         min: 0,
                         max: 400,
                         splitNumber: 4,
-                        progress: {
-                            show: true,
-                            width: 6,
-                            itemStyle: {
-                                color: '#f1f2f6', 
-                                shadowBlur: 2,
-                                shadowColor: 'rgba(0,0,0,0.1)'
-                            }
-                        },
-                        axisLine: {
-                            lineStyle: {
-                                width: 6,
-                                color: [[1, 'rgba(255,255,255,0.2)']] 
-                            }
-                        },
-                        pointer: { 
-                            icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z', 
-                            width: 3.5, 
-                            length: '60%', 
-                            offsetCenter: [0, '-10%'],
-                            itemStyle: { color: '#f1f2f6', shadowBlur: 2, shadowColor: 'rgba(0,0,0,0.2)' } 
-                        },
+                        progress: { show: true, width: 6, itemStyle: { color: '#f1f2f6', shadowBlur: 2, shadowColor: 'rgba(0,0,0,0.1)' } },
+                        axisLine: { lineStyle: { width: 6, color: [[1, 'rgba(255,255,255,0.2)']] } },
+                        pointer: { icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z', width: 3.5, length: '60%', offsetCenter: [0, '-10%'], itemStyle: { color: '#f1f2f6', shadowBlur: 2, shadowColor: 'rgba(0,0,0,0.2)' } },
                         axisTick: { distance: -10, length: 4, lineStyle: { color: 'rgba(255,255,255,0.7)', width: 1 } },
                         splitLine: { distance: -12, length: 6, lineStyle: { color: '#f1f2f6', width: 2 } },
                         axisLabel: { show: false }, 
-                        title: {
-                            show: false /* Tulisan VOLTAGE dihapus agar lebih bersih */
-                        },
-                        detail: {
-                            valueAnimation: true,
-                            formatter: '{value} V',
-                            color: '#f1f2f6', 
-                            fontSize: 14,
-                            fontWeight: '900',
-                            offsetCenter: [0, '15%'],
-                            textShadowBlur: 2,
-                            textShadowColor: 'rgba(0,0,0,0.1)'
-                        },
-                        data: [{ value: 0 }] /* Value VOLTAGE dihapus */
+                        title: { show: false },
+                        detail: { valueAnimation: true, formatter: '{value} V', color: '#f1f2f6', fontSize: 14, fontWeight: '900', offsetCenter: [0, '15%'], textShadowBlur: 2, textShadowColor: 'rgba(0,0,0,0.1)' },
+                        data: [{ value: 0 }] 
                     }]
                 });
             }
-
-            // 2. Gauge Arus I1, I2, I3 (Kanan) -> Diubah Teksnya Jadi A1, A2, A3
             ['i1', 'i2', 'i3'].forEach(phase => {
                 const domI = document.getElementById(`gauge-${phase}-${i}`);
                 if (domI && domI.clientWidth > 0) {
-                    let titleLabel = phase.toUpperCase().replace('I', 'A'); // Ganti 'I' dengan 'A'
+                    let titleLabel = phase.toUpperCase().replace('I', 'A'); 
                     machineGauges[i][phase] = echarts.init(domI);
                     machineGauges[i][phase].setOption(getMiniGaugeOption(100, titleLabel));
                 }
@@ -501,47 +446,31 @@
 
     function updateVoltageGauge(id, value) {
         const v = Number(value) || 0;
-        let progColor = '#f1f2f6'; // Putih tulang yang adem (Normal)
-        
-        // Ubah warna menjadi alert (Kuning pastel / Merah kalem) saat kritis
-        if (v > 380) progColor = '#e74c3c'; // Merah kalem
-        else if (v > 360) progColor = '#f1c40f'; // Kuning emas/amber
-
+        let progColor = '#f1f2f6'; 
+        if (v > 380) progColor = '#e74c3c'; 
+        else if (v > 360) progColor = '#f1c40f'; 
         if (machineGauges[id] && machineGauges[id].v) {
             machineGauges[id].v.setOption({
-                series: [{ 
-                    progress: { itemStyle: { color: progColor } },
-                    data: [{ value: v.toFixed(1) }] /* Nama VOLTAGE dihapus */
-                }]
+                series: [{ progress: { itemStyle: { color: progColor } }, data: [{ value: v.toFixed(1) }] }]
             });
         }
     }
 
-    // UPDATE ARUS + WARNA RING OTOMATIS BERUBAH
     function updateCurrentGauge(id, phase, value) {
         const val = Number(value) || 0;
-        let ringColor = '#f1f2f6'; // Putih tulang yang adem (Normal)
-        
-        if (val >= 80) ringColor = '#e74c3c'; // Merah kalem
-        else if (val >= 60) ringColor = '#f1c40f'; // Kuning emas/amber
-
-        let titleLabel = phase.toUpperCase().replace('I', 'A'); // Ganti I dengan A saat update data
-
+        let ringColor = '#f1f2f6'; 
+        if (val >= 80) ringColor = '#e74c3c'; 
+        else if (val >= 60) ringColor = '#f1c40f'; 
+        let titleLabel = phase.toUpperCase().replace('I', 'A'); 
         if (machineGauges[id] && machineGauges[id][phase]) {
             machineGauges[id][phase].setOption({
-                series: [{ 
-                    progress: { itemStyle: { color: ringColor } }, // Ganti warna lingkarannya
-                    data: [{ value: val.toFixed(1), name: titleLabel }] 
-                }]
+                series: [{ progress: { itemStyle: { color: ringColor } }, data: [{ value: val.toFixed(1), name: titleLabel }] }]
             });
         }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            initMachineGauges();
-        }, 100);
-        
+        setTimeout(() => { initMachineGauges(); }, 100);
         window.addEventListener('resize', () => {
             Object.values(machineGauges).forEach(charts => {
                 if (charts.v) charts.v.resize();
@@ -557,13 +486,10 @@
         const params = document.getElementById('modal-params');
         const cardBg = document.getElementById('modal-card-bg');
         const statusTextDiv = document.getElementById('modal-status-text');
-
         let status = data.voltage !== undefined ? determineStatus(data.voltage, data.current_i1) : { text: 'WAITING DATA...', modalColor: 'linear-gradient(145deg, #7f8fa6, #718093)' };
         cardBg.style.background = status.modalColor;
         statusTextDiv.innerText = status.text;
-
         const fmt = (val, fixed=2, unit='') => val !== undefined ? `${val.toFixed(fixed)} ${unit}` : '-';
-        
         params.innerHTML = `
             <div class="param-row"><span class="param-label">1. Total Ea</span><span class="param-value">${fmt(data.total_ea, 2, 'kWh')}</span></div>
             <div class="param-row"><span class="param-label">2. Total Er</span><span class="param-value">${fmt(data.total_er, 2, 'kVARh')}</span></div>
@@ -584,29 +510,14 @@
         `;
     }
 
-    // --- 4. LOGIKA OFFLINE & UPDATE ---
     function markAsOffline(id) {
         const btn = document.getElementById(`btn-machine-${id}`);
         const statusEl = document.getElementById(`grid-status-${id}`);
-        if(btn) {
-            btn.className = `btn-machine bg-offline`; 
-            btn.classList.remove('scanning-active');
-        }
-        if(statusEl) {
-            statusEl.innerText = 'OFFLINE';
-        }
-        
+        if(btn) { btn.className = `btn-machine bg-offline`; btn.classList.remove('scanning-active'); }
+        if(statusEl) { statusEl.innerText = 'OFFLINE'; }
         delete machineData[id];
-        
-        // Reset SEMUA gauge jadi 0 jika terputus/offline
-        updateVoltageGauge(id, 0);
-        updateCurrentGauge(id, 'i1', 0);
-        updateCurrentGauge(id, 'i2', 0);
-        updateCurrentGauge(id, 'i3', 0);
-
-        if (selectedMachineId === id && document.getElementById('detailModal').classList.contains('show')) {
-            updateModalUI(id);
-        }
+        updateVoltageGauge(id, 0); updateCurrentGauge(id, 'i1', 0); updateCurrentGauge(id, 'i2', 0); updateCurrentGauge(id, 'i3', 0);
+        if (selectedMachineId === id && document.getElementById('detailModal').classList.contains('show')) { updateModalUI(id); }
     }
 
     function updateMachineUI(meterId, data) {
@@ -614,29 +525,12 @@
         const btn = document.getElementById(`btn-machine-${meterId}`);
         const statusEl = document.getElementById(`grid-status-${meterId}`);
         const status = determineStatus(data.voltage, data.current_i1);
-
-        if(btn) {
-            btn.className = `btn-machine ${status.colorClass}`; 
-            document.querySelectorAll('.btn-machine').forEach(b => b.classList.remove('scanning-active'));
-            btn.classList.add('scanning-active');
-        }
-        
-        if(statusEl) {
-            statusEl.innerText = status.text;
-        }
-
-        // UPDATE 4 GAUGE DI DALAM CARD MASING-MASING
-        updateVoltageGauge(meterId, data.voltage);
-        updateCurrentGauge(meterId, "i1", data.current_i1);
-        updateCurrentGauge(meterId, "i2", data.current_i2);
-        updateCurrentGauge(meterId, "i3", data.current_i3);
-
-        if (selectedMachineId === meterId && document.getElementById('detailModal').classList.contains('show')) {
-            updateModalUI(meterId);
-        }
+        if(btn) { btn.className = `btn-machine ${status.colorClass}`; document.querySelectorAll('.btn-machine').forEach(b => b.classList.remove('scanning-active')); btn.classList.add('scanning-active'); }
+        if(statusEl) { statusEl.innerText = status.text; }
+        updateVoltageGauge(meterId, data.voltage); updateCurrentGauge(meterId, "i1", data.current_i1); updateCurrentGauge(meterId, "i2", data.current_i2); updateCurrentGauge(meterId, "i3", data.current_i3);
+        if (selectedMachineId === meterId && document.getElementById('detailModal').classList.contains('show')) { updateModalUI(meterId); }
     }
 
-    // MQTT SETTINGS
     const mqttBroker = "broker.hivemq.com";
     const mqttPort = 8884; 
     const topicBase = "monitoring/data/powermeter"; 
@@ -644,8 +538,8 @@
     const client = new Paho.MQTT.Client(mqttBroker, mqttPort, clientID);
 
     function onConnect() {
-        document.getElementById('mqtt-badge').className = 'badge bg-success';
-        document.getElementById('mqtt-badge').innerText = 'Connected';
+        const dot = document.getElementById('mqtt-dot');
+        dot.className = 'mqtt-dot connected';
         client.subscribe(topicBase + "/#");
     }
 
@@ -653,39 +547,36 @@
         try {
             const topicParts = message.destinationName.split("/");
             const meterId = parseInt(topicParts[topicParts.length - 1]);
-            
             let data;
             try {
                 let safePayload = message.payloadString.replace(/NaN/g, "0.0").replace(/Infinity/g, "0.0");
                 data = JSON.parse(safePayload);
-            } catch (err) {
-                console.error(`❌ [ERROR] JSON Invalid dari Mesin ID ${meterId}:`, message.payloadString);
-                return;
-            }
-            
+            } catch (err) { return; }
             updateMachineUI(meterId, data);
-
             clearTimeout(machineTimers[meterId]); 
-            machineTimers[meterId] = setTimeout(() => {
-                markAsOffline(meterId); 
-            }, 90000); 
-
-            const timeString = new Date().toLocaleTimeString('id-ID', { hour12: false });
-            document.getElementById('last-update').innerText = "Scanning ID: " + meterId + " | Pukul " + timeString;
-
-        } catch (e) { console.error("Err:", e); }
+            machineTimers[meterId] = setTimeout(() => { markAsOffline(meterId); }, 90000); 
+            document.getElementById('scanning-id').innerText = "Scanning ID: " + meterId;
+        } catch (e) { }
     }
 
     client.onConnectionLost = (r) => { 
-        document.getElementById('mqtt-badge').className = 'badge bg-danger';
-        document.getElementById('mqtt-badge').innerText = 'Lost';
+        document.getElementById('mqtt-dot').className = 'mqtt-dot lost';
         setTimeout(connectMQTT, 5000); 
     };
     client.onMessageArrived = onMessageArrived;
     
     function connectMQTT() { 
+        document.getElementById('mqtt-dot').className = 'mqtt-dot connecting';
         client.connect({ useSSL: true, onSuccess: onConnect, onFailure: (e)=>{setTimeout(connectMQTT, 5000);} }); 
     }
+    
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
+        document.getElementById('topbar-clock').innerText = timeString + ' WIB';
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
     
     connectMQTT();
 </script>
