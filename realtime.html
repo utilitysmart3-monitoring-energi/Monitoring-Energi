@@ -14,7 +14,7 @@
 
     <style>
         :root { --sidebar-theme: #2b6c8a; }
-        body { background-color: #f4f7f6; font-family: 'Poppins', sans-serif; margin-bottom: 50px; }
+        body { background-color: #f4f7f6; font-family: 'Poppins', sans-serif; margin-bottom: 60px; }
         
         /* --- SIDEBAR & HEADER (PREMIUM OUTLINED) --- */
         .offcanvas { 
@@ -58,23 +58,21 @@
         /* --- HEADER PROFESIONAL (FLEXBOX) --- */
         .app-header { 
             background-color: #ffffff; 
-            padding: 12px 24px; 
+            padding: 10px 24px; 
             border-bottom: 3px solid var(--sidebar-theme); 
-            margin-bottom: 20px; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+            margin-bottom: 25px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
             position: sticky; 
             top: 0;
             z-index: 100;
-            min-height: 70px;
+            min-height: 75px;
         }
 
-        .header-left, .header-right { display: flex; align-items: center; }
-        .header-left { gap: 15px; }
-        .header-right { gap: 15px; }
-
+        .header-left { display: flex; align-items: center; z-index: 10; }
+        
         .btn-menu-toggle { 
             color: var(--sidebar-theme); 
             font-size: 1.5rem; 
@@ -87,34 +85,36 @@
         .btn-menu-toggle:hover { transform: scale(1.1); }
         
         .app-title { 
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
             color: var(--sidebar-theme); 
             font-weight: 800; 
             margin: 0; 
-            letter-spacing: 1px; 
+            letter-spacing: 1.5px; 
             text-transform: uppercase; 
-            font-size: clamp(0.9rem, 2vw, 1.3rem); 
+            font-size: clamp(0.75rem, 1.5vw, 1.1rem); 
+            text-align: center;
+            white-space: nowrap;
+            width: auto;
         }
 
-        .topbar-clock {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--sidebar-theme);
-            font-family: 'Consolas', monospace;
-            background: #f8fafc;
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            letter-spacing: 0.5px;
+        .header-right { 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end;
+            gap: 15px; 
         }
 
-        .header-divider {
+        .header-divider-vertical {
             width: 2px;
-            height: 30px;
+            height: 35px;
             background-color: #e2e8f0;
+            border-radius: 2px;
         }
 
         .topbar-logo {
-            height: 35px;
+            height: clamp(20px, 4vw, 30px);
             object-fit: contain;
         }
 
@@ -156,7 +156,22 @@
         .mqtt-dot.lost { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
 
         .status-right {
-            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .bottom-clock {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--sidebar-theme);
+            font-family: 'Consolas', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        #scanning-id {
+            font-size: 0.75rem;
             font-weight: 600;
             color: #64748b;
             font-family: 'Consolas', monospace; 
@@ -164,17 +179,19 @@
 
         /* --- MOBILE MODE --- */
         @media (max-width: 768px) {
-            .app-title { font-size: 0.85rem; max-width: 150px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-            .topbar-clock { font-size: 0.8rem; padding: 4px 8px; }
-            .header-divider { display: none; }
+            .app-header { min-height: 60px; padding: 10px 15px; }
+            .app-title { font-size: 0.7rem; max-width: 160px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+            .header-divider-vertical { display: none; } 
             .bottom-status-bar { padding: 8px 15px; }
+            .bottom-clock { font-size: 0.75rem; }
+            #scanning-id { font-size: 0.65rem; }
         }
         
         @media (max-width: 576px) {
             .app-title { display: none; }
         }
 
-        /* --- GRID TOMBOL --- */
+        /* --- GRID TOMBOL (PERSEGI PANJANG) --- */
         .machine-grid { 
             display: grid; 
             grid-template-columns: 1fr;
@@ -228,8 +245,41 @@
         .param-label { font-weight: 500; }
         .param-value { font-family: 'Consolas', monospace; font-weight: bold; font-size: 0.95rem; }
         
-        @media (min-width: 768px) { .machine-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; } .modal-dialog { max-width: 450px; } .machine-name { font-size: 0.95rem; } .status-badge-mini { font-size: 0.75rem; padding: 0; } }
-        @media (min-width: 1200px) { .machine-grid { grid-template-columns: repeat(4, 1fr); gap: 15px; } .container { max-width: 96% !important; padding-left: 15px; padding-right: 15px; } }
+        /* =======================================================
+           BREAKPOINTS (MAKSIMAL 4 KOLOM AGAR PERSEGI PANJANG)
+           ======================================================= */
+        
+        /* Tablet -> 2 Kolom */
+        @media (min-width: 768px) { 
+            .machine-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; } 
+            .modal-dialog { max-width: 450px; } 
+            .machine-name { font-size: 0.95rem; } 
+            .status-badge-mini { font-size: 0.75rem; padding: 0; } 
+            .container { max-width: 100% !important; padding: 0 15px; }
+        }
+        
+        /* Laptop Kecil -> 3 Kolom */
+        @media (min-width: 1024px) { 
+            .machine-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; } 
+            .container { max-width: 98% !important; padding: 0 20px; } 
+        }
+
+        /* TV / Layar Lebar -> 4 Kolom */
+        @media (min-width: 1440px) { 
+            .machine-grid { 
+                grid-template-columns: repeat(4, 1fr); 
+                gap: 20px; 
+                padding: 0; 
+                width: 100%; 
+            } 
+            .container { 
+                max-width: 96% !important; 
+                padding: 0 30px !important; 
+            } 
+            .btn-machine { 
+                padding: 15px 20px; 
+            } 
+        }
     </style>
 </head>
 <body>
@@ -244,6 +294,7 @@
             <a href="index.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Home</span>
             </a>
+            <!-- TANDA ACTIVE DAN ICON PANAH -->
             <a href="realtime.html" class="nav-btn-custom active">
                 <span class="nav-btn-text">Power Meter Monitoring</span>
                 <i class="fas fa-chevron-right position-absolute" style="right: 20px;"></i>
@@ -275,16 +326,18 @@
             <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
                 <i class="fas fa-bars"></i>
             </button>
-            <h5 class="app-title">POWER METER MONITORING</h5>
         </div>
+
+        <!-- Judul CENTER -->
+        <h5 class="app-title">POWER METER MONITORING</h5>
+
         <div class="header-right">
-            <div id="topbar-clock" class="topbar-clock">00:00:00 WIB</div>
-            <div class="header-divider"></div>
+            <div class="header-divider-vertical"></div>
             <img src="https://amarilyskg.co.id/bootstrap/img/logo.png" alt="Logo" class="topbar-logo">
         </div>
     </div>
 
-    <div class="container mb-5">
+    <div class="container mb-5" style="padding-bottom: 70px;">
         <div class="machine-grid" id="button-container"></div>
     </div>
 
@@ -294,8 +347,10 @@
             <span id="mqtt-dot" class="mqtt-dot connecting"></span>
             <span>MQTT</span>
         </div>
-        <div class="status-right" id="scanning-id">
-            Menunggu Data...
+        <div class="status-right">
+            <!-- JAM ADA DI ATAS SCANNING ID -->
+            <div id="clock-text" class="bottom-clock">Memuat waktu...</div>
+            <div id="scanning-id">Menunggu Data...</div>
         </div>
     </div>
 
@@ -347,9 +402,13 @@
                     <span id="grid-status-${i}" class="status-badge-mini">WAITING</span>
                 </div>
                 <div class="d-flex w-100 align-items-center justify-content-between">
-                    <div id="gauge-v-${i}" style="width: 42%; height: 90px;"></div>
+                    <!-- KIRI: GAUGE VOLTAGE (SPEEDOMETER RAPI, BESAR, JARAK ANGKA AMAN) -->
+                    <div id="gauge-v-${i}" style="width: 44%; height: 90px;"></div>
+                    
                     <div style="width: 1px; height: 60px; background: rgba(255,255,255,0.2); margin: 0 5px;"></div>
-                    <div class="d-flex justify-content-between align-items-center" style="width: 55%;">
+                    
+                    <!-- KANAN: GAUGE CURRENT (RING STYLE) -->
+                    <div class="d-flex justify-content-between align-items-center" style="width: 53%;">
                         <div id="gauge-i1-${i}" style="width: 32%; height: 75px;"></div>
                         <div id="gauge-i2-${i}" style="width: 32%; height: 75px;"></div>
                         <div id="gauge-i3-${i}" style="width: 32%; height: 75px;"></div>
@@ -384,6 +443,7 @@
         detailModal.show();
     }
 
+    // --- FUNGSI GAUGE MINI UNTUK ARUS (TETAP MODERN RING) ---
     function getMiniGaugeOption(maxVal, titleText) {
         return {
             series: [{
@@ -407,32 +467,73 @@
         };
     }
 
+    // --- SETUP GAUGE VOLTAGE (SEMI-CIRCLE SPEEDOMETER) ---
     function initMachineGauges() {
         for (let i = 1; i <= totalMesin; i++) {
             machineGauges[i] = {}; 
+            
             const domV = document.getElementById(`gauge-v-${i}`);
             if (domV && domV.clientWidth > 0) {
                 machineGauges[i].v = echarts.init(domV);
                 machineGauges[i].v.setOption({
                     series: [{
                         type: 'gauge',
-                        center: ['50%', '55%'], 
-                        radius: '100%', 
+                        startAngle: 180, 
+                        endAngle: 0,     
+                        center: ['50%', '80%'], // Titik poros jarum ditarik sedikit ke bawah
+                        radius: '130%',  // Jari-jari optimal, tidak mepet keluar kotak
                         min: 0,
                         max: 400,
-                        splitNumber: 4,
-                        progress: { show: true, width: 6, itemStyle: { color: '#f1f2f6', shadowBlur: 2, shadowColor: 'rgba(0,0,0,0.1)' } },
-                        axisLine: { lineStyle: { width: 6, color: [[1, 'rgba(255,255,255,0.2)']] } },
-                        pointer: { icon: 'path://M12.8,0.7l12,40.1H0.7L12.8,0.7z', width: 3.5, length: '60%', offsetCenter: [0, '-10%'], itemStyle: { color: '#f1f2f6', shadowBlur: 2, shadowColor: 'rgba(0,0,0,0.2)' } },
-                        axisTick: { distance: -10, length: 4, lineStyle: { color: 'rgba(255,255,255,0.7)', width: 1 } },
-                        splitLine: { distance: -12, length: 6, lineStyle: { color: '#f1f2f6', width: 2 } },
-                        axisLabel: { show: false }, 
+                        splitNumber: 4, // Angka 0, 100, 200, 300, 400
+                        progress: { show: false }, 
+                        axisLine: { 
+                            lineStyle: { width: 0 } // Sembunyikan rel dasar agar clean
+                        },
+                        axisTick: { 
+                            distance: 0, 
+                            length: 5, 
+                            lineStyle: { color: '#82b1ff', width: 1.5 }, // Strip minor ICE BLUE elegan
+                            splitNumber: 5
+                        },
+                        splitLine: { 
+                            distance: 0, 
+                            length: 10, 
+                            lineStyle: { color: '#ffffff', width: 2.5 } // Strip mayor Putih
+                        },
+                        axisLabel: { 
+                            distance: 14, // Jarak angka ditarik lebih jauh dari garis strip agar lega (TIDAK MEPET)
+                            color: '#ffffff', 
+                            fontSize: 9, 
+                            fontWeight: 'bold' 
+                        },
+                        pointer: { 
+                            length: '65%', // Jarum tidak nabrak angka
+                            width: 3.5, 
+                            itemStyle: { color: '#ffc107', shadowBlur: 3, shadowColor: 'rgba(0,0,0,0.5)' } 
+                        },
+                        anchor: { 
+                            show: true, 
+                            showAbove: true, 
+                            size: 8, 
+                            itemStyle: { color: '#ffc107', borderWidth: 0 } // Poros bulat kuning di tengah
+                        },
                         title: { show: false },
-                        detail: { valueAnimation: true, formatter: '{value} V', color: '#f1f2f6', fontSize: 14, fontWeight: '900', offsetCenter: [0, '15%'], textShadowBlur: 2, textShadowColor: 'rgba(0,0,0,0.1)' },
+                        detail: { 
+                            valueAnimation: true, 
+                            formatter: '{value} V', 
+                            color: '#ffffff', 
+                            fontSize: 11, 
+                            fontWeight: '900', 
+                            offsetCenter: [0, '20%'], 
+                            textShadowBlur: 2, 
+                            textShadowColor: 'rgba(0,0,0,0.3)' 
+                        },
                         data: [{ value: 0 }] 
                     }]
                 });
             }
+            
+            // --- GAUGE ARUS I1, I2, I3 (RING STYLE) ---
             ['i1', 'i2', 'i3'].forEach(phase => {
                 const domI = document.getElementById(`gauge-${phase}-${i}`);
                 if (domI && domI.clientWidth > 0) {
@@ -446,12 +547,19 @@
 
     function updateVoltageGauge(id, value) {
         const v = Number(value) || 0;
-        let progColor = '#f1f2f6'; 
-        if (v > 380) progColor = '#e74c3c'; 
-        else if (v > 360) progColor = '#f1c40f'; 
+        let pointerColor = '#ffc107'; // Default kuning emas jarum
+        
+        // Jarum berubah warna jika menyentuh batas kritis
+        if (v > 380) pointerColor = '#e74c3c'; // Merah (Kritis)
+        else if (v > 360) pointerColor = '#ff9800'; // Orange (Warning)
+        
         if (machineGauges[id] && machineGauges[id].v) {
             machineGauges[id].v.setOption({
-                series: [{ progress: { itemStyle: { color: progColor } }, data: [{ value: v.toFixed(1) }] }]
+                series: [{ 
+                    pointer: { itemStyle: { color: pointerColor } },
+                    anchor: { itemStyle: { color: pointerColor } },
+                    data: [{ value: v.toFixed(1) }] 
+                }]
             });
         }
     }
@@ -560,7 +668,8 @@
     }
 
     client.onConnectionLost = (r) => { 
-        document.getElementById('mqtt-dot').className = 'mqtt-dot lost';
+        const dot = document.getElementById('mqtt-dot');
+        dot.className = 'mqtt-dot lost';
         setTimeout(connectMQTT, 5000); 
     };
     client.onMessageArrived = onMessageArrived;
@@ -572,8 +681,9 @@
     
     function updateClock() {
         const now = new Date();
+        const dayString = now.toLocaleDateString('id-ID', { weekday: 'long' });
         const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
-        document.getElementById('topbar-clock').innerText = timeString + ' WIB';
+        document.getElementById('clock-text').innerText = dayString + ', ' + timeString + ' WIB';
     }
     setInterval(updateClock, 1000);
     updateClock();
