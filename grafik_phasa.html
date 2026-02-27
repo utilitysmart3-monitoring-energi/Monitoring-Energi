@@ -6,35 +6,31 @@
     <title>GRAFIK DATA - Monitoring System</title>
     
     <!-- Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Bootstrap 5 CSS (Untuk Sidebar/Offcanvas) -->
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Icon FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <!-- Supabase Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
-            --bg-body: #f4f7f6; 
-            --primary-blue: #23637e; 
-            --btn-blue: #2b6c8a;     
-            --btn-gold: #cc9b28;     
-            --text-dark: #333333;
+            --primary: #2b6c8a;
+            --primary-hover: #1f5066;
+            --bg-body: #f4f7f6;
             --card-bg: #ffffff;
-            --sidebar-theme: #2b6c8a;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-body);
-            color: var(--text-dark);
+            color: #333;
             font-family: 'Poppins', sans-serif;
             min-height: 100vh;
             display: flex;
@@ -42,29 +38,67 @@
             align-items: center;
         }
 
-        /* --- SIDEBAR STYLE --- */
+        /* --- HEADER (JUDUL DI TENGAH) --- */
+        .app-header {
+            width: 100%;
+            background-color: #fff;
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--primary);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            position: relative; 
+            min-height: 75px;
+            z-index: 100;
+        }
+
+        .btn-menu-toggle {
+            color: var(--primary);
+            font-size: 1.6rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            z-index: 110;
+        }
+        
+        .topbar-title {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--primary);
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            white-space: nowrap;
+            z-index: 105;
+        }
+
+        /* --- SIDEBAR STYLE (PREMIUM OUTLINED) --- */
         .offcanvas {
-            border-top-right-radius: 20px;
-            border-bottom-right-radius: 20px;
-            width: 300px !important;
-            box-shadow: 5px 0 15px rgba(0,0,0,0.05);
+            border-top-right-radius: 16px;
+            border-bottom-right-radius: 16px;
+            width: 280px !important;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.04);
+            border: none;
         }
         .offcanvas-header {
-            border-bottom: 1px solid #f0f0f0;
-            padding: 20px 25px;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 20px 24px;
         }
         .offcanvas-title {
-            color: var(--sidebar-theme);
+            color: var(--primary);
             font-weight: 800;
-            letter-spacing: 1.5px;
+            letter-spacing: 0.5px;
         }
 
         .nav-btn-custom {
             display: flex;
             align-items: center;
-            background-color: var(--sidebar-theme);
-            color: white;
-            border: 2px solid var(--sidebar-theme);
+            background-color: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
             border-radius: 50px;
             padding: 12px 25px;
             margin-bottom: 15px;
@@ -74,11 +108,12 @@
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             cursor: pointer;
+            position: relative;
         }
 
         .nav-btn-custom:hover, .nav-btn-custom.active {
-            background-color: #1f5066;
-            border-color: #1f5066;
+            background-color: var(--primary);
+            border-color: var(--primary);
             color: white;
             box-shadow: 0 8px 15px rgba(43, 108, 138, 0.25);
             transform: translateY(-2px);
@@ -91,174 +126,145 @@
             width: 100%;
         }
 
-        /* --- TOP BAR --- */
-        .topbar {
-            width: 100%;
-            display: flex;
-            align-items: center; 
-            justify-content: center; 
-            padding: 15px 20px;
-            background-color: #fff;
-            border-bottom: 3px solid var(--sidebar-theme);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            box-sizing: border-box;
-            position: relative; 
-            z-index: 10;
-        }
-
-        .hamburger {
-            position: absolute; 
-            left: clamp(20px, 4vw, 30px);
-            color: var(--sidebar-theme);
-            font-size: clamp(1.5rem, 4vw, 2rem); 
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s ease;
-        }
-        
-        .hamburger:hover { transform: scale(1.1); }
-
-        .topbar-title {
-            color: var(--sidebar-theme);
-            font-weight: 800;
-            margin: 0;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            font-size: clamp(1.1rem, 3vw, 1.5rem);
-        }
-
-        /* --- FILTER KONTROL --- */
+        /* --- FILTER KONTROL (BLOK WARNA SOLID) --- */
         .filter-container {
             width: 100%;
-            max-width: 1200px; /* Diperlebar untuk layar besar */
-            background: var(--card-bg);
-            padding: 15px;
+            max-width: 1200px;
+            background: var(--primary);
+            padding: 25px;
             border-radius: 16px;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            margin: 25px 0;
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
             align-items: flex-end;
-            justify-content: space-between;
+            border: 1px solid var(--primary-hover);
         }
 
         .filter-group {
             display: flex;
             flex-direction: column;
             flex: 1;
-            min-width: 200px;
+            min-width: 220px;
         }
 
         .filter-group label {
-            font-size: 0.85rem;
-            color: var(--primary-blue);
-            font-weight: 600;
-            margin-bottom: 5px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .filter-control {
-            padding: 10px 12px;
-            border: 1px solid #ddd;
+            padding: 10px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 8px;
             font-family: 'Poppins', sans-serif;
             font-size: 0.9rem;
+            font-weight: 600;
             outline: none;
-            color: var(--text-dark);
+            color: #333;
             background: white;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
         }
 
         .filter-control:focus {
-            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
         }
 
         .btn-filter {
-            background-color: var(--btn-blue);
-            color: white;
+            background-color: #ffffff;
+            color: var(--primary);
             border: none;
-            padding: 12px 15px;
+            padding: 12px 25px;
             border-radius: 8px;
-            font-weight: 600;
-            font-family: 'Poppins', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             cursor: pointer;
-            transition: transform 0.1s, opacity 0.2s;
+            transition: all 0.2s;
             width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
+        .btn-filter:hover { transform: translateY(-2px); background-color: #f8f9fa; }
         .btn-filter:active { transform: scale(0.95); }
-        .btn-filter:disabled { background-color: #999; cursor: not-allowed; transform: none; }
 
-        /* --- NOTIFIKASI PESAN --- */
+        /* --- DASHBOARD KONTEN --- */
+        .dashboard-wrapper {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            padding-bottom: 50px;
+        }
+
+        @media (min-width: 992px) {
+            .dashboard-wrapper { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .chart-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            border: 1px solid #eee;
+        }
+
+        .chart-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #f8f9fa;
+            padding-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .chart-container { position: relative; height: 300px; width: 100%; }
+
+        /* --- NOTIFIKASI --- */
         .message-box {
             width: 100%;
-            max-width: 1200px; /* Diperlebar untuk layar besar */
-            padding: 10px;
+            max-width: 1200px;
+            padding: 12px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
             text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
+            font-size: 0.85rem;
+            font-weight: 600;
             display: none; 
         }
         .msg-error { background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
         .msg-warning { background-color: #fff8e1; color: #f57f17; border: 1px solid #ffe082; }
         .msg-success { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
 
-        /* --- DASHBOARD KONTEN (GRID SYSTEM) --- */
-        .dashboard-wrapper {
-            width: 100%;
-            max-width: 1200px; /* Diperlebar untuk layar besar */
-            display: grid;
-            grid-template-columns: 1fr; /* HP: 1 Kolom (Atas Bawah) */
-            gap: 20px;
-            padding-bottom: 40px;
-        }
-
-        /* Tablet, Laptop, TV: 2 Kolom (Samping-sampingan) */
-        @media (min-width: 768px) {
-            .dashboard-wrapper {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .chart-card {
-            background-color: var(--card-bg);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
-            width: 100%;
-        }
-
-        .chart-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--primary-blue);
-            margin-bottom: 15px;
-            text-align: center;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 250px;
-            width: 100%;
-        }
-
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR NAVIGATION (MENU SAMPING) -->
+    <!-- APP HEADER -->
+    <div class="app-header">
+        <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h5 class="topbar-title">GRAFIK DATA</h5>
+    </div>
+
+    <!-- SIDEBAR NAVIGATION -->
     <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarMenu">
         <div class="offcanvas-header">
-            <h5 class="offcanvas-title">DASHBOARD</h5>
+            <h5 class="offcanvas-title font-poppins">DASHBOARD</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
         <div class="offcanvas-body d-flex flex-column p-4 pt-4 mt-2">
@@ -266,11 +272,16 @@
             <a href="realtime.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Power Meter Monitoring</span>
             </a>
-            <a href="grafik_phasa.html" class="nav-btn-custom">
-                <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
-            </a>
             <a href="tarif.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Monitoring Tarif</span>
+            </a>
+            <!-- TANDA ACTIVE DAN ICON PANAH -->
+            <a href="grafik_phasa.html" class="nav-btn-custom active">
+                <span class="nav-btn-text">Grafik Tegangan & Arus 3 Phasa</span>
+                <i class="fas fa-chevron-right position-absolute" style="right: 20px;"></i>
+            </a>
+            <a href="grafik_tarif.html" class="nav-btn-custom">
+                <span class="nav-btn-text">Grafik Tarif kWh</span>
             </a>
             <a href="download_kwh_harian.html" class="nav-btn-custom">
                 <span class="nav-btn-text">Download Data kWh Harian</span>
@@ -285,68 +296,52 @@
         </div>
     </div>
 
-    <!-- 1. TOP BAR KHUSUS HAMBURGER & TITLE -->
-    <div class="topbar">
-        <button class="hamburger" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
-            <i class="fas fa-bars"></i>
-        </button>
-        <h5 class="topbar-title">GRAFIK DATA</h5>
-    </div>
-
     <!-- MAIN CONTENT WRAPPER -->
-    <div style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: 20px 20px 30px 20px;">
+    <div style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: 0 20px;">
         
-        <!-- Kotak Pesan Notifikasi -->
-        <div id="messageBox" class="message-box"></div>
-
-        <!-- Filter Data Mesin & Tanggal -->
+        <!-- Filter Data Mesin & Tanggal (BLOK SOLID) -->
         <div class="filter-container">
             <div class="filter-group">
-                <label for="mesinSelect">Pilih Mesin</label>
-                <select id="mesinSelect" class="filter-control" onchange="fetchData()">
-                    <!-- Opsi 1 - 18 akan di-generate oleh JavaScript -->
-                </select>
+                <label>Pilih Unit Mesin</label>
+                <select id="mesinSelect" class="filter-control" onchange="fetchData()"></select>
             </div>
             <div class="filter-group">
-                <label for="tanggalSelect">Pilih Tanggal</label>
+                <label>Pilih Tanggal Data</label>
                 <input type="date" id="tanggalSelect" class="filter-control" onchange="fetchData()">
             </div>
-            <!-- Tombol filter disesuaikan agar sejajar di layar besar -->
-            <div class="filter-group" style="justify-content: flex-end;">
-                <button id="btnTampilkan" class="btn-filter" onclick="fetchData()">Tampilkan Data / Refresh</button>
+            <div class="filter-group">
+                <button id="btnTampilkan" class="btn-filter" onclick="fetchData()">
+                    <i class="fas fa-sync-alt"></i> REFRESH DATA
+                </button>
             </div>
         </div>
 
+        <!-- Kotak Pesan Notifikasi -->
+        <div id="messageBox" class="message-box"></div>
+
         <!-- Konten Dashboard Grafik -->
         <div class="dashboard-wrapper">
-            
-            <!-- Kartu Grafik 1: Tegangan (Voltage) -->
             <div class="chart-card">
-                <h3 class="chart-title">Trend Tegangan (Voltage)</h3>
+                <h3 class="chart-title"><i class="fas fa-bolt text-warning mr-2"></i> Trend Tegangan (V)</h3>
                 <div class="chart-container">
                     <canvas id="voltageChart"></canvas>
                 </div>
             </div>
 
-            <!-- Kartu Grafik 2: Arus 3-Phase (Current I1, I2, I3) -->
             <div class="chart-card">
-                <h3 class="chart-title">Arus 3-Phase (Ampere)</h3>
+                <h3 class="chart-title"><i class="fas fa-wave-square text-primary mr-2"></i> Arus 3-Phase (A)</h3>
                 <div class="chart-container">
                     <canvas id="currentChart"></canvas>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- Bootstrap JS (Diperlukan agar Offcanvas berjalan) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // --- 1. INISIALISASI SUPABASE ---
         const SUPABASE_URL = 'https://awyohlizbltikpfanugb.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes';
-        
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function showMessage(text, type) {
@@ -354,158 +349,110 @@
             msgBox.textContent = text;
             msgBox.className = 'message-box msg-' + type;
             msgBox.style.display = 'block';
-            
-            if(type !== 'error') {
-                setTimeout(() => { msgBox.style.display = 'none'; }, 5000);
-            }
+            if(type !== 'error') setTimeout(() => { msgBox.style.display = 'none'; }, 4000);
         }
 
-        function hideMessage() {
-            document.getElementById('messageBox').style.display = 'none';
-        }
-
-        // --- 2. SETUP UI (Dropdown Mesin & Default Tanggal) ---
         const daftarMesin = {
-            1: "UNKNOW", 2: "UNKNOW", 3: "UNKNOW", 4: "UNKNOW", 5: "MESIN 41",
-            6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOW", 9: "HEATER MC 5", 10: "MESIN 5",
-            11: "UNKNOW", 12: "MESIN 34", 13: "MESIN 35", 14: "UNKNOW", 15: "UNKNOW",
+            1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN", 4: "UNKNOWN", 5: "MESIN 41",
+            6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOWN", 9: "HEATER MC 5", 10: "MESIN 5",
+            11: "UNKNOWN", 12: "MESIN 34", 13: "MESIN 35", 14: "UNKNOWN", 15: "UNKNOWN",
             16: "MESIN 38", 17: "MESIN 36", 18: "MESIN 37"
         };
 
         const mesinSelect = document.getElementById('mesinSelect');
         for (let i = 1; i <= 18; i++) {
-            let option = document.createElement('option');
-            option.value = i;
-            option.text = `ID ${i} - ${daftarMesin[i]}`;
-            mesinSelect.appendChild(option);
+            if(daftarMesin[i] !== "UNKNOWN") {
+                let option = document.createElement('option');
+                option.value = i;
+                option.text = `ID ${i} - ${daftarMesin[i]}`;
+                mesinSelect.appendChild(option);
+            }
         }
 
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        document.getElementById('tanggalSelect').value = `${year}-${month}-${day}`;
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tanggalSelect').value = today;
 
-        // --- 3. KONFIGURASI AWAL CHART.JS ---
         Chart.defaults.font.family = "'Poppins', sans-serif";
-        Chart.defaults.color = '#333333';
-
-        const ctxVoltage = document.getElementById('voltageChart').getContext('2d');
-        let voltageChart = new Chart(ctxVoltage, {
+        const ctxV = document.getElementById('voltageChart').getContext('2d');
+        let voltageChart = new Chart(ctxV, {
             type: 'line',
             data: { labels: [], datasets: [{
-                label: 'Voltage (V)', data: [],
-                borderColor: '#cc9b28', backgroundColor: 'rgba(204, 155, 40, 0.1)',
-                borderWidth: 3, pointRadius: 2, fill: true, tension: 0.4
+                label: 'Voltage (V)', data: [], borderColor: '#cc9b28', backgroundColor: 'rgba(204, 155, 40, 0.1)',
+                borderWidth: 3, pointRadius: 1, fill: true, tension: 0.3
             }]},
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
-                scales: { 
-                    y: { suggestedMin: 210, suggestedMax: 230 }, 
-                    x: { grid: { display: false } } 
-                }
+                plugins: { legend: { display: false } },
+                scales: { y: { suggestedMin: 210, suggestedMax: 235 }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } } }
             }
         });
 
-        const ctxCurrent = document.getElementById('currentChart').getContext('2d');
-        let currentChart = new Chart(ctxCurrent, {
+        const ctxC = document.getElementById('currentChart').getContext('2d');
+        let currentChart = new Chart(ctxC, {
             type: 'line',
             data: { labels: [], datasets: [
-                { label: 'I1 (A)', data: [], borderColor: '#23637e', borderWidth: 2, tension: 0.3, pointRadius: 2 },
-                { label: 'I2 (A)', data: [], borderColor: '#2b6c8a', borderWidth: 2, tension: 0.3, pointRadius: 2 },
-                { label: 'I3 (A)', data: [], borderColor: '#cc9b28', borderWidth: 2, tension: 0.3, pointRadius: 2 }
+                { label: 'Phase R (A)', data: [], borderColor: '#23637e', borderWidth: 2.5, tension: 0.3, pointRadius: 0 },
+                { label: 'Phase S (A)', data: [], borderColor: '#2b6c8a', borderWidth: 2.5, tension: 0.3, pointRadius: 0 },
+                { label: 'Phase T (A)', data: [], borderColor: '#cc9b28', borderWidth: 2.5, tension: 0.3, pointRadius: 0 }
             ]},
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } }, tooltip: { mode: 'index', intersect: false } },
-                scales: { y: { suggestedMin: 0 }, x: { grid: { display: false } } }
+                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } } } },
+                scales: { y: { beginAtZero: true }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } } }
             }
         });
 
-        // --- 4. FUNGSI TARIK DATA (FETCH) ---
         async function fetchData() {
-            hideMessage();
-            const btnTampilkan = document.getElementById('btnTampilkan');
-            const selectedMesin = document.getElementById('mesinSelect').value;
-            const selectedTanggal = document.getElementById('tanggalSelect').value;
+            const btn = document.getElementById('btnTampilkan');
+            const mId = document.getElementById('mesinSelect').value;
+            const tgl = document.getElementById('tanggalSelect').value;
+            if (!tgl) return;
 
-            if (!selectedTanggal) {
-                showMessage("Silakan pilih tanggal terlebih dahulu.", "warning");
-                return;
-            }
-
-            btnTampilkan.disabled = true;
-            btnTampilkan.innerText = "Memuat Data...";
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MEMUAT...';
 
             try {
-                const startOfDay = `${selectedTanggal}T00:00:00`;
-                const endOfDay = `${selectedTanggal}T23:59:59`;
+                const start = `${tgl}T00:00:00`;
+                const end = `${tgl}T23:59:59`;
 
                 const { data, error } = await supabaseClient
                     .from('energi_db')
                     .select('waktu_jakarta, voltage, current_i1, current_i2, current_i3')
-                    .eq('meter_id', selectedMesin)
-                    .gte('waktu_jakarta', startOfDay)
-                    .lte('waktu_jakarta', endOfDay)
+                    .eq('meter_id', mId)
+                    .gte('waktu_jakarta', start)
+                    .lte('waktu_jakarta', end)
                     .order('waktu_jakarta', { ascending: true });
 
                 if (error) throw error;
 
-                const labels = [];
-                const dataVoltage = [];
-                const dataI1 = [];
-                const dataI2 = [];
-                const dataI3 = [];
-
-                if (data && data.length > 0) {
-                    data.forEach(row => {
-                        let timeString = '-';
-                        if(row.waktu_jakarta) {
-                            const timePart = row.waktu_jakarta.split('T')[1];
-                            if(timePart) timeString = timePart.substring(0, 5);
-                        }
-                        
-                        labels.push(timeString);
-                        dataVoltage.push(row.voltage || 0);
-                        dataI1.push(row.current_i1 || 0);
-                        dataI2.push(row.current_i2 || 0);
-                        dataI3.push(row.current_i3 || 0);
-                    });
-                    
-                    const namaMesinTerpilih = document.getElementById('mesinSelect').options[document.getElementById('mesinSelect').selectedIndex].text;
-                    showMessage(`Data ${namaMesinTerpilih} berhasil dimuat.`, "success");
-                } else {
-                    const namaMesinTerpilih = document.getElementById('mesinSelect').options[document.getElementById('mesinSelect').selectedIndex].text;
-                    showMessage(`Tidak ada data untuk ${namaMesinTerpilih} pada tanggal ${selectedTanggal}.`, "warning");
-                }
+                const labels = [], v = [], i1 = [], i2 = [], i3 = [];
+                data.forEach(row => {
+                    const time = row.waktu_jakarta ? row.waktu_jakarta.split('T')[1].substring(0, 5) : '-';
+                    labels.push(time);
+                    v.push(row.voltage || 0);
+                    i1.push(row.current_i1 || 0);
+                    i2.push(row.current_i2 || 0);
+                    i3.push(row.current_i3 || 0);
+                });
 
                 voltageChart.data.labels = labels;
-                voltageChart.data.datasets[0].data = dataVoltage;
+                voltageChart.data.datasets[0].data = v;
                 voltageChart.update();
 
                 currentChart.data.labels = labels;
-                currentChart.data.datasets[0].data = dataI1;
-                currentChart.data.datasets[1].data = dataI2;
-                currentChart.data.datasets[2].data = dataI3;
+                currentChart.data.datasets[0].data = i1;
+                currentChart.data.datasets[1].data = i2;
+                currentChart.data.datasets[2].data = i3;
                 currentChart.update();
 
-            } catch (err) {
-                console.error("Supabase Error:", err);
-                if(err.message && err.message.includes('row-level security')) {
-                    showMessage("Akses ditolak oleh Supabase. Harap nonaktifkan RLS (Row Level Security) di tabel energi_db.", "error");
-                } else {
-                    showMessage("Gagal mengambil data: " + err.message, "error");
-                }
-            } finally {
-                btnTampilkan.disabled = false;
-                btnTampilkan.innerText = "Tampilkan Data / Refresh";
-            }
+                if (data.length > 0) showMessage(`Data ${daftarMesin[mId]} berhasil dimuat.`, "success");
+                else showMessage(`Tidak ada data pada tanggal ${tgl}.`, "warning");
+
+            } catch (err) { showMessage("Gagal: " + err.message, "error"); }
+            finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-sync-alt"></i> REFRESH DATA'; }
         }
 
-        window.onload = () => {
-            fetchData();
-        };
+        window.onload = () => { fetchData(); };
     </script>
 </body>
 </html>
