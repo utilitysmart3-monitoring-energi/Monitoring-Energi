@@ -443,6 +443,66 @@
             mqttClient.send(message);
         }
 
+        // Fungsi efek Visual Alarm (Lampu Indikator Berkedip di Layar)
+        function playVisualAlarm() {
+            if(document.getElementById('visualAlarmOverlay')) return;
+
+            const overlay = document.createElement('div');
+            overlay.id = 'visualAlarmOverlay';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'; // Merah transparan
+            overlay.style.boxShadow = 'inset 0 0 150px rgba(239, 68, 68, 0.9)'; // Efek glowing di pinggir layar
+            overlay.style.zIndex = '9999';
+            overlay.style.pointerEvents = 'none';
+            overlay.style.display = 'none';
+            document.body.appendChild(overlay);
+
+            let phase = 1;
+            let beepCount = 0;
+            let isBlinkOn = false;
+            let startTime = Date.now();
+            const DURATION = 60000; // 1 Menit
+
+            const SLOW_ON = 600;
+            const SLOW_OFF = 400;
+            const FAST_INTERVAL = 80;
+
+            function blink() {
+                if (Date.now() - startTime >= DURATION) {
+                    if (document.getElementById('visualAlarmOverlay')) {
+                        document.getElementById('visualAlarmOverlay').remove();
+                    }
+                    return;
+                }
+
+                if (phase === 1) {
+                    if (isBlinkOn) {
+                        overlay.style.display = 'none';
+                        isBlinkOn = false;
+                        setTimeout(blink, SLOW_OFF);
+                        beepCount++;
+                        if (beepCount >= 3) {
+                            phase = 2; // Pindah ke fase cepat
+                        }
+                    } else {
+                        overlay.style.display = 'block';
+                        isBlinkOn = true;
+                        setTimeout(blink, SLOW_ON);
+                    }
+                } else if (phase === 2) {
+                    isBlinkOn = !isBlinkOn;
+                    overlay.style.display = isBlinkOn ? 'block' : 'none';
+                    setTimeout(blink, FAST_INTERVAL);
+                }
+            }
+            
+            blink();
+        }
+
         const machineNames = {
             1: "UNKNOWN", 2: "UNKNOWN", 3: "UNKNOWN", 4: "UNKNOWN",
             5: "MESIN 41", 6: "MESIN 40", 7: "MESIN 39", 8: "UNKNOWN",
@@ -522,6 +582,8 @@
                         </tr>
                     `;
                 } else {
+                    let isAlarmTriggered = false; // Flag untuk mendeteksi adanya alarm
+
                     data.forEach((row, index) => {
                         const v = Number(row.voltage) || 0;
                         const name = machineNames[row.meter_id] || `Meter ID: ${row.meter_id}`;
@@ -545,6 +607,9 @@
                         // JIKA ADA ANOMALI, KIRIM DATA KE MQTT BROKER
                         if (statusAlarm !== '') {
                             publishMQTTAlarm(name, v.toFixed(1), statusAlarm, formattedTime);
+                            if (statusAlarm === 'OVER VOLTAGE') {
+                                isAlarmTriggered = true; // Tandai bahwa alarm terjadi
+                            }
                         }
 
                         const tr = document.createElement('tr');
@@ -557,6 +622,11 @@
                         `;
                         tableBody.appendChild(tr);
                     });
+
+                    // Mainkan visual alarm di layar web jika ada anomali over voltage
+                    if (isAlarmTriggered) {
+                        playVisualAlarm();
+                    }
                 }
 
             } catch (err) {
