@@ -321,6 +321,7 @@
 
         <!-- Konten Dashboard Grafik -->
         <div class="dashboard-wrapper">
+            <!-- 1. GRAFIK TEGANGAN -->
             <div class="chart-card">
                 <h3 class="chart-title"><i class="fas fa-bolt text-warning mr-2"></i> Trend Tegangan (V)</h3>
                 <div class="chart-container">
@@ -328,10 +329,27 @@
                 </div>
             </div>
 
+            <!-- 2. GRAFIK ARUS R -->
             <div class="chart-card">
-                <h3 class="chart-title"><i class="fas fa-wave-square text-primary mr-2"></i> Arus 3-Phase (A)</h3>
+                <h3 class="chart-title"><i class="fas fa-wave-square text-primary mr-2"></i> Arus Phase R (A)</h3>
                 <div class="chart-container">
-                    <canvas id="currentChart"></canvas>
+                    <canvas id="currentRChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. GRAFIK ARUS S -->
+            <div class="chart-card">
+                <h3 class="chart-title"><i class="fas fa-wave-square text-primary mr-2"></i> Arus Phase S (A)</h3>
+                <div class="chart-container">
+                    <canvas id="currentSChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 4. GRAFIK ARUS T -->
+            <div class="chart-card">
+                <h3 class="chart-title"><i class="fas fa-wave-square text-primary mr-2"></i> Arus Phase T (A)</h3>
+                <div class="chart-container">
+                    <canvas id="currentTChart"></canvas>
                 </div>
             </div>
         </div>
@@ -373,6 +391,15 @@
         document.getElementById('tanggalSelect').value = today;
 
         Chart.defaults.font.family = "'Poppins', sans-serif";
+        
+        // Setup Opsi Default untuk Semua Grafik Arus
+        const currentChartOptions = {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } } }
+        };
+
+        // 1. Inisialisasi Grafik Tegangan
         const ctxV = document.getElementById('voltageChart').getContext('2d');
         let voltageChart = new Chart(ctxV, {
             type: 'line',
@@ -387,19 +414,28 @@
             }
         });
 
-        const ctxC = document.getElementById('currentChart').getContext('2d');
-        let currentChart = new Chart(ctxC, {
+        // 2. Inisialisasi Grafik Arus R
+        const ctxR = document.getElementById('currentRChart').getContext('2d');
+        let currentRChart = new Chart(ctxR, {
             type: 'line',
-            data: { labels: [], datasets: [
-                { label: 'Phase R (A)', data: [], borderColor: '#23637e', borderWidth: 2.5, tension: 0.3, pointRadius: 0 },
-                { label: 'Phase S (A)', data: [], borderColor: '#2b6c8a', borderWidth: 2.5, tension: 0.3, pointRadius: 0 },
-                { label: 'Phase T (A)', data: [], borderColor: '#cc9b28', borderWidth: 2.5, tension: 0.3, pointRadius: 0 }
-            ]},
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { size: 10 } } } },
-                scales: { y: { beginAtZero: true }, x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } } }
-            }
+            data: { labels: [], datasets: [{ label: 'Phase R (A)', data: [], borderColor: '#23637e', borderWidth: 2.5, tension: 0.3, pointRadius: 0 }] },
+            options: currentChartOptions
+        });
+
+        // 3. Inisialisasi Grafik Arus S
+        const ctxS = document.getElementById('currentSChart').getContext('2d');
+        let currentSChart = new Chart(ctxS, {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Phase S (A)', data: [], borderColor: '#2b6c8a', borderWidth: 2.5, tension: 0.3, pointRadius: 0 }] },
+            options: currentChartOptions
+        });
+
+        // 4. Inisialisasi Grafik Arus T
+        const ctxT = document.getElementById('currentTChart').getContext('2d');
+        let currentTChart = new Chart(ctxT, {
+            type: 'line',
+            data: { labels: [], datasets: [{ label: 'Phase T (A)', data: [], borderColor: '#cc9b28', borderWidth: 2.5, tension: 0.3, pointRadius: 0 }] },
+            options: currentChartOptions
         });
 
         async function fetchData() {
@@ -435,15 +471,25 @@
                     i3.push(row.current_i3 || 0);
                 });
 
+                // Update Grafik Tegangan
                 voltageChart.data.labels = labels;
                 voltageChart.data.datasets[0].data = v;
                 voltageChart.update();
 
-                currentChart.data.labels = labels;
-                currentChart.data.datasets[0].data = i1;
-                currentChart.data.datasets[1].data = i2;
-                currentChart.data.datasets[2].data = i3;
-                currentChart.update();
+                // Update Grafik Arus R
+                currentRChart.data.labels = labels;
+                currentRChart.data.datasets[0].data = i1;
+                currentRChart.update();
+
+                // Update Grafik Arus S
+                currentSChart.data.labels = labels;
+                currentSChart.data.datasets[0].data = i2;
+                currentSChart.update();
+
+                // Update Grafik Arus T
+                currentTChart.data.labels = labels;
+                currentTChart.data.datasets[0].data = i3;
+                currentTChart.update();
 
                 if (data.length > 0) showMessage(`Data ${daftarMesin[mId]} berhasil dimuat.`, "success");
                 else showMessage(`Tidak ada data pada tanggal ${tgl}.`, "warning");
