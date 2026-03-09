@@ -414,11 +414,11 @@
 
                     <!-- KANAN: GAUGE CONTAINER BERTINGKAT -->
                     <div class="d-flex flex-column align-items-center justify-content-center" style="width: 68%;">
-                        <!-- ATAS: GAUGE VOLTAGE (Tinggi disusutkan menjadi 85px) -->
-                        <div id="gauge-v-${i}" style="width: 100%; height: 85px;"></div>
+                        <!-- ATAS: GAUGE VOLTAGE (Tinggi ditambah agar teks V tidak terpotong) -->
+                        <div id="gauge-v-${i}" style="width: 100%; height: 95px;"></div>
                         
-                        <!-- GARIS PEMBATAS HORIZONTAL TEGANGAN & ARUS -->
-                        <div style="width: 95%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0;"></div>
+                        <!-- GARIS PEMBATAS HORIZONTAL TEGANGAN & ARUS (Margin atas ditambah) -->
+                        <div style="width: 95%; height: 1px; background: rgba(255,255,255,0.3); margin: 8px 0 4px 0;"></div>
                         
                         <!-- BAWAH: 3 GAUGE CURRENT (A1, A2, A3) - (Tinggi disusutkan menjadi 55px) -->
                         <div class="d-flex justify-content-between w-100 mt-1">
@@ -496,8 +496,8 @@
                         type: 'gauge',
                         startAngle: 195, // Sudut diperlebar agar angka punya ruang horizontal lebih luas
                         endAngle: -15,   // Sudut diperlebar
-                        center: ['50%', '85%'], // Poros diturunkan ke bawah agar tidak terpotong saat radius dibesarkan
-                        radius: '145%',  // Ukuran lingkar diperbesar agar tidak menyempit di tengah
+                        center: ['50%', '65%'], // [DIPERBAIKI] Diturunkan agar bagian atas busur tidak terpotong
+                        radius: '110%',  // [DIPERBAIKI] Diperkecil sedikit agar pas 100% di dalam kotak 95px
                         min: 0,
                         max: 600, 
                         splitNumber: 3, 
@@ -515,13 +515,13 @@
                             lineStyle: { color: '#ffffff', width: 2.5 }
                         },
                         axisLabel: { 
-                            distance: 12, // Diberi jarak yang pas dari garis centang meteran
+                            distance: 10, // Disesuaikan agar tetap rapi
                             color: '#ffffff', 
                             fontSize: 10, 
                             fontWeight: 'bold' 
                         },
                         pointer: { 
-                            length: '60%', 
+                            length: '55%', // Diperpendek sedikit agar proporsional dengan radius baru
                             width: 3.5, 
                             itemStyle: { color: '#ffc107', shadowBlur: 3, shadowColor: 'rgba(0,0,0,0.5)' } 
                         },
@@ -538,7 +538,7 @@
                             color: '#ffffff', 
                             fontSize: 13, 
                             fontWeight: '900', 
-                            offsetCenter: [0, '15%'], // Angka tegangan utama diletakkan pas agar tidak menabrak label atas
+                            offsetCenter: [0, '45%'], // [DIPERBAIKI] Teks V diturunkan agar tidak mepet dengan poros tengah
                             textShadowBlur: 2, 
                             textShadowColor: 'rgba(0,0,0,0.3)' 
                         },
