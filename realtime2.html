@@ -488,42 +488,40 @@
             machineGauges[i] = {}; 
             
             const domV = document.getElementById(`gauge-v-${i}`);
-            if (domV && domV.clientWidth > 0) {
+            // HAPUS syarat "domV.clientWidth > 0" karena memblokir render saat delay jaringan
+            if (domV) {
                 machineGauges[i].v = echarts.init(domV);
                 machineGauges[i].v.setOption({
                     series: [{
                         type: 'gauge',
-                        startAngle: 180, 
-                        endAngle: 0,     
-                        // [REVISI] Poros ditarik sedikit ke atas agar sisi melengkung tidak mepet/terpotong atas div
-                        center: ['50%', '75%'], 
-                        // [REVISI] Radius dikecilkan ke 105% agar bentuk keseluruhan proporsional dan tidak menabrak
-                        radius: '105%',  
+                        startAngle: 195, // Sudut diperlebar agar angka punya ruang horizontal lebih luas
+                        endAngle: -15,   // Sudut diperlebar
+                        center: ['50%', '85%'], // Poros diturunkan ke bawah agar tidak terpotong saat radius dibesarkan
+                        radius: '145%',  // Ukuran lingkar diperbesar agar tidak menyempit di tengah
                         min: 0,
-                        max: 600, // Menyesuaikan batas maksimal menjadi 600
-                        splitNumber: 3, // Menggunakan 3 bagian (0, 200, 400, 600)
+                        max: 600, 
+                        splitNumber: 3, 
                         progress: { show: false }, 
                         axisLine: { lineStyle: { width: 0 } },
                         axisTick: { 
                             distance: 0, 
-                            length: 5, 
+                            length: 4, 
                             lineStyle: { color: '#82b1ff', width: 1.5 },
                             splitNumber: 5
                         },
                         splitLine: { 
                             distance: 0, 
-                            length: 10, 
+                            length: 8, 
                             lineStyle: { color: '#ffffff', width: 2.5 }
                         },
                         axisLabel: { 
-                            // [REVISI] Jarak angka dijauhkan dari garis busur sehingga tidak saling tindih (mepet)
-                            distance: 18, 
+                            distance: 12, // Diberi jarak yang pas dari garis centang meteran
                             color: '#ffffff', 
                             fontSize: 10, 
                             fontWeight: 'bold' 
                         },
                         pointer: { 
-                            length: '65%', 
+                            length: '60%', 
                             width: 3.5, 
                             itemStyle: { color: '#ffc107', shadowBlur: 3, shadowColor: 'rgba(0,0,0,0.5)' } 
                         },
@@ -540,7 +538,7 @@
                             color: '#ffffff', 
                             fontSize: 13, 
                             fontWeight: '900', 
-                            offsetCenter: [0, '25%'], 
+                            offsetCenter: [0, '15%'], // Angka tegangan utama diletakkan pas agar tidak menabrak label atas
                             textShadowBlur: 2, 
                             textShadowColor: 'rgba(0,0,0,0.3)' 
                         },
@@ -552,7 +550,7 @@
             // --- GAUGE ARUS I1, I2, I3 (RING STYLE) ---
             ['i1', 'i2', 'i3'].forEach(phase => {
                 const domI = document.getElementById(`gauge-${phase}-${i}`);
-                if (domI && domI.clientWidth > 0) {
+                if (domI) {
                     let titleLabel = phase.toUpperCase().replace('I', 'A'); 
                     machineGauges[i][phase] = echarts.init(domI);
                     machineGauges[i][phase].setOption(getMiniGaugeOption(100, titleLabel));
@@ -593,7 +591,19 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => { initMachineGauges(); }, 100);
+        // [PERBAIKAN PENTING]: Beri jeda 300ms agar browser selesai menggambar grid
+        setTimeout(() => { initMachineGauges(); }, 300);
+        
+        // Failsafe cadangan jika browser sedikit lag
+        setTimeout(() => {
+            Object.values(machineGauges).forEach(charts => {
+                if (charts.v) charts.v.resize();
+                if (charts.i1) charts.i1.resize();
+                if (charts.i2) charts.i2.resize();
+                if (charts.i3) charts.i3.resize();
+            });
+        }, 1000);
+
         window.addEventListener('resize', () => {
             Object.values(machineGauges).forEach(charts => {
                 if (charts.v) charts.v.resize();
