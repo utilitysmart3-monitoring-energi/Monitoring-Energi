@@ -214,11 +214,12 @@
             width: 100%; 
             cursor: pointer; 
             overflow: hidden; 
+            border: none; /* Disesuaikan agar solid tanpa bingkai berlebih */
         }
         .btn-machine:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); filter: brightness(1.05); }
         .scanning-active { box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.8), 0 8px 16px rgba(255, 193, 7, 0.3) !important; transform: scale(1.02); z-index: 10; border: none !important;}
 
-        /* --- WARNA STATUS (SOLID & KALEM SESUAI PALET) --- */
+        /* --- WARNA STATUS (SOLID & KALEM SESUAI PALET ANDA) --- */
         .bg-waiting { background-color: #7f8fa6; border: 2px solid #718093; }
         .bg-offline { background-color: #c0392b; border: 2px solid #a93226; }
         .bg-standby { background-color: #2980b9; border: 2px solid #2471a3; animation: glow-blue 3s infinite; }
@@ -227,7 +228,7 @@
         @keyframes glow-blue { 0% { box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3); } 50% { box-shadow: 0 4px 20px rgba(41, 128, 185, 0.6); } 100% { box-shadow: 0 4px 10px rgba(41, 128, 185, 0.3); } }
         @keyframes glow-green { 0% { box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); } 50% { box-shadow: 0 4px 20px rgba(39, 174, 96, 0.6); } 100% { box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3); } }
         
-        /* Font Disesuaikan agar tidak terlalu tebal (font-weight dirubah ke 600 dan 700) */
+        /* Font Disesuaikan agar tidak terlalu tebal (font-weight: 600 untuk nama, 700 untuk badge) */
         .card-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 5px; padding: 0 5px; }
         .machine-name { font-weight: 600; font-size: 0.9rem; margin-bottom: 0; text-align: left; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .status-badge-mini { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; padding: 0; background: transparent; color: #ffffff; border: none; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
@@ -245,7 +246,7 @@
         .param-value { font-family: 'Consolas', monospace; font-weight: bold; font-size: 0.95rem; }
         
         /* =======================================================
-           BREAKPOINTS (DIKEMBALIKAN KE 4 KOLOM UNTUK TV/LAYAR LEBAR)
+           BREAKPOINTS (DIPERBAIKI 4 KOLOM DI TV/LAYAR LEBAR SEPERTI ASLINYA)
            ======================================================= */
         
         /* Tablet -> 2 Kolom */
@@ -257,13 +258,13 @@
             .container { max-width: 100% !important; padding: 0 15px; }
         }
         
-        /* Laptop Standar -> 3 Kolom */
+        /* Laptop Kecil -> 3 Kolom */
         @media (min-width: 1024px) { 
             .machine-grid { grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; } 
             .container { max-width: 98% !important; padding: 0 20px; } 
         }
 
-        /* TV / Layar Lebar -> 4 Kolom (Tetap Lega dan Persegi Panjang) */
+        /* TV / Layar Lebar -> 4 KOLOM (AGAR MELEBAR/PERSEGI PANJANG) */
         @media (min-width: 1440px) { 
             .machine-grid { 
                 grid-template-columns: repeat(4, 1fr); 
@@ -272,8 +273,8 @@
                 width: 100%; 
             } 
             .container { 
-                max-width: 98% !important; /* Kontainer diperlebar pol agar 4 kartu tidak menyempit */
-                padding: 0 20px !important; 
+                max-width: 98% !important; /* Diperlebar agar tidak menyempit ke tengah */
+                padding: 0 30px !important; 
             } 
             .btn-machine { 
                 padding: 12px 15px; 
@@ -403,18 +404,18 @@
                 </div>
                 <div class="d-flex w-100 align-items-center justify-content-between">
                     
-                    <!-- KIRI: GAMBAR SCHNEIDER (Tinggi dikurangi supaya pas) -->
+                    <!-- KIRI: GAMBAR SCHNEIDER (Lebar dan Tinggi dibesarkan) -->
                     <div style="width: 25%; display: flex; justify-content: center; align-items: center;">
-                        <img src="power_meter.png" alt="Meter" style="max-width: 100%; height: 85px; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2));">
+                        <img src="power_meter.png" alt="Meter" style="max-width: 100%; height: 110px; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2));">
                     </div>
 
-                    <!-- GARIS PEMISAH TENGAH (Tinggi disusutkan agar kartu tidak melar ke bawah) -->
-                    <div style="width: 1px; height: 130px; background: rgba(255,255,255,0.2); margin: 0 10px;"></div>
+                    <!-- GARIS PEMISAH TENGAH -->
+                    <div style="width: 1px; height: 145px; background: rgba(255,255,255,0.2); margin: 0 10px;"></div>
 
                     <!-- KANAN: GAUGE CONTAINER BERTINGKAT -->
                     <div class="d-flex flex-column align-items-center justify-content-center" style="width: 70%;">
-                        <!-- ATAS: GAUGE VOLTAGE (Tinggi disusutkan) -->
-                        <div id="gauge-v-${i}" style="width: 100%; height: 90px;"></div>
+                        <!-- ATAS: GAUGE VOLTAGE -->
+                        <div id="gauge-v-${i}" style="width: 100%; height: 95px;"></div>
                         
                         <!-- GARIS PEMBATAS HORIZONTAL TEGANGAN & ARUS -->
                         <div style="width: 95%; height: 1px; background: rgba(255,255,255,0.3); margin: 2px 0; border-radius: 1px;"></div>
@@ -434,7 +435,7 @@
     function determineStatus(voltage, current) {
         const v = Number(voltage) || 0;
         const c = Number(current) || 0;
-        // Kelas bg-offline, bg-standby, dll sekarang diatur lewat CSS agar lebih rapi
+        // Kelas bg-offline, bg-standby, dll diatur lewat CSS agar rapi (Warna Kalem)
         if (v === 0 && c === 0) return { text: 'OFFLINE', colorClass: 'bg-offline', modalColor: 'linear-gradient(145deg, #c0392b, #a93226)' };
         if (v > 0 && c === 0) return { text: 'STANDBY', colorClass: 'bg-standby', modalColor: 'linear-gradient(145deg, #2980b9, #2471a3)' };
         if (v > 0 && c > 0) return { text: 'RUNNING', colorClass: 'bg-running', modalColor: 'linear-gradient(145deg, #27ae60, #1e8449)' };
@@ -457,14 +458,14 @@
         detailModal.show();
     }
 
-    // --- FUNGSI GAUGE MINI UNTUK ARUS (TETAP MODERN RING) ---
+    // --- FUNGSI GAUGE MINI UNTUK ARUS ---
     function getMiniGaugeOption(maxVal, titleText) {
         return {
             series: [{
                 type: 'gauge',
                 startAngle: 210,
                 endAngle: -30,
-                center: ['50%', '65%'],  // Disesuaikan dengan tinggi baru 60px
+                center: ['50%', '65%'],  // Disesuaikan tinggi baru
                 radius: '100%', 
                 min: 0,
                 max: maxVal,
@@ -494,9 +495,8 @@
                         type: 'gauge',
                         startAngle: 180, 
                         endAngle: 0,     
-                        // Titik poros diatur agar melengkung manis menggunakan lebar persegi panjang secara maksimal
-                        center: ['50%', '78%'], 
-                        radius: '135%',  // Radius dibesarkan sangat mantap
+                        center: ['50%', '70%'], // Disesuaikan agar angka lega
+                        radius: '100%',  
                         min: 0,
                         max: 400,
                         splitNumber: 4,
@@ -514,20 +514,20 @@
                             lineStyle: { color: '#ffffff', width: 2.5 }
                         },
                         axisLabel: { 
-                            distance: 10, 
+                            distance: 10, // Jarak angka disesuaikan agar pas
                             color: '#ffffff', 
-                            fontSize: 8, // Font tetap kecil agar tidak numpuk
+                            fontSize: 8, // UKURAN FONT SANGAT DIKECILKAN AGAR TIDAK MENUMPUK
                             fontWeight: 'bold' 
                         },
                         pointer: { 
-                            length: '48%', // Jarum sedikit dipendekkan agar terbebas sepenuhnya dari angka
+                            length: '45%', // JARUM LEBIH DIPENDEKKAN agar tidak nabrak angka pinggir
                             width: 3.5, 
                             itemStyle: { color: '#ffc107', shadowBlur: 3, shadowColor: 'rgba(0,0,0,0.5)' } 
                         },
                         anchor: { 
                             show: true, 
                             showAbove: true, 
-                            size: 6, 
+                            size: 6, // Poros dikecilkan
                             itemStyle: { color: '#ffc107', borderWidth: 0 }
                         },
                         title: { show: false },
@@ -537,7 +537,7 @@
                             color: '#ffffff', 
                             fontSize: 13, 
                             fontWeight: '900', 
-                            offsetCenter: [0, '25%'], 
+                            offsetCenter: [0, '35%'], // TEKS DIGESER KE BAWAH agar lega
                             textShadowBlur: 2, 
                             textShadowColor: 'rgba(0,0,0,0.3)' 
                         },
