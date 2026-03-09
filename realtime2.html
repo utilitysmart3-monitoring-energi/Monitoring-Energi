@@ -398,33 +398,33 @@
         let displayName = machineNames[i]; 
         btnContainer.innerHTML += `
             <button id="btn-machine-${i}" class="btn-machine bg-waiting" onclick="showDetail(${i})">
-                <div class="card-top-row border-bottom pb-1 mb-2" style="border-bottom-color: rgba(255,255,255,0.2) !important;">
+                <div class="card-top-row border-bottom pb-1 mb-1" style="border-bottom-color: rgba(255,255,255,0.2) !important;">
                     <span class="machine-name text-start">${displayName}</span>
                     <span id="grid-status-${i}" class="status-badge-mini">WAITING</span>
                 </div>
                 <div class="d-flex w-100 align-items-center justify-content-between">
                     
-                    <!-- KIRI: GAMBAR SCHNEIDER (Lebar dan Tinggi dibesarkan) -->
-                    <div style="width: 25%; display: flex; justify-content: center; align-items: center;">
-                        <img src="power_meter.png" alt="Meter" style="max-width: 100%; height: 110px; object-fit: contain; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2));">
+                    <!-- KIRI: GAMBAR SCHNEIDER (Tinggi dikontrol ketat agar kartu tetap PERSEGI PANJANG) -->
+                    <div style="width: 28%; display: flex; justify-content: center; align-items: center;">
+                        <img src="power_meter.png" alt="Meter" style="width: 100%; height: 110px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); transform: scale(1.1);">
                     </div>
 
                     <!-- GARIS PEMISAH TENGAH -->
-                    <div style="width: 1px; height: 145px; background: rgba(255,255,255,0.2); margin: 0 10px;"></div>
+                    <div style="width: 1px; height: 130px; background: rgba(255,255,255,0.2); margin: 0 10px;"></div>
 
                     <!-- KANAN: GAUGE CONTAINER BERTINGKAT -->
-                    <div class="d-flex flex-column align-items-center justify-content-center" style="width: 70%;">
-                        <!-- ATAS: GAUGE VOLTAGE -->
-                        <div id="gauge-v-${i}" style="width: 100%; height: 95px;"></div>
+                    <div class="d-flex flex-column align-items-center justify-content-center" style="width: 68%;">
+                        <!-- ATAS: GAUGE VOLTAGE (Tinggi disusutkan menjadi 85px) -->
+                        <div id="gauge-v-${i}" style="width: 100%; height: 85px;"></div>
                         
                         <!-- GARIS PEMBATAS HORIZONTAL TEGANGAN & ARUS -->
-                        <div style="width: 95%; height: 1px; background: rgba(255,255,255,0.3); margin: 2px 0; border-radius: 1px;"></div>
+                        <div style="width: 95%; height: 1px; background: rgba(255,255,255,0.3); margin: 4px 0;"></div>
                         
-                        <!-- BAWAH: 3 GAUGE CURRENT (A1, A2, A3) -->
+                        <!-- BAWAH: 3 GAUGE CURRENT (A1, A2, A3) - (Tinggi disusutkan menjadi 55px) -->
                         <div class="d-flex justify-content-between w-100 mt-1">
-                            <div id="gauge-i1-${i}" style="width: 32%; height: 60px;"></div>
-                            <div id="gauge-i2-${i}" style="width: 32%; height: 60px;"></div>
-                            <div id="gauge-i3-${i}" style="width: 32%; height: 60px;"></div>
+                            <div id="gauge-i1-${i}" style="width: 32%; height: 55px;"></div>
+                            <div id="gauge-i2-${i}" style="width: 32%; height: 55px;"></div>
+                            <div id="gauge-i3-${i}" style="width: 32%; height: 55px;"></div>
                         </div>
                     </div>
                 </div>
@@ -465,24 +465,24 @@
                 type: 'gauge',
                 startAngle: 210,
                 endAngle: -30,
-                center: ['50%', '65%'],  // Disesuaikan tinggi baru
+                center: ['50%', '60%'],  // Disesuaikan agar posisinya center
                 radius: '100%', 
                 min: 0,
                 max: maxVal,
-                progress: { show: true, width: 4.5, itemStyle: { color: '#f1f2f6' } }, 
+                progress: { show: true, width: 4, itemStyle: { color: '#f1f2f6' } }, 
                 pointer: { show: false }, 
-                axisLine: { lineStyle: { width: 4.5, color: [[1, 'rgba(255,255,255,0.2)']] } },
+                axisLine: { lineStyle: { width: 4, color: [[1, 'rgba(255,255,255,0.2)']] } },
                 axisTick: { show: false }, 
                 splitLine: { show: false }, 
                 axisLabel: { show: false }, 
-                title: { show: true, offsetCenter: [0, '45%'], color: 'rgba(255,255,255,0.8)', fontSize: 9, fontWeight: 'bold', letterSpacing: 1 },
+                title: { show: true, offsetCenter: [0, '45%'], color: 'rgba(255,255,255,0.8)', fontSize: 8, fontWeight: 'bold', letterSpacing: 1 },
                 detail: { valueAnimation: true, formatter: '{value}A', color: '#f1f2f6', fontSize: 10, fontWeight: '800', offsetCenter: [0, '-10%'], textShadowBlur: 2, textShadowColor: 'rgba(0,0,0,0.1)' },
                 data: [{ value: 0, name: titleText }]
             }]
         };
     }
 
-    // --- SETUP GAUGE VOLTAGE (SEMI-CIRCLE SPEEDOMETER) ---
+    // --- SETUP GAUGE VOLTAGE (SEMI-CIRCLE SPEEDOMETER YNG DIJAMIN TIDAK NABRAK) ---
     function initMachineGauges() {
         for (let i = 1; i <= totalMesin; i++) {
             machineGauges[i] = {}; 
@@ -495,11 +495,13 @@
                         type: 'gauge',
                         startAngle: 180, 
                         endAngle: 0,     
-                        center: ['50%', '70%'], // Disesuaikan agar angka lega
-                        radius: '100%',  
+                        // [REVISI] Poros ditarik sedikit ke atas agar sisi melengkung tidak mepet/terpotong atas div
+                        center: ['50%', '75%'], 
+                        // [REVISI] Radius dikecilkan ke 105% agar bentuk keseluruhan proporsional dan tidak menabrak
+                        radius: '105%',  
                         min: 0,
-                        max: 400,
-                        splitNumber: 4,
+                        max: 600, // Menyesuaikan batas maksimal menjadi 600
+                        splitNumber: 3, // Menggunakan 3 bagian (0, 200, 400, 600)
                         progress: { show: false }, 
                         axisLine: { lineStyle: { width: 0 } },
                         axisTick: { 
@@ -514,20 +516,21 @@
                             lineStyle: { color: '#ffffff', width: 2.5 }
                         },
                         axisLabel: { 
-                            distance: 10, // Jarak angka disesuaikan agar pas
+                            // [REVISI] Jarak angka dijauhkan dari garis busur sehingga tidak saling tindih (mepet)
+                            distance: 18, 
                             color: '#ffffff', 
-                            fontSize: 8, // UKURAN FONT SANGAT DIKECILKAN AGAR TIDAK MENUMPUK
+                            fontSize: 10, 
                             fontWeight: 'bold' 
                         },
                         pointer: { 
-                            length: '45%', // JARUM LEBIH DIPENDEKKAN agar tidak nabrak angka pinggir
+                            length: '65%', 
                             width: 3.5, 
                             itemStyle: { color: '#ffc107', shadowBlur: 3, shadowColor: 'rgba(0,0,0,0.5)' } 
                         },
                         anchor: { 
                             show: true, 
                             showAbove: true, 
-                            size: 6, // Poros dikecilkan
+                            size: 6, 
                             itemStyle: { color: '#ffc107', borderWidth: 0 }
                         },
                         title: { show: false },
@@ -537,7 +540,7 @@
                             color: '#ffffff', 
                             fontSize: 13, 
                             fontWeight: '900', 
-                            offsetCenter: [0, '35%'], // TEKS DIGESER KE BAWAH agar lega
+                            offsetCenter: [0, '25%'], 
                             textShadowBlur: 2, 
                             textShadowColor: 'rgba(0,0,0,0.3)' 
                         },
