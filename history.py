@@ -58,7 +58,8 @@ def decode_int32(registers):
 
 def safe_read(client, address, count, slave_id, decode_func, default_val):
     try:
-        r = client.read_holding_registers(address=address, count=count, unit=slave_id)
+        # Perubahan Pymodbus v3.x: 'unit' diganti menjadi 'slave'
+        r = client.read_holding_registers(address=address, count=count, slave=slave_id)
         if not r.isError(): return decode_func(r.registers)
     except: pass
     return default_val
@@ -74,7 +75,8 @@ def get_full_data(client, slave_id):
     is_online = False
     for attempt in range(2):
         try:
-            r = client.read_holding_registers(address=3019, count=2, unit=slave_id)
+            # Perubahan Pymodbus v3.x: 'unit' diganti menjadi 'slave'
+            r = client.read_holding_registers(address=3019, count=2, slave=slave_id)
             if not r.isError():
                 data['voltage'] = decode_float(r.registers)
                 is_online = True
@@ -87,7 +89,8 @@ def get_full_data(client, slave_id):
 
     # 2. Current I1, I2, I3
     try:
-        r = client.read_holding_registers(address=2999, count=6, unit=slave_id)
+        # Perubahan Pymodbus v3.x: 'unit' diganti menjadi 'slave'
+        r = client.read_holding_registers(address=2999, count=6, slave=slave_id)
         if not r.isError():
             data['current_i1'] = decode_float(r.registers[0:2])
             data['current_i2'] = decode_float(r.registers[2:4])
