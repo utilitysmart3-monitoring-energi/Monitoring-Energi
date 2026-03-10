@@ -4,8 +4,10 @@ import json
 import struct
 import math
 import paho.mqtt.client as mqtt
-from pymodbus.client.sync import ModbusTcpClient
-from pymodbus.transaction import ModbusRtuFramer
+
+# 🔥 FIX UNTUK PYMODBUS VERSI BARU (v3.x) 🔥
+from pymodbus.client import ModbusTcpClient
+from pymodbus.framer.rtu_framer import ModbusRtuFramer
 from supabase import create_client, Client
 
 # ==============================================================================
