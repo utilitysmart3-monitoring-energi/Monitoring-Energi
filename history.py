@@ -5,9 +5,9 @@ import struct
 import math
 import paho.mqtt.client as mqtt
 
-# 🔥 FIX UNTUK PYMODBUS VERSI BARU (v3.x) 🔥
+# 🔥 FIX UNTUK PYMODBUS VERSI BARU (v3.12.x) 🔥
 from pymodbus.client import ModbusTcpClient
-from pymodbus.framer.rtu_framer import ModbusRtuFramer
+from pymodbus.framer import FramerType
 from supabase import create_client, Client
 
 # ==============================================================================
@@ -129,7 +129,7 @@ def get_full_data(client, slave_id):
 
 def modbus_mqtt_worker():
     print("🚀 [REALTIME ENGINE] Mulai membaca Modbus...")
-    modbus_client = ModbusTcpClient(IP_USR, port=PORT, framer=ModbusRtuFramer, timeout=5)
+    modbus_client = ModbusTcpClient(IP_USR, port=PORT, framer=FramerType.RTU, timeout=5)
     
     try:
         mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, f"Publisher_{time.time()}")
