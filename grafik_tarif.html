@@ -152,7 +152,7 @@
             display: flex;
             flex-direction: column;
             flex: 1;
-            min-width: 220px;
+            min-width: 200px;
         }
 
         .filter-group label {
@@ -282,7 +282,7 @@
     <!-- MAIN CONTENT WRAPPER -->
     <div style="width: 100%; display: flex; flex-direction: column; align-items: center; padding: 0 20px;">
         
-        <!-- Filter Data Tanggal (BLOK SOLID) -->
+        <!-- Filter Data Tanggal & Sorting (BLOK SOLID) -->
         <div class="filter-container">
             <div class="filter-group">
                 <label>Tanggal Mulai</label>
@@ -372,6 +372,7 @@
 
         let kwhChartInstance = null;
         let rpChartInstance = null;
+        let currentDataList = []; // Menyimpan data murni sebelum disorting/di-render
 
         // ==========================================
         // INISIALISASI KEDUA CHART AWAL
@@ -458,6 +459,37 @@
         }
 
         // ==========================================
+        // FUNGSI SORTING & UPDATE CHART
+        // ==========================================
+        function applySortAndUpdateCharts() {
+            if (currentDataList.length === 0) return;
+
+            // Copy array agar urutan aslinya tidak hilang
+            let dataToSort = [...currentDataList];
+
+            // Selalu urutkan dari total kWh terkecil ke terbesar
+            dataToSort.sort((a, b) => a.total_kwh - b.total_kwh);
+
+            const chartLabels = dataToSort.map(item => item.name);
+            const chartDataT1_Kwh = dataToSort.map(item => item.t1_kwh);
+            const chartDataT2_Kwh = dataToSort.map(item => item.t2_kwh);
+            const chartDataT1_Rp = dataToSort.map(item => item.t1_rp);
+            const chartDataT2_Rp = dataToSort.map(item => item.t2_rp);
+
+            // Update Chart KWH
+            kwhChartInstance.data.labels = chartLabels;
+            kwhChartInstance.data.datasets[0].data = chartDataT1_Kwh;
+            kwhChartInstance.data.datasets[1].data = chartDataT2_Kwh;
+            kwhChartInstance.update();
+
+            // Update Chart RP
+            rpChartInstance.data.labels = chartLabels;
+            rpChartInstance.data.datasets[0].data = chartDataT1_Rp;
+            rpChartInstance.data.datasets[1].data = chartDataT2_Rp;
+            rpChartInstance.update();
+        }
+
+        // ==========================================
         // FUNGSI TARIK DATA
         // ==========================================
         async function fetchData() {
@@ -502,11 +534,7 @@
 
                 if (rpcError) throw rpcError;
 
-                const chartLabels = [];
-                const chartDataT1_Kwh = [];
-                const chartDataT2_Kwh = [];
-                const chartDataT1_Rp = [];
-                const chartDataT2_Rp = [];
+                currentDataList = []; // Reset array data saat narik ulang
 
                 for (let i = 1; i <= 18; i++) {
                     const rpcRow = rpcData ? rpcData.find(d => d.meter_id === i) : null;
@@ -514,32 +542,27 @@
                     
                     const lwbp_val = rpcRow ? (rpcRow.delta_t1 || 0) : 0; 
                     const wbp_val = rpcRow ? (rpcRow.delta_t2 || 0) : 0;  
+                    const total_kwh = lwbp_val + wbp_val; // Untuk keperluan sorting
                     
                     const costLWBP = lwbp_val * TARIF_LWBP; 
                     const costWBP = wbp_val * TARIF_WBP;   
 
                     if (name !== "UNKNOWN") {
-                        chartLabels.push(name);
-                        
-                        chartDataT1_Kwh.push(lwbp_val);
-                        chartDataT2_Kwh.push(wbp_val);
-
-                        chartDataT1_Rp.push(costLWBP);
-                        chartDataT2_Rp.push(costWBP);
+                        currentDataList.push({
+                            name: name,
+                            t1_kwh: lwbp_val,
+                            t2_kwh: wbp_val,
+                            total_kwh: total_kwh,
+                            t1_rp: costLWBP,
+                            t2_rp: costWBP
+                        });
                     }
                 }
 
                 msgBox.classList.add('hidden');
-
-                kwhChartInstance.data.labels = chartLabels;
-                kwhChartInstance.data.datasets[0].data = chartDataT1_Kwh;
-                kwhChartInstance.data.datasets[1].data = chartDataT2_Kwh;
-                kwhChartInstance.update();
-
-                rpChartInstance.data.labels = chartLabels;
-                rpChartInstance.data.datasets[0].data = chartDataT1_Rp;
-                rpChartInstance.data.datasets[1].data = chartDataT2_Rp;
-                rpChartInstance.update();
+                
+                // Panggil fungsi render yang akan menyortir data sebelum dimasukkan ke chart
+                applySortAndUpdateCharts();
 
             } catch (err) {
                 console.error("Supabase Error:", err);
