@@ -10,6 +10,10 @@
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Icon FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -258,7 +262,7 @@
         <button class="btn-menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu">
             <i class="fas fa-bars"></i>
         </button>
-        <h5 class="topbar-title">GRAFIK DATA</h5>
+        <h5 class="topbar-title">GRAFIK DATA MESIN</h5>
     </div>
 
     <!-- SIDEBAR NAVIGATION -->
@@ -324,6 +328,17 @@
             <!-- 1. GRAFIK TEGANGAN -->
             <div class="chart-card">
                 <h3 class="chart-title"><i class="fas fa-bolt text-warning mr-2"></i> Trend Tegangan (V)</h3>
+                
+                <!-- CONTAINER INFO MAX & MIN TEGANGAN -->
+                <div id="voltageStats" class="hidden justify-center gap-4 mb-3 text-sm">
+                    <div class="bg-green-100 text-green-700 px-3 py-1.5 rounded-md font-bold border border-green-200 shadow-sm">
+                        <i class="fas fa-arrow-up mr-1"></i> Tertinggi: <span id="maxVoltage">-</span> V
+                    </div>
+                    <div class="bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-bold border border-red-200 shadow-sm">
+                        <i class="fas fa-arrow-down mr-1"></i> Terendah: <span id="minVoltage">-</span> V
+                    </div>
+                </div>
+
                 <div class="chart-container">
                     <canvas id="voltageChart"></canvas>
                 </div>
@@ -332,6 +347,17 @@
             <!-- 2. GRAFIK ARUS R -->
             <div class="chart-card">
                 <h3 class="chart-title"><i class="fas fa-wave-square text-primary mr-2"></i> Arus Phase R (A)</h3>
+                
+                <!-- CONTAINER INFO MAX & MIN ARUS R -->
+                <div id="currentRStats" class="hidden justify-center gap-4 mb-3 text-sm">
+                    <div class="bg-green-100 text-green-700 px-3 py-1.5 rounded-md font-bold border border-green-200 shadow-sm">
+                        <i class="fas fa-arrow-up mr-1"></i> Tertinggi: <span id="maxCurrentR">-</span> A
+                    </div>
+                    <div class="bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-bold border border-red-200 shadow-sm">
+                        <i class="fas fa-arrow-down mr-1"></i> Terendah: <span id="minCurrentR">-</span> A
+                    </div>
+                </div>
+
                 <div class="chart-container">
                     <canvas id="currentRChart"></canvas>
                 </div>
@@ -340,6 +366,17 @@
             <!-- 3. GRAFIK ARUS S -->
             <div class="chart-card">
                 <h3 class="chart-title"><i class="fas fa-wave-square text-primary mr-2"></i> Arus Phase S (A)</h3>
+                
+                <!-- CONTAINER INFO MAX & MIN ARUS S -->
+                <div id="currentSStats" class="hidden justify-center gap-4 mb-3 text-sm">
+                    <div class="bg-green-100 text-green-700 px-3 py-1.5 rounded-md font-bold border border-green-200 shadow-sm">
+                        <i class="fas fa-arrow-up mr-1"></i> Tertinggi: <span id="maxCurrentS">-</span> A
+                    </div>
+                    <div class="bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-bold border border-red-200 shadow-sm">
+                        <i class="fas fa-arrow-down mr-1"></i> Terendah: <span id="minCurrentS">-</span> A
+                    </div>
+                </div>
+
                 <div class="chart-container">
                     <canvas id="currentSChart"></canvas>
                 </div>
@@ -348,6 +385,17 @@
             <!-- 4. GRAFIK ARUS T -->
             <div class="chart-card">
                 <h3 class="chart-title"><i class="fas fa-wave-square text-primary mr-2"></i> Arus Phase T (A)</h3>
+                
+                <!-- CONTAINER INFO MAX & MIN ARUS T -->
+                <div id="currentTStats" class="hidden justify-center gap-4 mb-3 text-sm">
+                    <div class="bg-green-100 text-green-700 px-3 py-1.5 rounded-md font-bold border border-green-200 shadow-sm">
+                        <i class="fas fa-arrow-up mr-1"></i> Tertinggi: <span id="maxCurrentT">-</span> A
+                    </div>
+                    <div class="bg-red-100 text-red-700 px-3 py-1.5 rounded-md font-bold border border-red-200 shadow-sm">
+                        <i class="fas fa-arrow-down mr-1"></i> Terendah: <span id="minCurrentT">-</span> A
+                    </div>
+                </div>
+
                 <div class="chart-container">
                     <canvas id="currentTChart"></canvas>
                 </div>
@@ -470,6 +518,59 @@
                     i2.push(row.current_i2 || 0);
                     i3.push(row.current_i3 || 0);
                 });
+
+                // Hitung dan Tampilkan Nilai Tegangan Tertinggi & Terendah
+                const statsContainer = document.getElementById('voltageStats');
+                const statsContainerR = document.getElementById('currentRStats');
+                const statsContainerS = document.getElementById('currentSStats');
+                const statsContainerT = document.getElementById('currentTStats');
+                
+                if (v.length > 0) {
+                    // Tegangan
+                    const maxV = Math.max(...v);
+                    const minV = Math.min(...v);
+                    document.getElementById('maxVoltage').innerText = maxV;
+                    document.getElementById('minVoltage').innerText = minV;
+                    
+                    statsContainer.classList.remove('hidden');
+                    statsContainer.classList.add('flex');
+
+                    // Arus R
+                    const maxI1 = Math.max(...i1);
+                    const minI1 = Math.min(...i1);
+                    document.getElementById('maxCurrentR').innerText = maxI1;
+                    document.getElementById('minCurrentR').innerText = minI1;
+                    
+                    statsContainerR.classList.remove('hidden');
+                    statsContainerR.classList.add('flex');
+
+                    // Arus S
+                    const maxI2 = Math.max(...i2);
+                    const minI2 = Math.min(...i2);
+                    document.getElementById('maxCurrentS').innerText = maxI2;
+                    document.getElementById('minCurrentS').innerText = minI2;
+                    
+                    statsContainerS.classList.remove('hidden');
+                    statsContainerS.classList.add('flex');
+
+                    // Arus T
+                    const maxI3 = Math.max(...i3);
+                    const minI3 = Math.min(...i3);
+                    document.getElementById('maxCurrentT').innerText = maxI3;
+                    document.getElementById('minCurrentT').innerText = minI3;
+                    
+                    statsContainerT.classList.remove('hidden');
+                    statsContainerT.classList.add('flex');
+                } else {
+                    statsContainer.classList.add('hidden');
+                    statsContainer.classList.remove('flex');
+                    statsContainerR.classList.add('hidden');
+                    statsContainerR.classList.remove('flex');
+                    statsContainerS.classList.add('hidden');
+                    statsContainerS.classList.remove('flex');
+                    statsContainerT.classList.add('hidden');
+                    statsContainerT.classList.remove('flex');
+                }
 
                 // Update Grafik Tegangan
                 voltageChart.data.labels = labels;
