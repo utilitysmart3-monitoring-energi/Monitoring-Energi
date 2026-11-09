@@ -1,9 +1,9 @@
 @echo off
-cd /d "C:\Mahasiswa ATMI-Monitoring Energi\Monitoring-Energi"
+cd /d "%~dp0"
 
 :ulangi
 echo [SISTEM] Menjalankan Master Engine SCADA...
-python history.py
+python engine\history.py
 
 echo [SISTEM] Program Crash atau Berhenti! Merestart dalam 5 detik...
 timeout /t 5 >nul
