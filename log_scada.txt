@@ -1,0 +1,309 @@
+==========================================================
+⚡ MEMULAI MASTER ENGINE (MODBUS + MQTT + SUPABASE) ⚡
+==========================================================
+🚀 [REALTIME ENGINE] Mulai membaca Modbus...
+🚀 [SUPABASE ENGINE] Mulai rutinitas rekam Tarif & Energi...
+✅ Terhubung ke MQTT Broker!
+✅ Supabase Terhubung!
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+
+==========================================================
+   SUPABASE LOGGER - 14:11:06
+==========================================================
+
+💾 Processing GROUP 1...
+1    | ✅ DB SAVED
+2    | ✅ DB SAVED
+3    | ✅ DB SAVED
+4    | ✅ DB SAVED
+5    | ⚠️ DATA NOT READY
+6    | ⚠️ DATA NOT READY
+⏳ Selesai GROUP 1. Tidur 5 Menit...
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+
+💾 Processing GROUP 2...
+7    | ✅ DB SAVED
+8    | ✅ DB SAVED
+9    | ✅ DB SAVED
+10   | ✅ DB SAVED
+11   | ✅ DB SAVED
+12   | ✅ DB SAVED
+⏳ Selesai GROUP 2. Tidur 5 Menit...
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+
+💾 Processing GROUP 3...
+13   | ✅ DB SAVED
+14   | ✅ DB SAVED
+15   | ✅ DB SAVED
+16   | ✅ DB SAVED
+17   | ✅ DB SAVED
+18   | ✅ DB SAVED
+⏳ Selesai GROUP 3. Tidur 5 Menit...
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+
+==========================================================
+   SUPABASE LOGGER - 14:26:08
+==========================================================
+
+💾 Processing GROUP 1...
+1    | ✅ DB SAVED
+2    | ✅ DB SAVED
+3    | ✅ DB SAVED
+4    | ✅ DB SAVED
+5    | ✅ DB SAVED
+6    | ✅ DB SAVED
+⏳ Selesai GROUP 1. Tidur 5 Menit...
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+📡 ID 6 -> MQTT Published
+📡 ID 7 -> MQTT Published
+📡 ID 8 -> MQTT Published
+📡 ID 9 -> MQTT Published
+📡 ID 10 -> MQTT Published
+📡 ID 11 -> MQTT Published
+📡 ID 12 -> MQTT Published
+📡 ID 13 -> MQTT Published
+📡 ID 14 -> MQTT Published
+📡 ID 15 -> MQTT Published
+📡 ID 16 -> MQTT Published
+📡 ID 17 -> MQTT Published
+📡 ID 18 -> MQTT Published
+📡 ID 1 -> MQTT Published
+📡 ID 2 -> MQTT Published
+📡 ID 3 -> MQTT Published
+📡 ID 4 -> MQTT Published
+📡 ID 5 -> MQTT Published
+^C
