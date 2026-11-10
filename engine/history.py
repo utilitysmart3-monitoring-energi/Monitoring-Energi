@@ -84,7 +84,7 @@ def get_full_data(client, slave_id):
     time.sleep(DELAY_RS485)
 
     try:
-        r = client.read_holding_registers(address=2999, count=6, device_id=slave_id)
+        r = client.read_holding_registers(address=2999, count=6, slave=slave_id)
         if hasattr(r, 'registers'):
             data['current_i1'] = decode_float(r.registers[0:2])
             data['current_i2'] = decode_float(r.registers[2:4])
