@@ -1,9 +1,15 @@
 @echo off
-cd /d "C:\Mahasiswa ATMI-Monitoring Energi\Monitoring-Energi"
+cd /d "%~dp0"
+
+if exist ".venv\Scripts\python.exe" (
+	set "PYTHON=.venv\Scripts\python.exe"
+) else (
+	set "PYTHON=python"
+)
 
 :ulangi
 echo [SISTEM] Menjalankan Master Engine SCADA...
-python history.py
+%PYTHON% engine\history.py
 
 echo [SISTEM] Program Crash atau Berhenti! Merestart dalam 5 detik...
 timeout /t 5 >nul

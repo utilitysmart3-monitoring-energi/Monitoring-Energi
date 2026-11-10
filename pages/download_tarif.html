@@ -14,8 +14,6 @@
     <!-- Icon FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Supabase JS -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <!-- SheetJS (Untuk fitur Download Excel) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -356,11 +354,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/api.js"></script>
 
     <script>
-        const SUPABASE_URL = 'https://awyohlizbltikpfanugb.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes'; 
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const formatNumber = (num) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num || 0);
         const formatCurrency = (num) => new Intl.NumberFormat('id-ID', { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num || 0);
@@ -396,19 +392,11 @@
             const endISO = `${endDate}T${endTime}:59+07:00`;
 
             try {
-                const { data: rpcData, error: rpcError } = await client.rpc('get_energy_report', { start_time: startISO, end_time: endISO });
-                if (rpcError) throw rpcError;
-                
-                const partialPromises = [];
-                for (let i = 1; i <= 18; i++) {
-                    partialPromises.push(client.from('energi_db').select('meter_id, partial_ea').eq('meter_id', i).not('partial_ea', 'is', null).order('waktu_jakarta', { ascending: false }).limit(1).single());
-                }
-
-                const partialResults = await Promise.allSettled(partialPromises);
-                const latestPartials = {};
-                partialResults.forEach((result, index) => {
-                    latestPartials[index + 1] = (result.status === 'fulfilled' && result.value.data) ? result.value.data.partial_ea : 0;
-                });
+                const rpcData = await apiGet('/api/energy/report', { start_time: startISO, end_time: endISO });
+                const partialResults = await apiGet('/api/energy/latest-partials');
+                const latestPartials = Object.fromEntries(
+                    partialResults.map((row) => [row.meter_id, row.partial_ea])
+                );
 
                 loadingStatus.classList.add('hidden');
                 let sumPartialEa = 0, sumT1 = 0, sumT2 = 0, sumTotalT1T2 = 0, sumCostPartial = 0, sumCostT1T2 = 0;
