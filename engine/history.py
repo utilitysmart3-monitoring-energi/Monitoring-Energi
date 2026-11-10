@@ -137,8 +137,9 @@ def modbus_mqtt_worker():
 
     while True:
         try: # 🔥 PERISAI ANTI-CRASH
+            # A stale socket can remain non-None after a gateway restart.
+            modbus_client.close()
             if not modbus_client.connect():
-                modbus_client.close()
                 print("⚠️ Reconnecting ke Gateway USR (192.168.7.8)...")
                 time.sleep(5)
                 continue
