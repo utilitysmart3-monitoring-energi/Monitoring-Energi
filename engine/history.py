@@ -11,7 +11,7 @@ import paho.mqtt.client as mqtt
 import psycopg
 from dotenv import load_dotenv
 
-# 🔥 FIX UNTUK PYMODBUS VERSI BARU (v3.12.x) 🔥
+# PyModbus 3.8 uses `slave` for the Modbus unit ID.
 from pymodbus.client import ModbusTcpClient
 from pymodbus.framer import FramerType
 
@@ -57,7 +57,7 @@ def decode_int32(registers):
 
 def safe_read(client, address, count, slave_id, decode_func, default_val):
     try:
-        r = client.read_holding_registers(address=address, count=count, device_id=slave_id)
+        r = client.read_holding_registers(address=address, count=count, slave=slave_id)
         if hasattr(r, 'isError') and not r.isError(): return decode_func(r.registers)
     except: pass
     return default_val
@@ -72,7 +72,7 @@ def get_full_data(client, slave_id):
     is_online = False
     for attempt in range(2):
         try:
-            r = client.read_holding_registers(address=3019, count=2, device_id=slave_id)
+            r = client.read_holding_registers(address=3019, count=2, slave=slave_id)
             if hasattr(r, 'registers'):
                 data['voltage'] = decode_float(r.registers)
                 is_online = True
