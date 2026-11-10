@@ -1,21 +1,26 @@
+import json
+import math
+import os
+import struct
+import sys
 import threading
 import time
-import json
-import struct
-import math
-import sys
+from pathlib import Path
+
 import paho.mqtt.client as mqtt
+import psycopg
+from dotenv import load_dotenv
 
 # 🔥 FIX UNTUK PYMODBUS VERSI BARU (v3.12.x) 🔥
 from pymodbus.client import ModbusTcpClient
 from pymodbus.framer import FramerType
-from supabase import create_client, Client
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(PROJECT_ROOT / ".env")
 
 # ==============================================================================
 # 🔧 KONFIGURASI GLOBAL
 # ==============================================================================
-SUPABASE_URL = "https://awyohlizbltikpfanugb.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes"
 
 IP_USR = '192.168.7.8'
 PORT = 26
@@ -161,18 +166,26 @@ def modbus_mqtt_worker():
             time.sleep(5) # Istirahat bentar sebelum ngulang lagi
 
 # ==============================================================================
-# 💾 WORKER 2: SUPABASE LOGGER
+# 💾 WORKER 2: POSTGRESQL LOGGER
 # ==============================================================================
-def supabase_worker():
-    print("🚀 [SUPABASE ENGINE] Mulai rutinitas rekam Tarif & Energi...")
-    
-    try:
-        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-        print("✅ Supabase Terhubung!")
-    except Exception as e:
-        print(f"❌ Gagal Init Supabase: {e}")
-        return
+def database_connection():
+    password = os.getenv("DATABASE_PASSWORD")
+    if not password:
+        raise RuntimeError("DATABASE_PASSWORD belum diatur di file .env")
 
+    return psycopg.connect(
+        host=os.getenv("DATABASE_HOST", "127.0.0.1"),
+        port=int(os.getenv("DATABASE_PORT", "5432")),
+        dbname=os.getenv("DATABASE_NAME", "energi_db"),
+        user=os.getenv("DATABASE_USER", "monitoring_app"),
+        password=password,
+        sslmode=os.getenv("DATABASE_SSLMODE", "prefer"),
+        connect_timeout=5,
+    )
+
+
+def postgres_worker():
+    print("🚀 [POSTGRESQL ENGINE] Mulai rutinitas rekam Tarif & Energi...")
     GROUPS = {
         "GROUP 1": list(range(1, 7)),
         "GROUP 2": list(range(7, 13)),
@@ -184,7 +197,7 @@ def supabase_worker():
     while True:
         try: # 🔥 PERISAI ANTI-CRASH
             print(f"\n==========================================================")
-            print(f"   SUPABASE LOGGER - {time.strftime('%H:%M:%S')}")
+            print(f"   POSTGRESQL LOGGER - {time.strftime('%H:%M:%S')}")
             print(f"==========================================================")
             
             current_time = time.time()
@@ -192,39 +205,51 @@ def supabase_worker():
             for group_name, ids in GROUPS.items():
                 print(f"\n💾 Processing {group_name}...")
 
-                for mid in ids:
-                    d = None
-                    with data_lock:
-                        if mid in LATEST_DATA:
-                            if current_time - LATEST_DATA[mid].get('last_update', current_time) > 120:
-                                del LATEST_DATA[mid] 
-                            else:
-                                d = LATEST_DATA[mid].copy() 
-                    
-                    if d:
-                        payload = {
-                            "meter_id": d['meter_id'],
-                            "partial_ea": d['partial_ea'],
-                            "tarif_t1": d['tarif_t1'],
-                            "tarif_t2": d['tarif_t2'],
-                            "voltage": d['voltage'],
-                            "current_i1": d['current_i1'],
-                            "current_i2": d['current_i2'],
-                            "current_i3": d['current_i3']
-                        }
-                        
-                        try:
-                            supabase.table("energi_db").insert(payload).execute()
-                            print(f"{mid:<4} | ✅ DB SAVED")
-                        except Exception as e:
-                            print(f"{mid:<4} | ❌ DB ERR: {e}")
-                    else:
-                        print(f"{mid:<4} | ⚠️ DATA NOT READY")
+                with database_connection() as connection:
+                    print("✅ PostgreSQL Terhubung!")
+                    for mid in ids:
+                        d = None
+                        with data_lock:
+                            if mid in LATEST_DATA:
+                                if current_time - LATEST_DATA[mid].get('last_update', current_time) > 120:
+                                    del LATEST_DATA[mid]
+                                else:
+                                    d = LATEST_DATA[mid].copy()
+
+                        if d:
+                            payload = (
+                                d['meter_id'],
+                                d['partial_ea'],
+                                d['tarif_t1'],
+                                d['tarif_t2'],
+                                d['voltage'],
+                                d['current_i1'],
+                                d['current_i2'],
+                                d['current_i3'],
+                            )
+
+                            try:
+                                connection.execute(
+                                    """
+                                    INSERT INTO public.energi_db (
+                                        meter_id, partial_ea, tarif_t1, tarif_t2,
+                                        voltage, current_i1, current_i2, current_i3
+                                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                    """,
+                                    payload,
+                                )
+                                connection.commit()
+                                print(f"{mid:<4} | ✅ DB SAVED")
+                            except psycopg.Error as e:
+                                connection.rollback()
+                                print(f"{mid:<4} | ❌ DB ERR: {e}")
+                        else:
+                            print(f"{mid:<4} | ⚠️ DATA NOT READY")
 
                 print(f"⏳ Selesai {group_name}. Tidur 5 Menit...")
                 time.sleep(300)
         except Exception as e:
-            print(f"⚠️ ERROR FATAL DI SUPABASE WORKER: {e}")
+            print(f"⚠️ ERROR FATAL DI POSTGRESQL WORKER: {e}")
             time.sleep(10)
 
 # ==============================================================================
@@ -232,13 +257,13 @@ def supabase_worker():
 # ==============================================================================
 if __name__ == "__main__":
     print("==========================================================")
-    print("⚡ MEMULAI MASTER ENGINE (MODBUS + MQTT + SUPABASE) ⚡")
+    print("⚡ MEMULAI MASTER ENGINE (MODBUS + MQTT + POSTGRESQL) ⚡")
     print("==========================================================")
     
     t1 = threading.Thread(target=modbus_mqtt_worker, daemon=True)
     t1.start()
 
-    t2 = threading.Thread(target=supabase_worker, daemon=True)
+    t2 = threading.Thread(target=postgres_worker, daemon=True)
     t2.start()
 
     try:
@@ -249,7 +274,7 @@ if __name__ == "__main__":
                 print("🚨🚨 FATAL ERROR: THREAD MODBUS MATI! MERESTART PROGRAM... 🚨🚨")
                 sys.exit(1) # Keluar dengan kode error (Biar .bat nendang ulang)
             if not t2.is_alive():
-                print("🚨🚨 FATAL ERROR: THREAD SUPABASE MATI! MERESTART PROGRAM... 🚨🚨")
+                print("🚨🚨 FATAL ERROR: THREAD POSTGRESQL MATI! MERESTART PROGRAM... 🚨🚨")
                 sys.exit(1)
 
     except KeyboardInterrupt:

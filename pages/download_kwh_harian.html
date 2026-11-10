@@ -12,9 +12,6 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Supabase JS -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-
     <style>
         :root {
             --bg-body: #525659;
@@ -384,12 +381,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/api.js"></script>
 
     <script>
-        const SUPABASE_URL = 'https://awyohlizbltikpfanugb.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3eW9obGl6Ymx0aWtwZmFudWdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAwNzE0MjMsImV4cCI6MjA4NTY0NzQyM30.t2WyNo8Th4I-8aMZIRdCT9icVGJrKdT9oCtN04IRTes'; 
-        const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
         const formatNumber = (num) => new Intl.NumberFormat('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(num || 0);
 
         const mappingMesin = [
@@ -422,16 +416,25 @@
             btn.disabled = true;
 
             try {
-                const promises = mappingMesin.map(async (m) => {
-                    const { data: dAwal } = await client.from('energi_db').select('tarif_t1, tarif_t2').eq('meter_id', m.meter_id).gte('waktu_jakarta', startISO).lte('waktu_jakarta', endISO).order('waktu_jakarta', { ascending: true }).limit(1).single();
-                    const { data: dAkhir } = await client.from('energi_db').select('tarif_t1, tarif_t2').eq('meter_id', m.meter_id).gte('waktu_jakarta', startISO).lte('waktu_jakarta', endISO).order('waktu_jakarta', { ascending: false }).limit(1).single();
-
-                    let sAwal = (dAwal?.tarif_t1 || 0) + (dAwal?.tarif_t2 || 0);
-                    let sAkhir = (dAkhir?.tarif_t1 || 0) + (dAkhir?.tarif_t2 || 0);
-                    return { rowId: m.row_id, awal: sAwal, akhir: sAkhir, total: Math.max(0, sAkhir - sAwal), hasData: !!(dAwal && dAkhir) };
+                const readings = await apiGet('/api/energy/window-readings', {
+                    meter_ids: mappingMesin.map((machine) => machine.meter_id).join(','),
+                    start_time: startISO,
+                    end_time: endISO
+                });
+                const readingsByMeter = new Map(readings.map((row) => [row.meter_id, row]));
+                const results = mappingMesin.map((machine) => {
+                    const row = readingsByMeter.get(machine.meter_id);
+                    const awal = row ? (row.first_t1 || 0) + (row.first_t2 || 0) : 0;
+                    const akhir = row ? (row.last_t1 || 0) + (row.last_t2 || 0) : 0;
+                    return {
+                        rowId: machine.row_id,
+                        awal,
+                        akhir,
+                        total: Math.max(0, akhir - awal),
+                        hasData: Boolean(row)
+                    };
                 });
 
-                const results = await Promise.all(promises);
                 results.forEach(res => {
                     const elAwal = document.getElementById(`awal-${res.rowId}`);
                     const elAkhir = document.getElementById(`akhir-${res.rowId}`);
